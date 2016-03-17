@@ -138,7 +138,7 @@ typedef struct Prim_s{
 
 #ifdef BKG
   Real db;
-  Real Eb;
+  Real Pb;
   Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
   Real B2cb;			/*!< cell centered magnetic fields in 2-dir*/
   Real B3cb;
@@ -202,7 +202,7 @@ typedef struct Prim1D_s{
 
 #ifdef BKG
   Real db;
-  Real Eb;
+  Real Pb;
   Real Byb;			/*!< cell centered magnetic fields in 1-dir*/
   Real Bzb;			/*!< cell centered magnetic fields in 2-dir*/
 #endif
