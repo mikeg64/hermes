@@ -1,0 +1,74 @@
+<comment>
+problem = MHD RT instability
+author  = J.M. Stone & T.A. Gardiner
+journal = Phys. FLuids, (2007)
+config  = --with-problem=rt --with-order=3 --with-flux=hlld --enable-mpi
+
+<job>
+problem_id   = rt          # problem ID: basename of output filenames
+maxout       = 4           # Output blocks number from 1 -> maxout
+num_domains  = 1           # number of Domains in Mesh
+
+<output1>
+out_fmt = hst              # History data dump
+dt      = 2.0            # time increment between outputs
+
+<output2>
+out_fmt = vtk              # Binary data dump
+dt      = 2.0              # time increment between outputs
+
+<output3>
+out_fmt = rst
+dt      = 2.0
+
+<output4>
+out_fmt = ppm
+dt      = 2
+out     = V2
+id      = V2
+dmin    = -500
+dmax    = 500
+palette = rainbow
+
+<time>
+cour_no         = 0.1       # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim            = 3000000    # cycle limit
+tlim            = 300.0       # time limit
+
+<domain1>
+level           = 0         # refinement level this Domain (root=0)
+Nx1             = 128        # Number of zones in X1-direction
+x1min           = 1953.1    # minimum value of X1
+x1max           = 4000000.0 # maximum value of X1
+bc_ix1          = 2         # boundary condition flag for inner-I (X1)
+bc_ox1          = 2         # boundary condition flag for outer-I (X1)
+
+Nx2             = 128       # Number of zones in X2-direction
+x2min           = 111543.330000    # minimum value of X2
+x2max           = 5799555.6 # maximum value of X2
+bc_ix2          = 2         # boundary condition flag for inner-J (X2)
+bc_ox2          = 2         # boundary condition flag for outer-J (X2)
+
+Nx3             = 1         # Number of zones in X3-direction
+x3min           = 0         # minimum value of X3
+x3max           = 31250     # maximum value of X3
+bc_ix3          = 2         # boundary condition flag for inner-K (X3)
+bc_ox3          = 2         # boundary condition flag for outer-K (X3)
+
+<domain2>
+level           = 1         # refinement level this Domain (root=0)
+Nx1             = 64       # Number of zones in X1-direction
+Nx2             = 64       # Number of zones in X2-direction
+Nx3             = 1         # Number of zones in X3-direction
+iDisp           = 64         # i-displacement measured in cells of this level
+jDisp           = 64        # j-displacement measured in cells of this level
+kDisp           = 0         # k-displacement measured in cells of this level
+
+<problem>
+gamma = 1.666666667         # gamma = C_p/C_v
+amp   = 0.01
+b0    = 0.0
+iprob = 1                   # iprob=4 or 5: rotated B
+angle = 90.0                # only needed for MHD sims
+rhoh  = 3.0                 # density of heavy material
+L_rot = 0.02                # width of rotation region (iprob=5)

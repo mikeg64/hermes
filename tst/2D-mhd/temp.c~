@@ -1,0 +1,238 @@
+/*----------------------------------------------------------------------------*/
+/*! \fn static void reflect_ix2(GridS *pGrid)
+ *  \brief Special reflecting boundary functions in x2 for 2D sims
+ */
+
+static void reflect_ix2(GridS *pGrid)
+{
+  int js = pGrid->js;
+  int ks = pGrid->ks, ke = pGrid->ke;
+  int i,j,k,il,iu,ku; /* i-lower/upper;  k-upper */
+
+  iu = pGrid->ie + nghost;
+  il = pGrid->is - nghost;
+
+  for (k=ks; k<=ke; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->U[k][js-j][i]    =  pGrid->U[k][js+(j-1)][i];
+        pGrid->U[k][js-j][i].M2 = -pGrid->U[k][js-j][i].M2; /* reflect 2-mom. */
+        pGrid->U[k][js-j][i].E +=  
+	  pGrid->U[k][js+(j-1)][i].d*0.1*(2*j-1)*pGrid->dx2/Gamma_1;
+      }
+    }
+  }
+
+#ifdef MHD
+  for (k=ks; k<=ke; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B1i[k][js-j][i] = pGrid->B1i[k][js+(j-1)][i];
+      }
+    }
+  }
+
+  for (k=ks; k<=ke; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B2i[k][js-j][i] = pGrid->B2i[k][js+(j-1)][i];
+      }
+    }
+  }
+
+  if (pGrid->Nx[2] > 1) ku=ke+1; else ku=ke;
+  for (k=ks; k<=ku; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B3i[k][js-j][i] = pGrid->B3i[k][js+(j-1)][i];
+      }
+    }
+  }
+#endif
+
+  return;
+}
+
+/*----------------------------------------------------------------------------*/
+/*! \fn static void reflect_ox2(GridS *pGrid)
+ *  \brief Special reflecting boundary functions in x2 for 2D sims
+ */
+
+static void reflect_ox2(GridS *pGrid)
+{
+  int je = pGrid->je;
+  int ks = pGrid->ks, ke = pGrid->ke, ku;
+  int i,j,k,il,iu,jl,ju; /* i/j-lower/upper */
+
+  iu = pGrid->ie + nghost;
+  il = pGrid->is - nghost;
+
+  if (pGrid->Nx[1] > 1){
+    ju = pGrid->je + nghost;
+    jl = pGrid->js - nghost;
+  } else {
+    ju = pGrid->je;
+    jl = pGrid->js;
+  }
+
+  for (k=ks; k<=ke; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->U[k][je+j][i]    =  pGrid->U[k][je-(j-1)][i];
+        pGrid->U[k][je+j][i].M2 = -pGrid->U[k][je+j][i].M2; /* reflect 2-mom. */
+        pGrid->U[k][je+j][i].E -=
+          pGrid->U[k][je-(j-1)][i].d*0.1*(2*j-1)*pGrid->dx2/Gamma_1;
+      }
+    }
+  }
+
+#ifdef MHD
+  for (k=ks; k<=ke; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B1i[k][je+j][i] = pGrid->B1i[k][je-(j-1)][i];
+      }
+    }
+  }
+
+/* j=je+1 is not set for the interface field B2i */
+  for (k=ks; k<=ke; k++) {
+    for (j=2; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B2i[k][je+j][i] = pGrid->B2i[k][je-(j-2)][i];
+      }
+    }
+  }
+
+  if (pGrid->Nx[2] > 1) ku=ke+1; else ku=ke;
+  for (k=ks; k<=ku; k++) {
+    for (j=1; j<=nghost; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B3i[k][je+j][i] = pGrid->B3i[k][je-(j-1)][i];
+      }
+    }
+  }
+#endif
+
+  return;
+}
+
+/*----------------------------------------------------------------------------*/
+/*! \fn static void reflect_ix3(GridS *pGrid)
+ *  \brief Special reflecting boundary functions in x3 for 2D sims
+ */
+
+static void reflect_ix3(GridS *pGrid)
+{
+  int ks = pGrid->ks;
+  int i,j,k,il,iu,jl,ju; /* i-lower/upper;  j-lower/upper */
+
+  iu = pGrid->ie + nghost;
+  il = pGrid->is - nghost;
+  if (pGrid->Nx[1] > 1){
+    ju = pGrid->je + nghost;
+    jl = pGrid->js - nghost;
+  } else {
+    ju = pGrid->je;
+    jl = pGrid->js;
+  }
+
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->U[ks-k][j][i]    =  pGrid->U[ks+(k-1)][j][i];
+        pGrid->U[ks-k][j][i].M3 = -pGrid->U[ks-k][j][i].M3; /* reflect 3-mom. */
+        pGrid->U[ks-k][j][i].E +=
+          pGrid->U[ks+(k-1)][j][i].d*0.1*(2*k-1)*pGrid->dx3/Gamma_1;
+      }
+    }
+  }
+
+#ifdef MHD
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B1i[ks-k][j][i] = pGrid->B1i[ks+(k-1)][j][i];
+      }
+    }
+  }
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B2i[ks-k][j][i] = pGrid->B2i[ks+(k-1)][j][i];
+      }
+    }
+  }
+
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B3i[ks-k][j][i] = pGrid->B3i[ks+(k-1)][j][i];
+      }
+    }
+  }
+#endif
+
+  return;
+}
+
+/*----------------------------------------------------------------------------*/
+/*! \fn static void reflect_ox3(GridS *pGrid)
+ *  \brief Special reflecting boundary functions in x3 for 3D sims
+ */
+
+static void reflect_ox3(GridS *pGrid)
+{
+  int ke = pGrid->ke;
+  int i,j,k ,il,iu,jl,ju; /* i-lower/upper;  j-lower/upper */
+
+  iu = pGrid->ie + nghost;
+  il = pGrid->is - nghost;
+  if (pGrid->Nx[1] > 1){
+    ju = pGrid->je + nghost;
+    jl = pGrid->js - nghost;
+  } else {
+    ju = pGrid->je;
+    jl = pGrid->js;
+  }
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->U[ke+k][j][i]    =  pGrid->U[ke-(k-1)][j][i];
+        pGrid->U[ke+k][j][i].M3 = -pGrid->U[ke+k][j][i].M3; /* reflect 3-mom. */
+        pGrid->U[ke+k][j][i].E -=
+          pGrid->U[ke-(k-1)][j][i].d*0.1*(2*k-1)*pGrid->dx3/Gamma_1;
+      }
+    }
+  }
+
+#ifdef MHD
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B1i[ke+k][j][i] = pGrid->B1i[ke-(k-1)][j][i];
+      }
+    }
+  }
+
+  for (k=1; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B2i[ke+k][j][i] = pGrid->B2i[ke-(k-1)][j][i];
+      }
+    }
+  }
+
+/* Note that k=ke+1 is not a boundary condition for the interface field B3i */
+  for (k=2; k<=nghost; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+        pGrid->B3i[ke+k][j][i] = pGrid->B3i[ke-(k-1)][j][i];
+      }
+    }
+  }
+#endif
+
+  return;
+}
+
