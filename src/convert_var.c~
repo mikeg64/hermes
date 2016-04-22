@@ -1460,11 +1460,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
  *  - Bx is passed in through the argument list.
  */
 
-#ifndef BKG
 Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
-#else
-Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
-#endif
 {
   Prim1DS Prim1D;
   Cons1DS Con1D;
@@ -1477,18 +1473,10 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
   p = 1.0e-1;/*0.000255457;*/
 	
   /* Calculate Bsq = B^2, Msq = M^2, S = M \dot B, Ssq = S^2 */
-
-#ifndef BKG
   Bsq = SQR((*Bx)) + SQR(U->By) + SQR(U->Bz);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * (*Bx) + U->My * U->By + U->Mz * U->Bz;
-#else
-  Bsq = SQR((*Bx)+(*Bxb)) + SQR(U->By+U->Byb) + SQR(U->Bz+U->Bzb);
-  Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
-  S = U->Mx * ((*Bx)+(*Bxb)) + U->My * (U->By+U->Byb) + U->Mz * (U->Bz+U->Bzb);
-#endif /*BKG*/
   Ssq = SQR(S);
-
 	
   v2max = 1.0-1.e-8;
   v2c = 0.95;
@@ -1515,13 +1503,7 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Con1D = *U;
   Con1D.d = d;
   Con1D.E = W - p + 0.5*(1.0 + v2)*Bsq - 0.5*Ssq/(W*W);
-#ifndef BKG
   Prim1D = Cons1D_to_Prim1D(&Con1D, Bx);
-#else
-  Con1D.db = 0.0;
-  Con1D.Eb = 0.0;
- Prim1D = Cons1D_to_Prim1D(&Con1D, Bx, Bxb);
-#endif
   v2 = SQR(Prim1D.Vx) + SQR(Prim1D.Vy) + SQR(Prim1D.Vz);
 	
   return Prim1D;
