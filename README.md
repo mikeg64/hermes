@@ -20,6 +20,7 @@ Objectives:
 4.  Integrate GPU code for CTU method re. [Wasiljew & Murawski] (http://kft.umcs.lublin.pl/kmur/download/papers/2013/Wasiljew_Murawski_2013.pdf)
 5.  Integrate SMAUG
 6.  Exploit SMR implementation in SAC/SMAUG
+7.  Use multi-architectural approach (hybrid multi-core accelerator approach) [targetDP](http://arxiv.org/abs/1405.6162)
 
 
 
