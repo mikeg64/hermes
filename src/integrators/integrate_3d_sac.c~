@@ -23,6 +23,12 @@
  * - integrate_3d_sac()
  * - integrate_init_3d()
  * - integrate_destruct_3d() */
+
+/*
+ * PROGRESS
+ * Initial boiler plate based on athena integrate_3d_ctu.c
+
+ */
 /*============================================================================*/
 
 #include <math.h>
@@ -38,9 +44,9 @@
 #include "../particles/particle.h"
 #endif
 
-#if defined(CTU_INTEGRATOR)
+#if defined(SAC_INTEGRATOR)
 #ifdef SPECIAL_RELATIVITY
-#error : The CTU integrator cannot be used for special relativity.
+#error : The SAC integrator cannot be used for special relativity.
 #endif /* SPECIAL_RELATIVITY */
 
 /* The L/R states of conserved variables and fluxes at each cell face */
@@ -51,6 +57,7 @@ Cons1DS ***x1Flux=NULL, ***x2Flux=NULL, ***x3Flux=NULL;
 
 /* The interface magnetic fields and emfs */
 #ifdef MHD
+static Real ***B1_x1=NULL, ***B2_x2=NULL, ***B3_x3=NULL;
 static Real ***B1_x1Face=NULL, ***B2_x2Face=NULL, ***B3_x3Face=NULL;
 Real ***emf1=NULL, ***emf2=NULL, ***emf3=NULL;
 static Real ***emf1_cc=NULL, ***emf2_cc=NULL, ***emf3_cc=NULL;
@@ -223,7 +230,7 @@ void integrate_3d_sac(DomainS *pD)
         U1d[i].Bz = pG->U[k][j][i].B3c;
         Bxc[i] = pG->U[k][j][i].B1c;
         Bxi[i] = pG->B1i[k][j][i];
-        B1_x1Face[k][j][i] = pG->B1i[k][j][i];
+        B1_x1[k][j][i] = pG->B1i[k][j][i];
 #endif /* MHD */
 #if (NSCALARS > 0)
         for (n=0; n<NSCALARS; n++) U1d[i].s[n] = pG->U[k][j][i].s[n];
@@ -239,7 +246,7 @@ void integrate_3d_sac(DomainS *pD)
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
 
-      if (StaticGravPot != NULL){
+   /*   if (StaticGravPot != NULL){
         for (i=il+1; i<=iu; i++) {
           cc_pos(pG,i,j,k,&x1,&x2,&x3);
 
@@ -257,7 +264,7 @@ void integrate_3d_sac(DomainS *pD)
           Wl[i].Vx -= hdt*gl;
           Wr[i].Vx -= hdt*gr;
         }
-      }
+      }*/
 
 
 
@@ -292,7 +299,7 @@ void integrate_3d_sac(DomainS *pD)
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
 
-      if (StaticGravPot != NULL){
+    /*  if (StaticGravPot != NULL){
         for (j=jl+1; j<=ju; j++) {
           cc_pos(pG,i,j,k,&x1,&x2,&x3);
           phicr = (*StaticGravPot)(x1, x2             ,x3);
@@ -302,7 +309,7 @@ void integrate_3d_sac(DomainS *pD)
           Wl[j].Vx -= dtodx2*(phifc - phicl);
           Wr[j].Vx -= dtodx2*(phicr - phifc);
         }
-      }
+      }*/
 
 
 

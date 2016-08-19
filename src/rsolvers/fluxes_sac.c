@@ -152,4 +152,4 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 }
 
 
-#endif /* ROE_FLUX */
+#endif /* SAC_FLUX */

@@ -144,6 +144,10 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 
 #endif /*BKG sac flux needs BKG fields*/
 
+	*pFlux = Fc;
+
+
+
   return;
 }
 
