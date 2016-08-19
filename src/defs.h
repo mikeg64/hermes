@@ -20,10 +20,10 @@
  *  (user modified via configure) */
 
 /* Version identifier when configure was last run */
-#define CONFIGURE_DATE "Fri Mar  4 22:23:24 GMT 2016"
+#define CONFIGURE_DATE "Fri Aug 19 20:38:37 BST 2016"
 
 /* Problem generator with which Athena is compiled */
-#define A_PROBLEM "solp"
+#define A_PROBLEM "orszag-tang"
 
 /* HYDRO or MHD */
 #define MHD

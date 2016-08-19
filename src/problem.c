@@ -1,1 +1,1 @@
-prob/solp.c
+prob/orszag-tang.c

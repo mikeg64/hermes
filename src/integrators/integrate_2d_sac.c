@@ -20,13 +20,13 @@
  *
  *
  * CONTAINS PUBLIC FUNCTIONS: 
- * - integrate_3d_sac()
- * - integrate_init_3d()
- * - integrate_destruct_3d() */
+ * - integrate_2d_sac()
+ * - integrate_init_2d()
+ * - integrate_destruct_2d() */
 
 /*
  * PROGRESS
- * Initial boiler plate based on athena integrate_3d_ctu.c
+ * Initial boiler plate based on athena integrate_2d_ctu.c
 
  */
 /*============================================================================*/
@@ -831,12 +831,12 @@ void integrate_2d_sac(DomainS *pD)
  * Update cell-centered variables in pG using 3D x3-Fluxes
  */
 
-hyperdifvisc1r
+//hyperdifvisc1r
 
-hyperdifvisc1l
+//hyperdifvisc1l
 
-computec
-computemaxc
+//computec
+//computemaxc
 
 //density contribution
 for(dim=0; dim<2; dim++) //each direction
@@ -844,27 +844,28 @@ for(dim=0; dim<2; dim++) //each direction
 
 
 
-hyperdifvisc1ir
-hyperdifvisc1il
-hyperdifrhosource1 
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//hyperdifrhosource1 
+;
 }
 
 //energy hyperdiffusion term
 for(dim=0; dim<2; dim++) //each direction
 {
-hyperdifvisc1ir
-hyperdifvisc1il
-hyperdifesource1 
-
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//hyperdifesource1 
+;
 
 }
 
        //momentum hyperdiffusion term
 for(dim=0; dim<2; dim++) //each direction
 {
-hyperdifvisc1ir
-hyperdifvisc1il
-hyperdifesource1 
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//hyperdifesource1 
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
@@ -880,9 +881,9 @@ hyperdifesource1
 		                   }
 
 				  if(ii==dim)
-				    hyperdifmomsource1(ii,ii0,p->dt);
+				  ;//  hyperdifmomsource1(ii,ii0,p->dt);
 				  else
-				    hyperdifmomsourcene1(ii,ii0,p->dt);  //off diagonal
+				   ;// hyperdifmomsourcene1(ii,ii0,p->dt);  //off diagonal
 		        }
 
 
@@ -892,8 +893,8 @@ hyperdifesource1
   //b field hyperdiffusion term
 for(dim=0; dim<2; dim++) //each direction
 {
-hyperdifvisc1ir
-hyperdifvisc1il
+//hyperdifvisc1ir
+//hyperdifvisc1il
  
 
 		         for(ii1=0;ii1<=1;ii1++)
@@ -1112,7 +1113,7 @@ void integrate_init_2d(MeshS *pM)
   size3 = size3 + 2*nghost;
   nmax = MAX((MAX(size1,size2)),size3);
 
-/*refer to material  integrate_3d_ctu.c*/
+/*refer to material  integrate_2d_ctu.c*/
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
@@ -1135,10 +1136,10 @@ void integrate_init_2d(MeshS *pM)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void integrate_destruct_3d(void)
+/*! \fn void integrate_destruct_2d(void)
  *  \brief Free temporary integration arrays 
  */
-void integrate_destruct_3d(void)
+void integrate_destruct_2d(void)
 {
 /*refer to material  integrate_3d_ctu.c*/
 
@@ -1203,10 +1204,10 @@ static void integrate_emf2_corner(const GridS *pG)
 static void integrate_emf3_corner(const GridS *pG)
 {
  
-/*refer to material  integrate_3d_ctu.c*/
+/*refer to material  integrate_2d_ctu.c*/
 
   return;
 }
 #endif /* MHD */
 
-#endif /* CTU_INTEGRATOR */
+#endif /* SAC_INTEGRATOR */

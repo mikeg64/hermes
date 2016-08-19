@@ -54,7 +54,7 @@ VDFun_t integrate_init(MeshS *pM)
 #elif defined(VL_INTEGRATOR)
     cfl = par_getd("time","cour_no");
     if (cfl > 0.5)
-      ath_error("<time>cour_no=%e, must be <= 0.5 with 2D SAC integrator\n",cfl);
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 2D VL integrator\n",cfl);
     return integrate_2d_vl;
 #elif defined(SAC_INTEGRATOR)
     cfl = par_getd("time","cour_no");

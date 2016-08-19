@@ -536,7 +536,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
 
 #ifdef BKG
   Prim1D.db  = pU->db;
-#else
+#endif
 
 
 
