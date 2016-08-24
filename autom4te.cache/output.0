@@ -637,10 +637,12 @@ SHEARING_BOX_MODE
 FFT_MODE
 H_CORRECTION_MODE
 MPI_MODE
+BKG_MODE
 WRITE_GHOST_MODE
 PRECISION
 COMPILER_OPTS
 DEBUG_MODE
+BKG
 INTEGRATOR_DEF
 INTEGRATOR
 FLUX_DEF
@@ -728,6 +730,7 @@ with_integrator
 with_cflags
 enable_single
 enable_ghost
+enable_bkg
 enable_mpi
 enable_h_correction
 enable_fft
@@ -1361,7 +1364,8 @@ Optional Features:
 --enable-viscosity  enable viscosity (default is no)
 --enable-single  single-precision (default is double)
 --enable-ghost  write ghost zones
---enable-mpi  enable MPI parellelization
+--enable-bkgfields  enable background fields
+--enable-mpi  enable MPI parallelization
 --enable-h-correction  turn on H-correction
 --enable-fft  compile and link FFT interface code (requires FFTW)
 --enable-shearing-box  turn on shearing-box
@@ -1383,7 +1387,7 @@ Optional Packages:
 --with-particles=PARTICLES_ALGORITHM  particle integration algorithm (feedback, passive)
 --with-coord=COORD  Coordinate System (cartesian,cylindrical)
 --with-order=ORDER      Order of Accuracy (1,2,3,2p,3p)
---with-flux=FLUX_NAME   Flux function (roe, hllc (hydro only), hlld, hlle, force, exact (hydro only),two-shock (hydro only))
+--with-flux=FLUX_NAME   Flux function (roe, hllc (hydro only), hlld, hlle, force, sac, exact (hydro only),two-shock (hydro only))
 --with-integrator=INTEGRATOR  Which unsplit integrator (ctu, vl)
 --with-cflags=DEBUG_MODE  Set debugging mode (opt,debug,profile)
 
@@ -3322,12 +3326,14 @@ elif test "$with_flux" = "hlld"; then
   FLUX_DEF="HLLD_FLUX"
 elif test "$with_flux" = "force"; then
   FLUX_DEF="FORCE_FLUX"
+elif test "$with_flux" = "sac"; then
+  FLUX_DEF="SAC_FLUX"
 elif test "$with_flux" = "exact"; then
   FLUX_DEF="EXACT_FLUX"
 elif test "$with_flux" = "two-shock"; then
   FLUX_DEF="TWO_SHOCK_FLUX"
 else
-  as_fn_error $? "Invalid flux function, valid types are: roe, hlle, hllc hlld, force, exact, two-shock" "$LINENO" 5
+  as_fn_error $? "Invalid flux function, valid types are: roe, hlle, hllc hlld, force, sac, exact, two-shock" "$LINENO" 5
 fi
 
 #-------------------------------------------------------------------------------
@@ -3350,6 +3356,9 @@ if test   "$with_integrator" = "ctu"; then
   INTEGRATOR_DEF="CTU_INTEGRATOR"
 elif test "$with_integrator" = "vl"; then
   INTEGRATOR_DEF="VL_INTEGRATOR"
+elif test "$with_integrator" = "sac"; then
+  INTEGRATOR_DEF="SAC_INTEGRATOR"
+  
 else
   as_fn_error $? "expected --with-integrator=ctu or vl" "$LINENO" 5
 fi
@@ -3419,6 +3428,24 @@ if test "$ok" = "yes"; then
 else
   WRITE_GHOST_MODE="NO_WRITE_GHOST_CELLS"
   WRITE_GHOST_MODE_USER="OFF" 
+fi
+
+
+#-------------------------------------------------------------------------------
+# ALGORITHM FEATURE: Enable background fields, --enable-bkgfields (default is no background fields)
+
+
+@%:@ Check whether --enable-bkg was given.
+if test "${enable_bkg+set}" = set; then :
+  enableval=$enable_bkg; ok=$enableval
+else
+  ok=no
+fi
+
+if test "$ok" = "yes"; then
+  BKG_MODE="BKG"
+else
+  BKG_MODE="NO_BKG"
 fi
 
 #-------------------------------------------------------------------------------
@@ -5660,6 +5687,7 @@ echo "--- Algorithm Options ----"
 echo ""
 echo "Spatial Order:           $ORDER ($ACCURACY)"
 echo "Flux:                    $FLUX_NAME"
+echo "Background fields:       $BKG_MODE"
 echo "unsplit integrator:      $INTEGRATOR"
 echo "Precision:               $PRECISION"
 echo "Compiler options:        $COMPILER_OPTS"
@@ -5674,4 +5702,5 @@ echo "Static Mesh Refinement:  $SMR_MODE_USER"
 echo "first-order flux corr:   $FOFC_MODE_USER"
 echo "ROTATING_FRAME:          $ROTATING_FRAME_MODE_USER"
 echo "L1_INFLOW:               $L1_INFLOW_MODE_USER"
+
 

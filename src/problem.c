@@ -1,1 +1,1 @@
-prob/orszag-tang.c
+prob/shkset1d.c

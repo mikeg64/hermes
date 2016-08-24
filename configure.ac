@@ -29,8 +29,8 @@
 #
 # ALGORITHM "packages":
 #   --with-order=[1,2,3,2p,3p]        (order and type of spatial reconstruction)
-#   --with-flux=[roe,hlle,hllc,hlld,force,exact,two-shock]       (flux function)
-#   --with-integrator=[ctu,vl]                   (unsplit integration algorithm)
+#   --with-flux=[roe,hlle,hllc,hlld,force,sac,exact,two-shock]   (flux function)
+#   --with-integrator=[ctu,vl,sac]               (unsplit integration algorithm)
 #   --with-cflags=[opt,debug,profile]                       (set compiler flags)
 #
 # ALGORITHM "features":
@@ -46,6 +46,7 @@
 #   --enable-smr                                        (static mesh refinement)
 #   --enable-rotating_frame                    (enable ROTATING_FRAME algorithm)
 #   --enable-l1_inflow                             (enable inflow from L1 point)
+#   --enable-bkg                                      (enable background fields)
 #
 #-------------------------------------------------------------------------------
 # generic things
@@ -300,7 +301,7 @@ fi
 AC_SUBST(FLUX_NAME)
 AC_SUBST(FLUX_DEF)
 AC_ARG_WITH(flux,
-	[--with-flux=FLUX_NAME   Flux function (roe, hllc (hydro only), hlld, hlle, force, exact (hydro only),two-shock (hydro only))],
+	[--with-flux=FLUX_NAME   Flux function (roe, hllc (hydro only), hlld, hlle, force, sac, exact (hydro only),two-shock (hydro only))],
 	with_flux=$withval, with_flux=$flux_default)
 FLUX_NAME=$with_flux
 if test   "$with_flux" = "roe"; then
@@ -313,12 +314,14 @@ elif test "$with_flux" = "hlld"; then
   FLUX_DEF="HLLD_FLUX"
 elif test "$with_flux" = "force"; then
   FLUX_DEF="FORCE_FLUX"
+elif test "$with_flux" = "sac"; then
+  FLUX_DEF="SAC_FLUX"
 elif test "$with_flux" = "exact"; then
   FLUX_DEF="EXACT_FLUX"
 elif test "$with_flux" = "two-shock"; then
   FLUX_DEF="TWO_SHOCK_FLUX"
 else
-  AC_MSG_ERROR([Invalid flux function, valid types are: roe, hlle, hllc hlld, force, exact, two-shock])
+  AC_MSG_ERROR([Invalid flux function, valid types are: roe, hlle, hllc hlld, force, sac, exact, two-shock])
 fi
 
 #-------------------------------------------------------------------------------
@@ -336,6 +339,9 @@ if test   "$with_integrator" = "ctu"; then
   INTEGRATOR_DEF="CTU_INTEGRATOR"
 elif test "$with_integrator" = "vl"; then
   INTEGRATOR_DEF="VL_INTEGRATOR"
+elif test "$with_integrator" = "sac"; then
+  INTEGRATOR_DEF="SAC_INTEGRATOR"
+  AC_SUBST(BKG)
 else
   AC_MSG_ERROR([expected --with-integrator=ctu or vl])
 fi
@@ -394,12 +400,26 @@ else
   WRITE_GHOST_MODE_USER="OFF" 
 fi
 
+
+#-------------------------------------------------------------------------------
+# ALGORITHM FEATURE: Enable background fields, --enable-bkgfields (default is no background fields)
+
+AC_SUBST(BKG_MODE)
+AC_ARG_ENABLE(bkg,
+	[--enable-bkgfields  enable background fields],
+	ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  BKG_MODE="BKG"
+else
+  BKG_MODE="NO_BKG"
+fi
+
 #-------------------------------------------------------------------------------
 # ALGORITHM FEATURE: parallelize with MPI, --enable-mpi (default is no MPI)
 
 AC_SUBST(MPI_MODE)
 AC_ARG_ENABLE(mpi,
-	[--enable-mpi  enable MPI parellelization],
+	[--enable-mpi  enable MPI parallelization],
 	ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
   MPI_MODE="MPI_PARALLEL"
@@ -632,6 +652,7 @@ echo "--- Algorithm Options ----"
 echo ""
 echo "Spatial Order:           $ORDER ($ACCURACY)"
 echo "Flux:                    $FLUX_NAME"
+echo "Background fields:       $BKG_MODE"
 echo "unsplit integrator:      $INTEGRATOR"
 echo "Precision:               $PRECISION"
 echo "Compiler options:        $COMPILER_OPTS"
@@ -646,4 +667,5 @@ echo "Static Mesh Refinement:  $SMR_MODE_USER"
 echo "first-order flux corr:   $FOFC_MODE_USER"
 echo "ROTATING_FRAME:          $ROTATING_FRAME_MODE_USER"
 echo "L1_INFLOW:               $L1_INFLOW_MODE_USER"
+
 
