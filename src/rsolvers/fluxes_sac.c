@@ -20,14 +20,14 @@
 #include "prototypes.h"
 #include "../prototypes.h"
 
-/* maximum wavespeed used by H-correction, value passed from integrator */
-Real etah=0.0;
 
-#ifdef ROE_FLUX
+
+#ifdef SAC_FLUX
+#ifdef BKG
 
 
 /* Test the intermediate states in the approximate Riemann solution. */
-#define TEST_INTERMEDIATE_STATES
+//#define TEST_INTERMEDIATE_STATES
 
 /*----------------------------------------------------------------------------*/
 /*! \fn void fluxes(const Cons1DS Ul, const Cons1DS Ur,
@@ -68,42 +68,6 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 /*--- Step 2. ------------------------------------------------------------------
  * Compute L fluxes 
  */
-#ifndef BKG
-  Fc.d  = Ul.Mx;
-  Fc.Mx = Ul.Mx*Wl.Vx;
-  Fc.My = Ul.Mx*Wl.Vy;
-  Fc.Mz = Ul.Mx*Wl.Vz;
-
-#ifdef ISOTHERMAL
-  Fc.Mx += Wl.d*Iso_csound2;
-#else
-  Fc.Mx += Wl.P;
-  Fc.E  = (Ul.E + Wl.P)*Wl.Vx;
-#endif /* ISOTHERMAL */
-
-#ifdef MHD
-  Fc.Mx -= 0.5*(Bxi*Bxi - SQR(Wl.By) - SQR(Wl.Bz));
-  Fc.My -= Bxi*Wl.By;
-  Fc.Mz -= Bxi*Wl.Bz;
-
-
-#ifndef ISOTHERMAL
-  Fc.E += (pbl*Wl.Vx - Bxi*(Bxi*Wl.Vx + Wl.By*Wl.Vy + Wl.Bz*Wl.Vz));
-#endif /* ISOTHERMAL */
-
-  Fc.By = Wl.By*Wl.Vx - Bxi*Wl.Vy;
-  Fc.Bz = Wl.Bz*Wl.Vx - Bxi*Wl.Vz;
-#endif /* MHD */
-
-/* Fluxes of passively advected scalars, computed from density flux */
-#if (NSCALARS > 0)
-  for (n=0; n<NSCALARS; n++) {
-    Fc.s[n] = Fc.d*Wl.r[n];
-
-  }
-#endif
-
-#else /*flux calculations when we include background fields i.e. sac*/
 
 
   Fc.d  = Ul.Mx;   /*computed using (rho+rhob)*velocity */
@@ -139,10 +103,10 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
     Fc.s[n] = Fc.d*Wl.r[n];
 
   }
+#endif
 
 
 
-#endif /*BKG sac flux needs BKG fields*/
 
 	*pFlux = Fc;
 
@@ -151,5 +115,5 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
   return;
 }
 
-
+#endif
 #endif /* SAC_FLUX */

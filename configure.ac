@@ -409,9 +409,10 @@ AC_ARG_ENABLE(bkg,
 	[--enable-bkgfields  enable background fields],
 	ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-  BKG_MODE="BKG"
+  BKG_MODE="BKG_ON"
+  AC_SUBST(BKG)
 else
-  BKG_MODE="NO_BKG"
+  BKG_MODE="BKG_OFF"
 fi
 
 #-------------------------------------------------------------------------------
