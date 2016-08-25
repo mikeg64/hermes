@@ -27,6 +27,7 @@ void integrate_destruct_2d(void);
 void integrate_init_2d(MeshS *pM);
 void integrate_2d_ctu(DomainS *pD);
 void integrate_2d_vl(DomainS *pD);
+void integrate_2d_sac(DomainS *pD);
 
 /* integrate_3d_ctu.c and integrate_3d_vl.c */
 void integrate_destruct_3d(void);
