@@ -1,6 +1,6 @@
 #include "../copyright.h"
 /*============================================================================*/
-/*! \file integrate_2d_sac.c
+/*! \file integrate_3d_sac.c
  *  \Compute fluxes using sac . 
  *
  * PURPOSE: Integrate MHD equations using 3D version of the directionally
@@ -114,7 +114,7 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 /*! \fn void integrate_3d_ctu(DomainS *pD)
  *  \brief 3D CTU integrator for MHD using 6-solve method */
 
-void integrate_2d_sac(DomainS *pD)
+void integrate_3d_sac(DomainS *pD)
 {
   GridS *pG=(pD->Grid);
   Real dtodx1=pG->dt/pG->dx1, dtodx2=pG->dt/pG->dx2, dtodx3=pG->dt/pG->dx3;
@@ -346,7 +346,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       
 #ifdef MHD
       Bx = B2_x2[j][i];
-      Bxb=0.0;//?????????????????????????
+       Bxb=0.0;//?????????????????????????
 #endif
       fluxes(Uc_x2[j][i],Uc_x2[j][i],W[j],W[j],Bx,Bxb,&x2Flux[j][i]);
     }
@@ -928,7 +928,7 @@ for(dim=0; dim<2; dim++) //each direction
 /*! \fn void integrate_init_2d(MeshS *pM)
  *  \brief Allocate temporary integration arrays 
 */
-void integrate_init_2d(MeshS *pM)
+void integrate_init_3d(MeshS *pM)
 {
   int nmax,size1=0,size2=0,size3=0,nl,nd;
 
@@ -980,7 +980,7 @@ void integrate_init_2d(MeshS *pM)
 /*! \fn void integrate_destruct_2d(void)
  *  \brief Free temporary integration arrays 
  */
-void integrate_destruct_2d(void)
+void integrate_destruct_3d(void)
 {
 /*refer to material  integrate_3d_ctu.c*/
 

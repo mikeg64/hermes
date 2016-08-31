@@ -103,7 +103,7 @@ typedef struct Cons_s{
   Real Pflux;	 		/*!< pressure component of flux */
 #endif
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real db;
   Real Eb;
   Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
@@ -136,7 +136,7 @@ typedef struct Prim_s{
   Real r[NSCALARS];             /*!< density-normalized advected scalars */
 #endif
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real db;
   Real Pb;
   Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
@@ -170,7 +170,7 @@ typedef struct Cons1D_s{
   Real Pflux;	 		/*!< pressure component of flux */
 #endif
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real db;
   Real Eb;
   Real Byb;			/*!< cell centered magnetic fields in 1-dir*/
@@ -200,7 +200,7 @@ typedef struct Prim1D_s{
   Real r[NSCALARS];             /*!< density-normalized advected scalars */
 #endif
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real db;
   Real Pb;
   Real Byb;			/*!< cell centered magnetic fields in 1-dir*/

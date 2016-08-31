@@ -113,7 +113,7 @@ PrimS Cons_to_Prim(const ConsS *pCons)
 #endif
   Real Bx=0.0;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real Bxb=0.0;
 #endif
 
@@ -130,8 +130,8 @@ PrimS Cons_to_Prim(const ConsS *pCons)
   U.Bz = pCons->B3c;
 #endif /* MHD */
 
-#ifdef BKG
-  Bxb = pCons->B1b;
+#ifdef SAC_INTEGRATOR
+  Bxb = pCons->B1cb;
   U.Byb = pCons->B2cb;
   U.Bzb = pCons->B3cb;
 
@@ -145,7 +145,11 @@ PrimS Cons_to_Prim(const ConsS *pCons)
   for (n=0; n<NSCALARS; n++) U.s[n] = pCons->s[n];
 #endif
 
+#ifdef SAC_INTEGRATOR
+  W = Cons1D_to_Prim1D(&U, &Bx, &Bxb);
+#else
   W = Cons1D_to_Prim1D(&U, &Bx);
+#endif
 
   Prim.d  = W.d;
   Prim.V1 = W.Vx;
@@ -160,7 +164,7 @@ PrimS Cons_to_Prim(const ConsS *pCons)
   Prim.B3c = W.Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim.db = W.db;
   Prim.Pb = W.Pb;
 
@@ -194,7 +198,7 @@ ConsS Prim_to_Cons (const PrimS *pW)
 #endif
   Real Bx=0.0;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real Bxb=0.0;
 #endif
 
@@ -214,7 +218,11 @@ ConsS Prim_to_Cons (const PrimS *pW)
   for (n=0; n<NSCALARS; n++) W.r[n] = pW->r[n];
 #endif
  
+#ifdef SAC_INTEGRATOR
+  U = Prim1D_to_Cons1D(&W, &Bx, &Bxb);
+#else
   U = Prim1D_to_Cons1D(&W, &Bx);
+#endif
 
   Cons.d  = U.d;
   Cons.M1 = U.Mx;
@@ -229,7 +237,7 @@ ConsS Prim_to_Cons (const PrimS *pW)
   Cons.B3c = U.Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Cons.db = U.db;
   Cons.Eb = U.Eb;
 
@@ -266,7 +274,7 @@ PrimS fix_vsq (const ConsS *pCons)
 #endif
   Real Bx=0.0;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real Bxb=0.0;  
 #endif
 
@@ -283,7 +291,7 @@ PrimS fix_vsq (const ConsS *pCons)
   U.Bz = pCons->B3c;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   U.db = pCons->db;
   U.Eb = pCons->Eb;
 
@@ -312,7 +320,7 @@ PrimS fix_vsq (const ConsS *pCons)
   Prim.B3c = W.Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim.db = W.db;
   Prim.Pb = W.Pb;
 
@@ -350,7 +358,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
 #endif
   Real Bx=0.0;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real Bxb=0.0;
 #endif
 
@@ -367,7 +375,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
   U.Bz = pCons->B3c;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   U.db=pCons->db;
   U.Eb=pCons->Eb;
   Bxb = pCons->B1cb;
@@ -397,7 +405,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
   Prim.B3c = W.Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim.db  = W.db;
   Prim.Pb  = W.Pb
 
@@ -435,7 +443,7 @@ PrimS check_Prim(const ConsS *pCons)
 #endif
   Real Bx=0.0;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Real Bxb=0.0;
 #endif
 
@@ -452,7 +460,7 @@ PrimS check_Prim(const ConsS *pCons)
   U.Bz = pCons->B3c;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Bxb=pCons->B1cb
   U.Byb = pCons->B2cb;
   U.Bzb = pCons->B3cb;
@@ -482,7 +490,7 @@ PrimS check_Prim(const ConsS *pCons)
 #endif /* MHD */
 
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim.db = W.db
   Prim.Pb = W.Pb
 
@@ -512,7 +520,7 @@ PrimS check_Prim(const ConsS *pCons)
 
 
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb)
 #else
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
@@ -523,7 +531,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
   int n;
 #endif
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Real di = 1.0/pU->d;
 #else
   Real di = 1.0/(pU->d+pU->db);
@@ -534,7 +542,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
   Prim1D.Vy = pU->My*di;
   Prim1D.Vz = pU->Mz*di;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim1D.db  = pU->db;
 #endif
 
@@ -546,7 +554,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
   Prim1D.P -= 0.5*(SQR(*pBx) + SQR(pU->By) + SQR(pU->Bz));
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
 Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
 #endif
 
@@ -561,7 +569,7 @@ Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
   Prim1D.Bz = pU->Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Prim1D.Byb = pU->Byb;
   Prim1D.Bzb = pU->Bzb;
 #endif
@@ -583,7 +591,7 @@ Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
  */
 
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb)
 #else
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
@@ -596,7 +604,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
 
   Cons1D.d  = pW->d;
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Cons1D.Mx = pW->d*pW->Vx;
   Cons1D.My = pW->d*pW->Vy;
   Cons1D.Mz = pW->d*pW->Vz;
@@ -609,7 +617,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
 
 #ifndef ISOTHERMAL
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
   Cons1D.Eb = pW->Pb/Gamma_1 ;
 #ifdef MHD
@@ -617,14 +625,14 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
   Cons1D.E += 0.5*(SQR(*pBx) + SQR(pW->By) + SQR(pW->Bz));
   Cons1D.E += ((*pBx)*(*pBxb) + (pW->By)*(pW->Byb) + (pW->Bz)*(pW->Bzb));
 #endif /* MHD */
-#endif /*BKG field*/
+#endif /*SAC_INTEGRATOR field*/
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Cons1D.E = pW->P/Gamma_1 + 0.5*pW->d*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
 #ifdef MHD
   Cons1D.E += 0.5*(SQR(*pBx) + SQR(pW->By) + SQR(pW->Bz));
 #endif /* MHD */
-#endif  /*not BKG field*/
+#endif  /*not SAC_INTEGRATOR field*/
 
 #endif /* ISOTHERMAL */
 
@@ -633,7 +641,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
   Cons1D.Bz = pW->Bz;
 #endif /* MHD */
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
   Cons1D.Byb = pW->Byb;
   Cons1D.Bzb = pW->Bzb;
 #endif
@@ -653,7 +661,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
  */
 
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
 Real cfast(const Cons1DS *U, const Real *Bx)
 #else
 Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb)
@@ -662,11 +670,11 @@ Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Real asq;
 #ifndef ISOTHERMAL
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Real p,pb=0.0;
 #else
-  Real p,pbkg,pb=0.0,pbbkg=0.0;
-#endif /*BKG*/
+  Real p,pSAC_INTEGRATOR,pb=0.0,pbSAC_INTEGRATOR=0.0;
+#endif /*SAC_INTEGRATOR*/
 
 #endif
 #ifdef MHD
@@ -678,23 +686,23 @@ Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb)
 #else
 #ifdef MHD
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   pb = 0.5*(SQR(*Bx) + SQR(U->By) + SQR(U->Bz));
 #else
-  pb = 0.5*(SQR(*Bx) + SQR(U->By) + SQR(U->Bz))+(Bx*Bxb+(U->By)*(U->Byb)+(U->Bz)*(U->Bzb));
-  pbbkg = 0.5*(SQR(*Bxb) + SQR(U->Byb) + SQR(U->Bzb));
-#endif /*BKG*/
+  pb = 0.5*(SQR(*Bx) + SQR(U->By) + SQR(U->Bz))+(*Bx* (*Bxb)+(U->By)*(U->Byb)+(U->Bz)*(U->Bzb));
+  pbSAC_INTEGRATOR = 0.5*(SQR(*Bxb) + SQR(U->Byb) + SQR(U->Bzb));
+#endif /*SAC_INTEGRATOR*/
 
 #endif /* MHD */
 
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   p = Gamma_1*(U->E - pb - 0.5*(SQR(U->Mx)+SQR(U->My)+SQR(U->Mz))/U->d);
   asq = Gamma*p/U->d;
 #else
   p = Gamma_1*(U->E - pb - 0.5*(SQR(U->Mx)+SQR(U->My)+SQR(U->Mz))/(U->d+U->db));
-  pbkg = Gamma_1*(U->Eb - pbbkg );
-  asq = Gamma*(p+pbkg)/(U->d+U->db);
+  pSAC_INTEGRATOR = Gamma_1*(U->Eb - pbSAC_INTEGRATOR );
+  asq = Gamma*(p+pSAC_INTEGRATOR)/(U->d+U->db);
 #endif
 
 #endif /* ISOTHERMAL */
@@ -703,13 +711,13 @@ Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb)
   return sqrt(asq);
 #else
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   ctsq = (SQR(U->By) + SQR(U->Bz))/U->d;
   casq = SQR(*Bx)/U->d;
 #else
   ctsq = (SQR((U->By)+(U->Byb)) + SQR((U->Bz)+(U->Bzb)))/(U->d+U->db);
   casq = SQR((*Bx)+(*Bxb))/(U->d+U->db);
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
   tmp = casq + ctsq - asq;
   cfsq = 0.5*((asq+ctsq+casq) + sqrt(tmp*tmp + 4.0*asq*ctsq));
   return sqrt(cfsq);
@@ -727,11 +735,11 @@ Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb)
  *   - Bx is passed in through the argument list.
  */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
 #else
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
 {
   Prim1DS Prim1D;
   Real Msq, M, ME, Dsq, Gamma_1sq, denom;
@@ -752,13 +760,13 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
   } else {
 
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
     ME = M * U->E;
     Dsq = SQR(U->d);
 #else
     ME = M * (U->E  + U->Eb);
     Dsq = SQR(U->d + U->db);
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
 
     Gamma_1sq = SQR(Gamma_1);
 
@@ -766,11 +774,11 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
 
     a3 = (-2.0 * Gamma * Gamma_1 * ME) * denom;
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
     a2 = (SQR(Gamma) * SQR(U->E) + 2.0*Gamma_1*Msq - Gamma_1sq*Dsq)*denom;
 #else
     a2 = (SQR(Gamma) * SQR((U->E+U->Eb)) + 2.0*Gamma_1*Msq - Gamma_1sq*Dsq)*denom;
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
     a1 = (-2.0 * Gamma * ME) * denom;
     a0 = Msq * denom;
 
@@ -813,18 +821,18 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     vOverM = 0.0;
   }
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Prim1D.d = sqrt(1.0 - SQR(v)) * U->d;
 #else
   Prim1D.d = sqrt(1.0 - SQR(v)) * U->d;
   Prim1D.db = sqrt(1.0 - SQR(v)) * U->db;
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
 
   Prim1D.Vx = U->Mx * vOverM;
   Prim1D.Vy = U->My * vOverM;
   Prim1D.Vz = U->Mz * vOverM;
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Prim1D.P = Gamma_1*
     ((U->E - U->Mx*Prim1D.Vx - U->My*Prim1D.Vy - U->Mz*Prim1D.Vz) - Prim1D.d);
 #else
@@ -855,11 +863,11 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
  * - E = D*h*\gamma - p + 0.5*B^2 + 0.5*(v^2*B^2 - v \dot B)
  */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
 #else
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
 {
   Prim1DS Prim1D;
   Real Bsq = 0.0, Msq = 0.0, S = 0.0, Ssq = 0.0;
@@ -874,7 +882,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Gamma_1overGamma = Gamma_1/Gamma;
 
   /* Calculate Bsq = B^2, Msq = M^2, S = M \dot B, Ssq = S^2 */
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Bsq = SQR((*Bx)) + SQR(U->By) + SQR(U->Bz);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * (*Bx) + U->My * U->By + U->Mz * U->Bz;
@@ -882,18 +890,18 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Bsq = SQR((*Bx)+(*Bxb)) + SQR(U->By+U->Byb) + SQR(U->Bz+U->Bzb);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * ((*Bx)+(*Bxb)) + U->My * (U->By+U->Byb) + U->Mz * (U->Bz+U->Bzb);
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
   Ssq = SQR(S);
 
   /* Assign input energy & density to local variables */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   E = U->E;
   d = U->d;
 #else
  E = U->E+U->Eb;
   d = U->d+U->db;
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
 
   /* Starting guess for W, based on taking the +ve */
   /* root of Eqn. A27, guarantees that p is +ve    */
@@ -994,7 +1002,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     Prim1D.Vx = (U->Mx + S*(*Bx)*tmp1)*tmp2;
     Prim1D.Vy = (U->My + S*U->By*tmp1)*tmp2;
     Prim1D.Vz = (U->Mz + S*U->Bz*tmp1)*tmp2;
-    #ifdef BKG
+    #ifdef SAC_INTEGRATOR
     Prim1D.db = 0.0;
     Prim1D.Pb = 0.0;
     Prim1D.Byb = U->Byb;
@@ -1028,7 +1036,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     Prim1D.P = MAX(pgas,1.0e-5);
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.db = 0;
     Prim1D.Pb = 0;
     Prim1D.Byb = U->Byb;
@@ -1047,7 +1055,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.db = 0;
     Prim1D.Pb = 0;
     Prim1D.Byb = U->Byb;
@@ -1067,7 +1075,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.db = 0;
     Prim1D.Pb = 0;
     Prim1D.Byb = U->Byb;
@@ -1087,7 +1095,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx, const Real *Bxb)
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.db = 0;
     Prim1D.Pb = 0;
     Prim1D.Byb = U->Byb;
@@ -1304,7 +1312,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *W, const Real *Bx)
  *  - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz])
  *  - Bx is passed in through the argument list.
  */
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
 Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
 #else
 Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const Real *ent)
@@ -1324,7 +1332,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
 
   /* Calculate Bsq = B^2, Msq = M^2, S = M \dot B, Ssq = S^2 */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Bsq = SQR((*Bx)) + SQR(U->By) + SQR(U->Bz);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * (*Bx) + U->My * U->By + U->Mz * U->Bz;
@@ -1332,11 +1340,11 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
   Bsq = SQR((*Bx)+(*Bxb)) + SQR(U->By+U->Byb) + SQR(U->Bz+U->Bzb);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * ((*Bx)+(*Bxb)) + U->My * (U->By+U->Byb) + U->Mz * (U->Bz+U->Bzb);
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
   Ssq = SQR(S);
 
   /* Assign input energy & density to local variables */
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   E = U->E;
   d = U->d;
 #else
@@ -1420,7 +1428,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.d = 0.0;
     Prim1D.P = 0.0;
 
@@ -1438,7 +1446,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
     Prim1D.d = 0.0;
     Prim1D.P = 0.0;
 
@@ -1460,7 +1468,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *Bxb, const 
  *  - Bx is passed in through the argument list.
  */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
 Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
 #else
 Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
@@ -1478,7 +1486,7 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
 	
   /* Calculate Bsq = B^2, Msq = M^2, S = M \dot B, Ssq = S^2 */
 
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Bsq = SQR((*Bx)) + SQR(U->By) + SQR(U->Bz);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * (*Bx) + U->My * U->By + U->Mz * U->Bz;
@@ -1486,7 +1494,7 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Bsq = SQR((*Bx)+(*Bxb)) + SQR(U->By+U->Byb) + SQR(U->Bz+U->Bzb);
   Msq = SQR(U->Mx) + SQR(U->My) + SQR(U->Mz);
   S = U->Mx * ((*Bx)+(*Bxb)) + U->My * (U->By+U->Byb) + U->Mz * (U->Bz+U->Bzb);
-#endif /*BKG*/
+#endif /*SAC_INTEGRATOR*/
   Ssq = SQR(S);
 
 	
@@ -1515,7 +1523,7 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx, const Real *Bxb)
   Con1D = *U;
   Con1D.d = d;
   Con1D.E = W - p + 0.5*(1.0 + v2)*Bsq - 0.5*Ssq/(W*W);
-#ifndef BKG
+#ifndef SAC_INTEGRATOR
   Prim1D = Cons1D_to_Prim1D(&Con1D, Bx);
 #else
   Con1D.db = 0.0;

@@ -42,6 +42,11 @@ VDFun_t integrate_init(MeshS *pM)
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 1D VL integrator\n",cfl);
     return integrate_1d_vl;
+#elif defined(SAC_INTEGRATOR)
+    cfl = par_getd("time","cour_no");
+    if (cfl > 0.5)
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SAC integrator\n",cfl);
+    return integrate_1d_sac;
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 1D problem");
 #endif
@@ -77,11 +82,11 @@ VDFun_t integrate_init(MeshS *pM)
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 3D VL integrator\n",cfl);
     return integrate_3d_vl;
-/*#elif defined(SAC_INTEGRATOR)
+#elif defined(SAC_INTEGRATOR)
     cfl = par_getd("time","cour_no");
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 3D SAC integrator\n",cfl);
-    return integrate_3d_sac;   */
+    return integrate_3d_sac;   
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 3D problem");
 #endif

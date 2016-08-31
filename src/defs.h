@@ -20,13 +20,13 @@
  *  (user modified via configure) */
 
 /* Version identifier when configure was last run */
-#define CONFIGURE_DATE "Wed Aug 24 19:43:49 BST 2016"
+#define CONFIGURE_DATE "Tue Aug 30 16:58:02 BST 2016"
 
 /* Problem generator with which Athena is compiled */
-#define A_PROBLEM "shkset1d"
+#define A_PROBLEM "orszag-tang"
 
 /* HYDRO or MHD */
-#define HYDRO
+#define MHD
 
 /* ADIABATIC or ISOTHERMAL or ... */
 #define ADIABATIC
@@ -68,11 +68,11 @@
 /* flux type
  * ROE_FLUX, HLLE_FLUX, HLLC_FLUX, HLLD_FLUX, FORCE_FLUX, EXACT_FLUX,
  * TWO_SHOCK_FLUX */
-#define HLLC_FLUX
+#define SAC_FLUX
 
 /* unsplit integrator:
  * CTU_INTEGRATOR or VL_INTEGRATOR */
-#define CTU_INTEGRATOR
+#define SAC_INTEGRATOR
 
 /* Real: DOUBLE_PREC or SINGLE_PREC */
 #define DOUBLE_PREC

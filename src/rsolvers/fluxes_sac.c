@@ -22,8 +22,8 @@
 
 
 
-#ifdef SAC_FLUX
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
+//#ifdef BKG
 
 
 /* Test the intermediate states in the approximate Riemann solution. */
@@ -41,28 +41,29 @@
  *   - pFlux = pointer to fluxes of CONSERVED variables at cell interface
  */
 
-#ifdef BKG
+//#ifdef BKG
 void fluxes(const Cons1DS Ul, const Cons1DS Ur,
             const Prim1DS Wl, const Prim1DS Wr,
             const Real Bxi, const Real Bxib, Cons1DS *pFlux)
-#else
-void fluxes(const Cons1DS Ul, const Cons1DS Ur,
-            const Prim1DS Wl, const Prim1DS Wr,
-            const Real Bxi, Cons1DS *pFlux)
-#endif
+//#else
+//void fluxes(const Cons1DS Ul, const Cons1DS Ur,
+//            const Prim1DS Wl, const Prim1DS Wr,
+//            const Real Bxi, Cons1DS *pFlux)
+//#endif
 {
   Real pbl=0.0;
+  Prim1DS W;
   Cons1DS Fc;   /*flux at cell centre the l values are passed in as values at cell centres*/
 
 /*--- Step 1. ------------------------------------------------------------------
  * Convert left-  states in conserved to primitive variables.
  */
 
-#ifdef BKG
-  pbl = Cons1D_to_Prim1D(&Ul,&Wl,&Bxi, &Bxib);
-#else
-  pbl = Cons1D_to_Prim1D(&Ul,&Wl,&Bxi);
-#endif
+//#ifdef BKG
+  W = Cons1D_to_Prim1D(&Ul,&Bxi, &Bxib);
+//#else
+//  pbl = Cons1D_to_Prim1D(&Ul,&Wl,&Bxi);
+//#endif
 
 
 /*--- Step 2. ------------------------------------------------------------------
@@ -86,8 +87,8 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
   Fc.Mx += 0.5*(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz))+(Bxi*Bxib+Wl.By*Wl.Byb+Wl.Bz*Wl.Bzb);/*thermal pressure plus mag pressure time*/
   Fc.Mx += -(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz));
   Fc.Mx -= (Bxi*Bxib+Bxi*Wl.Byb+Bxi*Wl.Bzb)+(Bxib*Bxi+Bxib*Wl.By+Bxib*Wl.Bz);
-  Fc.My -= (Wl.By*Bxib+Wl.By*Wl.Bzb+Wl.Bxi*Wl.Byb+Wl.Bz*Wl.Byb )-(Wl.By*Bxi+Wl.By*Wl.Bz);
-  Fc.Mz -= (Wl.Bz*Bxib+Wl.Bz*Wl.Byb+Wl.Bxi*Wl.Bzb+Wl.By*Wl.Bzb )-(Wl.Bz*Bxi+Wl.Bz*Wl.By);
+  Fc.My -= (Wl.By*Bxib+Wl.By*Wl.Bzb+Bxi*Wl.Byb+Wl.Bz*Wl.Byb )-(Wl.By*Bxi+Wl.By*Wl.Bz);
+  Fc.Mz -= (Wl.Bz*Bxib+Wl.Bz*Wl.Byb+Bxi*Wl.Bzb+Wl.By*Wl.Bzb )-(Wl.Bz*Bxi+Wl.Bz*Wl.By);
 
 #ifndef ISOTHERMAL
   Fc.E += (pbl*Wl.Vx - Bxi*(Bxi*Wl.Vx + Wl.By*Wl.Vy + Wl.Bz*Wl.Vz));
@@ -115,5 +116,5 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
   return;
 }
 
-#endif
+//#endif
 #endif /* SAC_FLUX */

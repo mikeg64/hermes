@@ -127,7 +127,7 @@ Real x3cc(const GridS *pG, const int k);
 PrimS Cons_to_Prim(const ConsS *pU);
 ConsS Prim_to_Cons(const PrimS *pW);
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb);
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb);
 #else
@@ -137,7 +137,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx);
 
 #ifndef SPECIAL_RELATIVITY
 
-#ifdef BKG
+#ifdef SAC_INTEGRATOR
 Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb);
 #else
 Real cfast(const Cons1DS *U, const Real *Bx);

@@ -59,7 +59,9 @@ INTEGRATORS_OBJ = integrators/integrate.o \
 		  integrators/integrate_3d_ctu.o \
 		  integrators/integrate_1d_vl.o \
 		  integrators/integrate_2d_vl.o \
+		  integrators/integrate_1d_sac.o \
 		  integrators/integrate_2d_sac.o \
+		  integrators/integrate_3d_sac.o \
 		  integrators/integrate_3d_vl.o \
                   integrators/integrate_1d_vl_sr.o \
                   integrators/integrate_2d_vl_sr.o \
