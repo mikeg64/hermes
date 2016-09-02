@@ -38,3 +38,28 @@ configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrat
 
 
 
+
+Helpful Links with Athena
+=========================
+
+Source code description
+http://www.astro.princeton.edu/~jstone/Athena/doxygen/html.with_source/annotated.html
+
+
+Configuring and setting up Athena
+https://trac.princeton.edu/Athena/wiki/AthenaDocsUGConfigure
+
+Configuring Integrators
+https://trac.princeton.edu/Athena/wiki/AthenaDocsUGInt
+
+Quickstart
+https://trac.princeton.edu/Athena/wiki/AthenaDocsTutQuickStart
+
+1D Sod Shock tube test (HD)
+https://trac.princeton.edu/Athena/wiki/AthenaDocsTutSod
+
+2D Orszag-Tang Test (MHD)
+https://trac.princeton.edu/Athena/wiki/AthenaDocsTutOT1
+
+
+
