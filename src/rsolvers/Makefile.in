@@ -18,6 +18,7 @@ CORE_OBJ = esystem_roe.o\
 	   hlld_sr.o \
 	   hlle.o \
 	   fluxes_sac.o \
+	   fluxes_smaug.o \
 	   roe.o \
 	   two_shock.o
 

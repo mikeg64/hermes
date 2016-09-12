@@ -53,6 +53,49 @@ else
 endif
 endif
 
+SMAUG_OBJ =
+ifeq (@SMAUG_MODE@,SMAUG_ENABLED)
+ifeq (@MPI_MODE@,MPI_PARALLEL)
+   SMAUG_OBJ = 	smaug/src/hyperdifmomsource1.o\
+		smaug/src/hyperdifmomsourcene1.o\
+		smaug/src/hyperdifesource1.o\
+		smaug/src/hyperdifbsource1.o\
+		smaug/src/hyperdifbsourcene1.o\
+		smaug/src/hyperdifrhosource1.o\
+		smaug/src/hyperdifvisc1.o\
+		smaug/src/nushk1.o\
+		smaug/src/hyperdifvisc1l.o\
+		smaug/src/hyperdifvisc1r.o\
+		smaug/src/centdiff1.o\
+		smaug/src/centdiff2.o\
+		smaug/src/computedervfields.o\
+		smaug/src/boundary.o\
+		smaug/src/init.o\
+		smaug/src/update.o\
+        	smaug/src/advance.o\
+		smaug/src/divb.o
+else
+   SMAUG_OBJ = 	smaug/src/hyperdifmomsource1.o\
+		smaug/src/hyperdifmomsourcene1.o\
+		smaug/src/hyperdifesource1.o\
+		smaug/src/hyperdifbsource1.o\
+		smaug/src/hyperdifbsourcene1.o\
+		smaug/src/hyperdifrhosource1.o\
+		smaug/src/hyperdifvisc1.o\
+		smaug/src/nushk1.o\
+		smaug/src/hyperdifvisc1l.o\
+		smaug/src/hyperdifvisc1r.o\
+		smaug/src/centdiff1.o\
+		smaug/src/centdiff2.o\
+		smaug/src/computedervfields.o\
+		smaug/src/boundary.o\
+		smaug/src/init.o\
+		smaug/src/update.o\
+        	smaug/src/advance.o\
+		smaug/src/divb.o
+endif
+endif
+
 INTEGRATORS_OBJ = integrators/integrate.o \
 		  integrators/integrate_1d_ctu.o \
 		  integrators/integrate_2d_ctu.o \
@@ -62,6 +105,9 @@ INTEGRATORS_OBJ = integrators/integrate.o \
 		  integrators/integrate_1d_sac.o \
 		  integrators/integrate_2d_sac.o \
 		  integrators/integrate_3d_sac.o \
+		  integrators/integrate_1d_smaug.o \
+		  integrators/integrate_2d_smaug.o \
+		  integrators/integrate_3d_smaug.o \
 		  integrators/integrate_3d_vl.o \
                   integrators/integrate_1d_vl_sr.o \
                   integrators/integrate_2d_vl_sr.o \
@@ -108,6 +154,7 @@ RSOLVERS_OBJ = rsolvers/esystem_roe.o \
 	       rsolvers/hlld_sr.o \
 	       rsolvers/hlle.o \
 	       rsolvers/fluxes_sac.o \
+	       rsolvers/fluxes_smaug.o \
 	       rsolvers/roe.o \
 	       rsolvers/two_shock.o
 

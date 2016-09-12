@@ -15,6 +15,9 @@
 #ifdef FFT_ENABLED
 #include "fftsrc/prototypes.h"
 #endif
+#ifdef SMAUG_ENABLED
+#include "smaug/include/prototypes.h"
+#endif
 
 #include "gravity/prototypes.h"
 #include "integrators/prototypes.h"
@@ -130,6 +133,9 @@ ConsS Prim_to_Cons(const PrimS *pW);
 #ifdef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb);
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb);
+#elif SMAUG_INTEGRATOR
+Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb);
+Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb);
 #else
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx);
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx);
@@ -138,6 +144,8 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx);
 #ifndef SPECIAL_RELATIVITY
 
 #ifdef SAC_INTEGRATOR
+Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb);
+#elif SMAUG_INTEGRATOR
 Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb);
 #else
 Real cfast(const Cons1DS *U, const Real *Bx);

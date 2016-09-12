@@ -47,6 +47,11 @@ VDFun_t integrate_init(MeshS *pM)
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SAC integrator\n",cfl);
     return integrate_1d_sac;
+#elif defined(SMAUG_INTEGRATOR)
+    cfl = par_getd("time","cour_no");
+    if (cfl > 0.5)
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SMAUG integrator\n",cfl);
+    return integrate_1d_smaug;
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 1D problem");
 #endif
@@ -66,6 +71,11 @@ VDFun_t integrate_init(MeshS *pM)
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 2D SAC integrator\n",cfl);
     return integrate_2d_sac;
+#elif defined(SMAUG_INTEGRATOR)
+    cfl = par_getd("time","cour_no");
+    if (cfl > 0.5)
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 2D SMAUG integrator\n",cfl);
+    return integrate_2d_smaug;
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 2D problem");
 #endif
@@ -86,7 +96,12 @@ VDFun_t integrate_init(MeshS *pM)
     cfl = par_getd("time","cour_no");
     if (cfl > 0.5)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 3D SAC integrator\n",cfl);
-    return integrate_3d_sac;   
+    return integrate_3d_sac; 
+#elif defined(SMAUG_INTEGRATOR)
+    cfl = par_getd("time","cour_no");
+    if (cfl > 0.5)
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 3D SMAUG integrator\n",cfl);
+    return integrate_3d_smaug;   
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 3D problem");
 #endif

@@ -1,0 +1,115 @@
+#make include file for building StarSimulation IoSimTestSimple on Felix
+# Standard defines:
+CC  	=	pgCC
+##CC  	=	mpiCC
+NVCC  	=	pgCC
+FF  	=	gfortran
+LD  	=	g++
+HOMEV	=	..
+VPATH	=	$(HOMEV)/include
+oDir	=	.
+Bin	=	../bin
+obj	=	../obj
+MYLIBS  =
+
+#CUDA = /usr/local/cuda
+#CUDA = /usr/local/cuda-5.0
+#CUDA = /usr/local/lib/nvidia-cuda/toolkit/4.0.17
+CUDA = /usr/local/packages5/pgi12.10/linux86-64/2012/cuda/4.1
+
+BASE = /usr/local/dx
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I$(CUDA)/include -I$../include
+
+
+LD_FLAGS =	
+LINKFLAGS =	-Mcudax86
+
+#remove comments from following lines to include/link IOME
+#IOMELIBS	=	-L$(IOME_HOME)/lib -L$(XERCESCROOT)/lib -L$(XALANCROOT)/lib -lxerces-c -lxalan-c -lxalanMsg  -lm -liogenericsimulation
+#MYLIBS = $(IOME_HOME)/lib/libiogenericsimulation.a 
+#IOME_INCLUDES = -I$(XERCESCROOT)/include -I$(XALANCROOT)/include
+#IOME_C_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\" -DIO_XERCESCVERSION=xercesc_2_8 -DIO_FORTRAN
+#remove comments from  lines above to include/link IOME
+
+
+#use -DUSE_IOME to enable IOME
+#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DUSE_SHOCKVISC  -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D -DUSE_DORDER3
+#compiling with  -arch sm_13 enables double precision to be used
+#CUDACCFLAGS = --ptxas-options=-v -arch sm_20  -maxrregcount=32 -DUSE_SAC
+CUDACCFLAGS = -DUSE_SAC
+CCFLAGS = -DUSE_SAC -DD1D
+
+
+
+
+
+#LIBS	=	-L$(CUDA)/lib -L$(CUDA)/lib64   -L../lib -L/usr/local/lib -lm $(IOMELIBS) -lcudart
+LIBS	=	-L$(CUDA)/lib -L$(CUDA)/lib64   -L../lib -L/usr/local/lib -lm $(IOMELIBS)
+
+#C_FLAGS
+#NVC_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\" -DIO_XERCESCVERSION=xercesc_2_8 -DIO_FORTRAN
+NVC_FLAGS	= -O4 -Dlinux -DBASE=\"$(BASE)\" 
+
+#C_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\"  -DIO_FORTRAN $(incDirs) $(IOME_C_FLAGS)
+C_FLAGS	= -O4 -Dlinux -DBASE=\"$(BASE)\"  -DIO_FORTRAN $(incDirs) $(IOME_C_FLAGS)
+
+
+SRCS	=\
+	IoSimTestSimple.cpp
+
+#INCLUDES = ../IoUtils/vec.h ../IoUtils/IoPropertyManager.h
+
+INCLUDES = $(IOME_INLUDES)
+
+
+BASICEXOBJS	=\
+	iosmaug.o\
+	initialisation.o\
+	dxroutines.o\
+	hyperdifmomsource1.o\
+	hyperdifmomsourcene1.o\
+	hyperdifesource1.o\
+	hyperdifbsource1.o\
+	hyperdifbsourcene1.o\
+	hyperdifrhosource1.o\
+	hyperdifvisc1.o\
+	nushk1.o\
+	hyperdifvisc1l.o\
+	hyperdifvisc1r.o\
+	centdiff1.o\
+	centdiff2.o\
+	computedervfields.o\
+	boundary.o\
+	init.o\
+	update.o\
+        advance.o\
+	readwrite.o\
+	divb.o
+
+PROCEXOBJS	=\
+	gradops_pre.oBASICEXOBJS	=\
+	iosmaug.o\
+	initialisation.o\
+	dxroutines.o\
+	hyperdifmomsource1.o\
+	hyperdifmomsourcene1.o\
+	hyperdifesource1.o\
+	hyperdifbsource1.o\
+	hyperdifbsourcene1.o\
+	hyperdifrhosource1.o\
+	hyperdifvisc1.o\
+	nushk1.o\
+	hyperdifvisc1l.o\
+	hyperdifvisc1r.o\
+	centdiff1.o\
+	centdiff2.o\
+	computedervfields.o\
+	boundary.o\
+	init.o\
+	update.o\
+        advance.o\
+	readwrite.o\
+	divb.o
+
+PROCEXOBJS	=\
+	gradops_pre.o

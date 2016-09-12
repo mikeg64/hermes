@@ -29,8 +29,8 @@
 #
 # ALGORITHM "packages":
 #   --with-order=[1,2,3,2p,3p]        (order and type of spatial reconstruction)
-#   --with-flux=[roe,hlle,hllc,hlld,force,sac,exact,two-shock]   (flux function)
-#   --with-integrator=[ctu,vl,sac]               (unsplit integration algorithm)
+#   --with-flux=[roe,hlle,hllc,hlld,force,sac,smaug,exact,two-shock]   (flux function)
+#   --with-integrator=[ctu,vl,sac,smaug]               (unsplit integration algorithm)
 #   --with-cflags=[opt,debug,profile]                       (set compiler flags)
 #
 # ALGORITHM "features":
@@ -47,6 +47,7 @@
 #   --enable-rotating_frame                    (enable ROTATING_FRAME algorithm)
 #   --enable-l1_inflow                             (enable inflow from L1 point)
 #   --enable-bkg                                      (enable background fields)
+#   --enable-smaug                 (enable Sheffield MHD accelerated using GPUs)
 #
 #-------------------------------------------------------------------------------
 # generic things
@@ -316,6 +317,8 @@ elif test "$with_flux" = "force"; then
   FLUX_DEF="FORCE_FLUX"
 elif test "$with_flux" = "sac"; then
   FLUX_DEF="SAC_FLUX"
+elif test "$with_flux" = "smaug"; then
+  FLUX_DEF="SMAUG_FLUX"
 elif test "$with_flux" = "exact"; then
   FLUX_DEF="EXACT_FLUX"
 elif test "$with_flux" = "two-shock"; then
@@ -342,8 +345,11 @@ elif test "$with_integrator" = "vl"; then
 elif test "$with_integrator" = "sac"; then
   INTEGRATOR_DEF="SAC_INTEGRATOR"
   AC_SUBST(BKG)
+elif test "$with_integrator" = "smaug"; then
+  INTEGRATOR_DEF="SMAUG_INTEGRATOR"
+  AC_SUBST(BKG)
 else
-  AC_MSG_ERROR([expected --with-integrator=ctu or vl])
+  AC_MSG_ERROR([expected --with-integrator=ctu or sac or smaug or vl])
 fi
 
 #-------------------------------------------------------------------------------
@@ -451,6 +457,28 @@ else
   H_CORRECTION_MODE="NO_H_CORRECTION"
   H_CORRECTION_MODE_USER="OFF"
 fi
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# ALGORITHM FEATURE: turn on SMAUG
+#   --enable-smaug
+
+AC_SUBST(SMAUG_MODE)
+AC_ARG_ENABLE(smaug,
+	[--enable-smaug  compile and link SMAUG interface code (requires cuda compilers and drivers)],
+	ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  SMAUG_MODE="SMAUG_ENABLED"
+  SMAUG_MODE_USER="ON"
+else
+  SMAUG_MODE="NO_SMAUG"
+  SMAUG_MODE_USER="OFF"
+fi
+
+
 
 #-------------------------------------------------------------------------------
 # ALGORITHM FEATURE: turn on FFT libraries
@@ -661,6 +689,7 @@ echo "Ghost cell output:       $WRITE_GHOST_MODE_USER"
 echo "Parallel modes: MPI      $MPI_MODE_USER"
 echo "H-correction:            $H_CORRECTION_MODE_USER"
 echo "FFT:                     $FFT_MODE_USER"
+echo "SMAUG:                   $SMAUG_MODE_USER"
 echo "Shearing-box:            $SHEARING_BOX_MODE_USER"
 echo "FARGO:                   $FARGO_MODE_USER"
 echo "Super timestepping:      $TIMESTEPPING_MODE_USER"

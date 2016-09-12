@@ -15,6 +15,7 @@ MACHINE = default
 
 #-------------------  default definitions  -------------------------------------
 
+NVCC = nvcc
 CC  = @CC@
 LDR = @CC@
 OPT = @COMPILER_OPTS@
@@ -26,6 +27,15 @@ FFTWINC =
 BLOCKINC = 
 BLOCKLIB = 
 CUSTLIBS = -ldl -lm
+
+
+ifeq (@SMAUG_MODE@,SMAUG_ENABLED)
+  CUDA = /usr/local/lib/nvidia-cuda-toolkit
+  BLOCKINC = 
+  CUDALIB = -L$(CUDA)/lib -L$(CUDA)/lib64   -L../lib -L/usr/local/lib -L /usr/lib/x86_64-linux-gnu -lm -lcudart
+  CUDAINC = -I/usr/include -I$(CUDA)/include -I$../include
+  CUDACCFLAGS = --ptxas-options=-v -arch sm_20  -maxrregcount=32 -DUSE_SAC -DUSE_USERSOURCE
+endif
 
 ifeq (@FFT_MODE@,FFT_ENABLED)
   BLOCKINC = -I fftsrc
@@ -113,4 +123,4 @@ ifeq (@FFT_MODE@,NO_FFT)
 endif
 
 CFLAGS = $(OPT) $(BLOCKINC) $(MPIINC) $(FFTWINC)
-LIB = $(BLOCKLIB) $(MPILIB) $(FFTWLIB) $(CUSTLIBS)
+LIB = $(BLOCKLIB) $(MPILIB) $(FFTWLIB) $(CUSTLIBS) $(CUDALIB)

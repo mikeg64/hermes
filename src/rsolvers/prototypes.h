@@ -37,6 +37,10 @@ void esys_roe_adb_mhd(const Real d, const Real v1, const Real v2,
 void fluxes(const Cons1DS Ul, const Cons1DS Ur,
             const Prim1DS Wl, const Prim1DS Wr,
             const Real Bxi,   const Real Bxib, Cons1DS *pF);
+#elif SMAUG_INTEGRATOR
+void fluxes(const Cons1DS Ul, const Cons1DS Ur,
+            const Prim1DS Wl, const Prim1DS Wr,
+            const Real Bxi,   const Real Bxib, Cons1DS *pF);
 #else
 void fluxes(const Cons1DS Ul, const Cons1DS Ur,
             const Prim1DS Wl, const Prim1DS Wr,

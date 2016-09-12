@@ -109,6 +109,12 @@ typedef struct Cons_s{
   Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
   Real B2cb;			/*!< cell centered magnetic fields in 2-dir*/
   Real B3cb;
+#elif SMAUG_INTEGRATOR
+  Real db;
+  Real Eb;
+  Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
+  Real B2cb;			/*!< cell centered magnetic fields in 2-dir*/
+  Real B3cb;
 #endif
 
 
@@ -137,6 +143,12 @@ typedef struct Prim_s{
 #endif
 
 #ifdef SAC_INTEGRATOR
+  Real db;
+  Real Pb;
+  Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
+  Real B2cb;			/*!< cell centered magnetic fields in 2-dir*/
+  Real B3cb;
+#elif SMAUG_INTEGRATOR
   Real db;
   Real Pb;
   Real B1cb;			/*!< cell centered magnetic fields in 1-dir*/
@@ -175,6 +187,11 @@ typedef struct Cons1D_s{
   Real Eb;
   Real Byb;			/*!< cell centered magnetic fields in 1-dir*/
   Real Bzb;			/*!< cell centered magnetic fields in 2-dir*/
+#elif SMAUG_INTEGRATOR
+  Real db;
+  Real Eb;
+  Real Byb;			/*!< cell centered magnetic fields in 1-dir*/
+  Real Bzb;			/*!< cell centered magnetic fields in 2-dir*/
 #endif
 
 }Cons1DS;
@@ -201,6 +218,11 @@ typedef struct Prim1D_s{
 #endif
 
 #ifdef SAC_INTEGRATOR
+  Real db;
+  Real Pb;
+  Real Byb;			/*!< cell centered magnetic fields in 1-dir*/
+  Real Bzb;			/*!< cell centered magnetic fields in 2-dir*/
+#elif SMAUG_INTEGRATOR
   Real db;
   Real Pb;
   Real Byb;			/*!< cell centered magnetic fields in 1-dir*/

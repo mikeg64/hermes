@@ -36,6 +36,7 @@ Next job to compile with SAC_INTEGRATOR, BKG and SAC_FLUX
 
 configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=sac --with-flux=sac
 
+configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
 
 
 

@@ -16,6 +16,9 @@ CORE_OBJ = integrate.o \
 	   integrate_1d_sac.o \
 	   integrate_2d_sac.o \
 	   integrate_3d_sac.o \
+	   integrate_1d_smaug.o \
+	   integrate_2d_smaug.o \
+	   integrate_3d_smaug.o \
 	   integrate_3d_vl.o \
            integrate_1d_vl_sr.o \
            integrate_2d_vl_sr.o \

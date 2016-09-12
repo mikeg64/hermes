@@ -1,0 +1,164 @@
+#    @WARNING1@
+#    @WARNING2@
+#===============================================================================
+# FILE: Makefile.in
+#
+# PURPOSE: Template for src/smaug/src/Makefile.  When 'configure' is run, a new
+# Makefile will be created (overwriting the last) from this template.
+#
+#-------------------  object files  --------------------------------------------
+ifeq (@SMAUG_MODE@,SMAUG_ENABLED)
+
+   CORE_OBJ = 	src/hyperdifmomsource1.o\
+		src/hyperdifmomsourcene1.o\
+		src/hyperdifesource1.o\
+		src/hyperdifbsource1.o\
+		src/hyperdifbsourcene1.o\
+		src/hyperdifrhosource1.o\
+		src/hyperdifvisc1.o\
+		src/nushk1.o\
+		src/hyperdifvisc1l.o\
+		src/hyperdifvisc1r.o\
+		src/centdiff1.o\
+		src/centdiff2.o\
+		src/computedervfields.o\
+		src/boundary.o\
+		src/init.o\
+		src/update.o\
+        	src/advance.o\
+		src/divb.o
+else
+CORE_OBJ = 
+endif
+
+OBJ = $(CORE_OBJ)
+
+#-------------------  macro definitions  ---------------------------------------
+
+SRC = $(OBJ:.o=.cu)
+
+include ../../Makeoptions
+
+
+BLOCKINC =
+BLOCKLIB =
+
+#--------------------  implicit rules  -----------------------------------------
+
+.c.o:
+	${CC} ${CFLAGS} -c $<
+
+#old rules from smaug distro
+#.cpp.o:
+#	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<
+#
+#.c.o:
+#	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)    -o $@ -c $<
+
+#---------------------  targets  -----------------------------------------------
+
+all:	compile
+
+.PHONY: compile
+compile: ${OBJ}
+#	ar rcs libplimpton.a ${OBJ}
+
+help:
+	@echo This is the SMAUG Makefile
+	@echo Type 'make compile' to generate SMAUG object files
+	@echo Type 'make clean'   to remove '*.o' files
+	@echo OBJ=$(OBJ)
+
+.PHONY: clean
+clean:
+	rm -f *.o *.a Makedepend
+
+depend: Makedepend
+
+Makedepend:
+	${CC} -MM ${CFLAGS} ${SRC} > Makedepend
+
+
+
+nushk1.o: nushk1.cu
+	sed 's/MODID/nshk/g' < src/gradops.cu > include/gradops_nshk.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1.o: hyperdifvisc1.cu
+	sed 's/MODID/hdv1/g' < src/gradops.cu > include/gradops_hdv1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1l.o: hyperdifvisc1l.cu
+	sed 's/MODID/hdv1l/g' < src/gradops.cu > include/gradops_hdv1l.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1r.o: hyperdifvisc1r.cu
+	sed 's/MODID/hdv1r/g' < src/gradops.cu > include/gradops_hdv1r.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifviscmax.o: hyperdifviscmax.cu
+	sed 's/MODID/hdvmax/g' < src/gradops.cu > include/gradops_hdvmax.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifrhosource1.o: hyperdifrhosource1.cu
+	sed 's/MODID/hdr1/g' < src/gradops.cu > include/gradops_hdr1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifesource1.o: hyperdifesource1.cu
+	sed 's/MODID/hde1/g' < src/gradops.cu > include/gradops_hde1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsource1.o: hyperdifbsource1.cu
+	sed 's/MODID/hdb1/g' < src/gradops.cu > include/gradops_hdb1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene1.o: hyperdifbsourcene1.cu
+	sed 's/MODID/hdbne1/g' < src/gradops.cu > include/gradops_hdbne1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsource1.o: hyperdifmomsource1.cu
+	sed 's/MODID/hdm1/g' < src/gradops.cu > include/gradops_hdm1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
+	sed 's/MODID/hdmne1/g' < src/gradops.cu > include/gradops_hdmne1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+centdiff1.o: centdiff1.cu
+	sed 's/MODID/cd1/g' < src/gradops.cu > include/gradops_cd1.cuh
+	sed 's/MODID/cd1/g' < src/dervfields.cu > include/dervfields_cd1.cuh
+	sed 's/MODID/cd1/g' < src/usersource.cu > include/usersource_cd1.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+centdiff2.o: centdiff2.cu
+	sed 's/MODID/cd2/g' < src/gradops.cu > include/gradops_cd2.cuh
+	sed 's/MODID/cd2/g' < src/dervfields.cu > include/dervfields_cd2.cuh
+	sed 's/MODID/cd2/g' < src/usersource.cu > include/usersource_cd2.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+computedervfields.o: computedervfields.cu
+	sed 's/MODID/cdf/g' < src/gradops.cu > include/gradops_cdf.cuh
+	sed 's/MODID/cdf/g' < src/dervfields.cu > include/dervfields_cdf.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS)   -c $<
+boundary.o: boundary.cu
+	sed 's/MODID/b/g' < src/gradops.cu > include/gradops_b.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+init.o: init.cu
+	sed 's/MODID/i/g' < src/gradops.cu > include/gradops_i.cuh
+	sed 's/MODID/i/g' < src/init_user.cu > include/init_user_i.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+mpiutil.o: mpiutil.cu
+	sed 's/MODID/mpiu/g' < src/gradops.cu > include/gradops_mpiu.cuh
+	sed 's/MODID/mpiu/g' < src/init_user.cu > include/init_user_mpiu.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+update.o: update.cu
+	sed 's/MODID/u/g' < src/gradops.cu > include/gradops_u.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+advance.o: advance.cu
+	sed 's/MODID/adv/g' < src/gradops.cu > include/gradops_adv.cuh
+	sed 's/MODID/adv/g' < src/dervfields.cu > include/dervfields_adv.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+divb.o: divb.cu
+	sed 's/MODID/db/g' < src/gradops.cu > include/gradops_db.cuh
+	sed 's/MODID/db/g' < src/dervfields.cu > include/dervfields_db.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+
+
+
+
+
+
+# this forces a rebuild of all objects, if code re-configure'd
+
+ifeq (@SMAUG_MODE@,SMAUG_ENABLED)
+ifeq (@MPI_MODE@,MPI_PARALLEL)
+include Makedepend
+endif
+endif
