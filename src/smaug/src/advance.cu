@@ -1,13 +1,13 @@
 #include "../include/cudapars.h"
-#include "../include/iotypes.h"
-#include "../include/iobparams.h"
+
 /////////////////////////////////////
 // standard imports
 /////////////////////////////////////
 #include <stdio.h>
 #include <math.h>
+#include "../include/iotypes.h"
 #include "../include/prototypes.h"
-
+#include "../include/iobparams.h"
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////

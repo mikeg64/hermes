@@ -2,14 +2,15 @@
 
 
 #include "../include/cudapars.h"
-#include "../include/paramssteeringtest1.h"
-#include "../include/iobparams.h"
+
 /////////////////////////////////////
 // standard imports
 /////////////////////////////////////
 #include <stdio.h>
 #include <math.h>
+#include "../include/iotypes.h"
 #include "../include/prototypes.h"
+#include "../include/iobparams.h"
 #include "../include/gradops_cdf.cuh"
 #include "../include/dervfields_cdf.cuh"
 /////////////////////////////////////
