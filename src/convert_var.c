@@ -617,8 +617,8 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
 
 #ifdef SAC_INTEGRATOR
   Real di = 1.0/(pU->d+pU->db);
-#elif
-
+#elif defined SMAUG_INTEGRATOR
+  Real di = 1.0/(pU->d+pU->db);
 #else
   Real di = 1.0/pU->d;
 #endif
@@ -629,6 +629,9 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
   Prim1D.Vz = pU->Mz*di;
 
 #ifdef SAC_INTEGRATOR
+  Prim1D.db  = pU->db;
+#endif
+#ifdef SMAUG_INTEGRATOR
   Prim1D.db  = pU->db;
 #endif
 

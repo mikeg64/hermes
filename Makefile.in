@@ -57,7 +57,7 @@ endif
 #  target clean:
 clean:
 	(cd src/smaug/src; $(MAKE) clean)
-        (cd src/fftsrc; $(MAKE) clean)
+	(cd src/fftsrc; $(MAKE) clean)
 	(cd src/gravity; $(MAKE) clean)
 	(cd src/integrators; $(MAKE) clean)
 	(cd src/microphysics; $(MAKE) clean)

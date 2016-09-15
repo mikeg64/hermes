@@ -103,8 +103,16 @@ void problem(DomainS *pDomain)
   Wr.r[0] = par_getd("problem","r0r");
 #endif
 
+#ifdef SAC_INTEGRATOR
+ Ul = Prim1D_to_Cons1D(&Wl, &Bxl,NULL);
+  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,NULL);
+#elif defined  SMAUG_INTEGRATOR
+ Ul = Prim1D_to_Cons1D(&Wl, &Bxl,NULL);
+  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,NULL);
+#else
   Ul = Prim1D_to_Cons1D(&Wl, &Bxl);
   Ur = Prim1D_to_Cons1D(&Wr, &Bxr);
+#endif
 
 /* Parse shock direction */
   shk_dir = par_geti("problem","shk_dir");
