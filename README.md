@@ -31,14 +31,14 @@ SAC_INTEGRATOR   sac integrator for use with background fields
 Next job to compile with SAC_INTEGRATOR, BKG and SAC_FLUX
 
 ./configure --with-problem=shkset1d --enable-bkg --with-integrator=sac --with-flux=sac
+
 ./configure  --with-problem=orszag-tang --with-order=3 --enable-bkg --with-integrator=sac --with-flux=sac
 
+./configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=sac --with-flux=sac
 
-configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=sac --with-flux=sac
+./configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
 
-configure --with-gas=hydro --with-problem=shkset1d  --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
-
-
+./configure --with-problem=orszag-tang --with-order=3 --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
 
 Helpful Links with Athena
 =========================

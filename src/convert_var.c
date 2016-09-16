@@ -641,7 +641,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
   Prim1D.P = pU->E - 0.5*(SQR(pU->Mx)+SQR(pU->My)+SQR(pU->Mz))*di;
 #ifdef MHD
   Prim1D.P -= 0.5*(SQR(*pBx) + SQR(pU->By) + SQR(pU->Bz));
-#endif /* MHD */
+
 
 #ifdef SAC_INTEGRATOR
 Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
@@ -650,6 +650,7 @@ Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
 Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
 #endif
 
+#endif /* MHD */
 
   Prim1D.P *= Gamma_1;
   Prim1D.P = MAX(Prim1D.P,TINY_NUMBER);
@@ -660,7 +661,7 @@ Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
 #ifdef MHD
   Prim1D.By = pU->By;
   Prim1D.Bz = pU->Bz;
-#endif /* MHD */
+
 
 #ifdef SAC_INTEGRATOR
   Prim1D.Byb = pU->Byb;
@@ -670,6 +671,8 @@ Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
   Prim1D.Byb = pU->Byb;
   Prim1D.Bzb = pU->Bzb;
 #endif
+
+#endif /* MHD */
 
 #if (NSCALARS > 0)
   for (n=0; n<NSCALARS; n++) Prim1D.r[n] = pU->s[n]*di;
@@ -790,7 +793,7 @@ Real cfast(const Cons1DS *U, const Real *Bx)
 #ifdef SAC_INTEGRATOR
  Real p,pSAC_INTEGRATOR,pb=0.0,pbSAC_INTEGRATOR=0.0;
 #elif defined SMAUG_INTEGRATOR
- Real p,pSMAUG_INTEGRATOR,pb=0.0,pbMAUG_INTEGRATOR=0.0;
+ Real p,pSMAUG_INTEGRATOR,pb=0.0,pbSMAUG_INTEGRATOR=0.0;
 #else
    Real p,pb=0.0;
 #endif /*SAC_INTEGRATOR*/
@@ -810,7 +813,7 @@ Real cfast(const Cons1DS *U, const Real *Bx)
   pbSAC_INTEGRATOR = 0.5*(SQR(*Bxb) + SQR(U->Byb) + SQR(U->Bzb));
 #elif defined SMAUG_INTEGRATOR
   pb = 0.5*(SQR(*Bx) + SQR(U->By) + SQR(U->Bz))+(*Bx* (*Bxb)+(U->By)*(U->Byb)+(U->Bz)*(U->Bzb));
-  pbSAC_INTEGRATOR = 0.5*(SQR(*Bxb) + SQR(U->Byb) + SQR(U->Bzb));
+  pbSMAUG_INTEGRATOR = 0.5*(SQR(*Bxb) + SQR(U->Byb) + SQR(U->Bzb));
 #else
   pb = 0.5*(SQR(*Bx) + SQR(U->By) + SQR(U->Bz));
 #endif /*SAC_INTEGRATOR*/

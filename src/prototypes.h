@@ -133,7 +133,7 @@ ConsS Prim_to_Cons(const PrimS *pW);
 #ifdef SAC_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb);
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb);
-#elif SMAUG_INTEGRATOR
+#elif defined SMAUG_INTEGRATOR
 Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx, const Real *pBxb);
 Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx, const Real *pBxb);
 #else
@@ -145,7 +145,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx);
 
 #ifdef SAC_INTEGRATOR
 Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb);
-#elif SMAUG_INTEGRATOR
+#elif defined SMAUG_INTEGRATOR
 Real cfast(const Cons1DS *U, const Real *Bx, const Real *Bxb);
 #else
 Real cfast(const Cons1DS *U, const Real *Bx);
