@@ -40,10 +40,6 @@ Next job to compile with SAC_INTEGRATOR, BKG and SAC_FLUX
 
 ./configure --with-problem=orszag-tang --with-order=3 --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
 
-all of the above problems will define USE_SAC  3D problems must include --enable-sac-3d  this will activate USE_SAC_3D instead of USE_SAC
-
-./configure --with-problem=orszag-tang --with-order=3 --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
-
 Helpful Links with Athena
 =========================
 

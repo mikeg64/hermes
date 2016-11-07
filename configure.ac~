@@ -417,6 +417,7 @@ AC_ARG_ENABLE(bkg,
 if test "$ok" = "yes"; then
   BKG_MODE="BKG_ON"
   AC_SUBST(BKG)
+  AC_SUBST(USE_SAC)
 else
   BKG_MODE="BKG_OFF"
 fi
@@ -435,9 +436,6 @@ AC_ARG_ENABLE(sac3d,
 if test "$ok" = "yes"; then
   SAC3D_MODE="SAC-3D_ON"
   AC_SUBST(USE_SAC_3D)
-else
-  SAC3D_MODE="SAC-3D_OFF"
-  AC_SUBST(USE_SAC)
 fi
 
 
@@ -706,7 +704,6 @@ echo ""
 echo "Spatial Order:           $ORDER ($ACCURACY)"
 echo "Flux:                    $FLUX_NAME"
 echo "Background fields:       $BKG_MODE"
-echo "SAC 3D mode              $SAC3D_MODE"
 echo "unsplit integrator:      $INTEGRATOR"
 echo "Precision:               $PRECISION"
 echo "Compiler options:        $COMPILER_OPTS"

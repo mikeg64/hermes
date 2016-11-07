@@ -335,28 +335,17 @@ typedef struct GridOvrlp_s{
 typedef struct bparams {
 
 
-       /* #ifdef USE_SAC_3D
+        #ifdef USE_SAC_3D
           Real fixed1[4*MSIZE2*MSIZE3*NVAR];
           Real fixed2[4*MSIZE1*MSIZE3*NVAR];
           Real fixed3[4*MSIZE1*MSIZE2*NVAR];
         #else
           Real fixed1[4*MSIZE2*NVAR];
           Real fixed2[4*MSIZE1*NVAR];
-        #endif  */
-
-       #ifdef USE_SAC_3D
-          Real *fixed1;
-          Real *fixed2;
-          Real *fixed3;
-        #else
-          Real *fixed1;
-          Real *fixed2;
         #endif
 
-
-
  
-} GPUBparams;
+} Bparams;
 
 
 typedef struct params {
@@ -426,7 +415,6 @@ typedef struct params {
 typedef struct GPUData_s{
 
 GPUParams *d_p;
-GPUBParams *d_b;
 
 Real *d_w;
 Real *d_wnew;

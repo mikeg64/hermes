@@ -134,7 +134,7 @@ struct params {
         int divbfix;
         int cfgsavefrequency;
         int hyperdifmom; 
-        int mode;
+        int mode; //run=0,scatter=1,gather,init,redistribute
         int readini;
         real courant;
         real maxviscoef;
