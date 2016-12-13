@@ -2,12 +2,20 @@
 #include "iotypes.h"
 #include "iobparams.h"
 
+/*init.cu*/
+int cuinit(DomainS *pD);
+int cucopyfromgpu(MeshS *Mesh, DomainS *pD);
+int cucopytogpu(MeshS *Mesh, DomainS *pD);
+int cucopyparamsfromgpu(MeshS *Mesh, DomainS *pD);
+int cucopyparamstogpu(MeshS *Mesh, DomainS *pD);
+int cusetgpu(struct params **p);
+int cusync(struct params **p);
 
 
+/*int cuinit(struct params **p, struct bparams **bp, real **wmod,real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 
-int cuinit(struct params **p, struct bparams **bp, real **wmod,real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 int cuupdatemod(struct params **p, struct bparams **bp,real **w, real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
-int initgrid(struct params **p,   struct state **state, real **wd, struct params **d_p, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int initgrid(struct params **p,   struct state **state, real **wd, struct params **d_p, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);*/
 
 int cufinish(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 
