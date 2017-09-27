@@ -53,7 +53,7 @@
 static Cons1DS *Uc_x1=NULL, *Ur_x1Face=NULL, *x1Flux=NULL;
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bx=NULL, Real *Bxb=NULL, *Bxi=NULL;
+static Real *Bx=NULL, *Bxb=NULL, *Bxi=NULL;
 static Prim1DS *W=NULL, *Wl=NULL, *Wr=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -169,7 +169,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
     U1d[i].By = pG->U[ks][js][i].B2c;
     U1d[i].Bz = pG->U[ks][js][i].B3c;
     Bx[i] = pG->U[ks][js][i].B1c;
-    Bxi[i] = pG->B1i[ks][js][i];
+    /*Bxi[i] = pG->B1i[ks][js][i];*/
 #endif /* MHD */
 #ifdef SAC_INTEGRATOR
         U1d[i].db  = pG->U[ks][js][i].db;
@@ -280,7 +280,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));*/
 
       /*check cooling function*/
-      coolfc = (*CoolingFunc)(W[i].d,W[i].P,(pG->dt));
+      coolf = (*CoolingFunc)(W[i].d,W[i].P,(pG->dt));
       W[i].P -= pG->dt*Gamma_1*coolf;
       /*Wl[i].P -= 0.5*pG->dt*Gamma_1*coolfl;
       Wr[i].P -= 0.5*pG->dt*Gamma_1*coolfr;*/
@@ -297,7 +297,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       
 
 
-      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],Bx,Bxb,&x1Flux[i]);
+      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],*Bx,*Bxb,&x1Flux[i]);
     }
   
 
