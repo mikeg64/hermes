@@ -818,7 +818,7 @@ void integrate_destruct_1d(void)
   if (Bxi != NULL) free(Bxi);
 
   if (U1d != NULL) free(U1d);
-  if (Uc_x1 != NULL) free(Ul_x1Face);
+  if (Uc_x1 != NULL) free(Uc_x1);
   /*if (Ur_x1Face != NULL) free(Ur_x1Face);*/
   if (x1Flux != NULL) free(x1Flux);
 
