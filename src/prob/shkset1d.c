@@ -41,7 +41,7 @@ void problem(DomainS *pDomain)
   Real x1,x2,x3;
   Prim1DS Wl, Wr;
   Cons1DS U1d, Ul, Ur;
-  Real Bxl=0.0, Bxr=0.0;
+  Real Bxl=0.0, Bxr=0.0, Bxb=0.0;
 /* speeds of shock, contact, head and foot of rarefaction for Sod test */
 /* speeds of slow/fast shocks, Alfven wave and contact in RJ2a test */
   Real tlim;
@@ -60,6 +60,9 @@ void problem(DomainS *pDomain)
   nx1 = (ie-is)+1 + 2*nghost;
   nx2 = (je-js)+1 + 2*nghost;
   nx3 = (ke-ks)+1 + 2*nghost;
+
+printf("here1\n");
+
 
   if (pDomain->Level == 0){
     if ((RootSoln = (ConsS***)calloc_3d_array(nx3,nx2,nx1,sizeof(ConsS)))
@@ -103,17 +106,19 @@ void problem(DomainS *pDomain)
   Wr.r[0] = par_getd("problem","r0r");
 #endif
 
+
+printf("here2\n");
 #ifdef SAC_INTEGRATOR
- Ul = Prim1D_to_Cons1D(&Wl, &Bxl,NULL);
-  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,NULL);
+ Ul = Prim1D_to_Cons1D(&Wl, &Bxl,&Bxb);
+  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,&Bxb);
 #elif defined  SMAUG_INTEGRATOR
- Ul = Prim1D_to_Cons1D(&Wl, &Bxl,NULL);
-  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,NULL);
+ Ul = Prim1D_to_Cons1D(&Wl, &Bxl,&Bxb);
+  Ur = Prim1D_to_Cons1D(&Wr, &Bxr,&Bxb);
 #else
   Ul = Prim1D_to_Cons1D(&Wl, &Bxl);
   Ur = Prim1D_to_Cons1D(&Wr, &Bxr);
 #endif
-
+printf("here3\n");
 /* Parse shock direction */
   shk_dir = par_geti("problem","shk_dir");
   if (shk_dir != 1 && shk_dir != 2 && shk_dir != 3) {
@@ -142,6 +147,8 @@ void problem(DomainS *pDomain)
     kl = pGrid->ks;
   }
 
+
+printf("here4\n");
 /* Initialize the grid including the ghost cells.  Discontinuity is always
  * located at x=0, so xmin/xmax in input file must be set appropriately. */
 

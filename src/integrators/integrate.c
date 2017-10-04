@@ -43,14 +43,14 @@ VDFun_t integrate_init(MeshS *pM)
       ath_error("<time>cour_no=%e, must be <= 0.5 with 1D VL integrator\n",cfl);
     return integrate_1d_vl;
 #elif defined(SAC_INTEGRATOR)
-    cfl = par_getd("time","cour_no");
+    /*cfl = par_getd("time","cour_no");
     if (cfl > 0.5)
-      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SAC integrator\n",cfl);
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SAC integrator\n",cfl);*/
     return integrate_1d_sac;
 #elif defined(SMAUG_INTEGRATOR)
-    cfl = par_getd("time","cour_no");
+    /*cfl = par_getd("time","cour_no");
     if (cfl > 0.5)
-      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SMAUG integrator\n",cfl);
+      ath_error("<time>cour_no=%e, must be <= 0.5 with 1D SMAUG integrator\n",cfl);*/
     return integrate_1d_smaug;
 #else
     ath_err("[integrate_init]: Invalid integrator defined for 1D problem");

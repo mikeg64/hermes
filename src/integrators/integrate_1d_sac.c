@@ -1,4 +1,6 @@
 #include "../copyright.h"
+
+
 /*============================================================================*/
 /*! \file integrate_1d_sac.c
  *  \Compute fluxes using sac . 
@@ -754,6 +756,8 @@ void integrate_init_1d(MeshS *pM)
 
   int size1=0,nl,nd;
 
+
+
 /* Cycle over all Grids on this processor to find maximum Nx1 */
   for (nl=0; nl<(pM->NLevels); nl++){
     for (nd=0; nd<(pM->DomainsPerLevel[nl]); nd++){
@@ -764,6 +768,7 @@ void integrate_init_1d(MeshS *pM)
       }
     }
   }
+
 
   size1 = size1 + 2*nghost;
 
@@ -781,6 +786,8 @@ void integrate_init_1d(MeshS *pM)
   /*if ((Wl = (Prim1DS*)malloc(size1*sizeof(Prim1DS))) == NULL) goto on_error;
   if ((Wr = (Prim1DS*)malloc(size1*sizeof(Prim1DS))) == NULL) goto on_error;*/
 
+
+
 #ifdef CYLINDRICAL
   if((StaticGravPot != NULL) || (CoolingFunc != NULL))
 #endif
@@ -796,11 +803,16 @@ void integrate_init_1d(MeshS *pM)
     goto on_error;
 #endif
 
+
   return;
 
   on_error:
+
     integrate_destruct();
     ath_error("[integrate_init_1d]: malloc returned a NULL pointer\n");
+
+
+
 
 }
 
