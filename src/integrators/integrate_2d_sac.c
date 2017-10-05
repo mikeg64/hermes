@@ -49,19 +49,29 @@
 #error : The SAC integrator cannot be used for special relativity.
 #endif /* SPECIAL_RELATIVITY */
 
-
-
-/* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bxc=NULL, *Bxi=NULL;
-static Prim1DS *W=NULL;
-static Cons1DS *U1d=NULL;
-
-
-
 /* The L/R states of conserved variables and fluxes at each cell face */
 static Cons1DS **Uc_x1=NULL;
 static Cons1DS **Uc_x2=NULL;
 static Cons1DS **x1Flux=NULL, **x2Flux=NULL;
+
+
+/* The interface magnetic fields and emfs */
+/*not needed for sac*/
+/*#ifdef MHD
+static Real **B1_x1Face=NULL, **B2_x2Face=NULL;
+static Real **emf3=NULL, **emf3_cc=NULL;
+#endif*/ /* MHD */
+
+
+
+
+
+/* 1D scratch vectors used by lr_states and flux functions */
+static Real *Bxc=NULL, *Bxi=NULL, *Bxb=NULL;
+static Prim1DS *W=NULL;/*, not used for sac *Wl=NULL, *Wr=NULL;*/
+static Cons1DS *U1d=NULL;/*, not used for sac *Ul=NULL, *Ur=NULL;*/
+
+
 
 static Cons1DS **Uc=NULL;
 
@@ -73,21 +83,22 @@ static Real **B1_x1=NULL, **B2_x2=NULL;
 #endif /* MHD */
 
 /* density and Pressure at t^{n+1/2} needed by MHD, cooling, and gravity */
-static Real ***dhalf = NULL, ***phalf=NULL;
+static Real **dhalf = NULL, **phalf=NULL;
 
 /* variables needed for H-correction of Sanders et al (1998) */
 extern Real etah;
 #ifdef H_CORRECTION
-static Real ***eta1=NULL, ***eta2=NULL, ***eta3=NULL;
+static Real **eta1=NULL, **eta2=NULL;
 #endif
 
-/* variables needed to conserve net Bz in shearing box */
-#ifdef SHEARING_BOX
-static ConsS **Flxiib=NULL, **Flxoib=NULL;
-static ConsS **rFlxiib=NULL, **rFlxoib=NULL;
+/* variables needed for cylindrical coordinates */
+#ifdef CYLINDRICAL
+static Real **geom_src=NULL;
 #endif
 
 
+
+/*following not needed for sac*/
 
 /*==============================================================================
  * PRIVATE FUNCTION PROTOTYPES: 
@@ -109,58 +120,92 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 //static void hyperdifbsourcene(int ii,int ii0, Real dt, const GridS *pG);
 #endif /* MHD */
 
+
+
+
 /*=========================== PUBLIC FUNCTIONS ===============================*/
 /*----------------------------------------------------------------------------*/
-/*! \fn void integrate_3d_ctu(DomainS *pD)
- *  \brief 3D CTU integrator for MHD using 6-solve method */
+/*! \fn void integrate_2d_sac(DomainS *pD)
+ *  \brief CTU integrator in 2D.
+ *
+ *   The numbering of steps follows the numbering in the 3D version.
+ *   NOT ALL STEPS ARE NEEDED IN 2D.
+ */
+
+
 
 void integrate_2d_sac(DomainS *pD)
 {
+  
   GridS *pG=(pD->Grid);
-  Real dtodx1=pG->dt/pG->dx1, dtodx2=pG->dt/pG->dx2, dtodx3=pG->dt/pG->dx3;
-  Real hdt = 0.5*pG->dt, dx2=pG->dx2;
-  Real q1 = 0.5*dtodx1, q2 = 0.5*dtodx2, q3 = 0.5*dtodx3;
-  int dir;
-  int i,il,iu, is = pG->is, ie = pG->ie;
-  int j,jl,ju, js = pG->js, je = pG->je;
-  int k,kl,ku, ks = pG->ks, ke = pG->ke;
-  Real x1,x2,x3,phicl,phicr,phifc,phil,phir,phic,M1h,M2h,M3h,Bx=0.0,Bxb=0.0;
-
-
-/*Used for hyperdiffusion computations*/
-int ii1, dim, ii, ii0;
-int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
-
-#ifdef MHD
-  Real MHD_src_By,MHD_src_Bz,mdb1,mdb2,mdb3;
-  Real db1,db2,db3,l1,l2,l3,B1,B2,B3,V1,V2,V3;
-  Real B1ch,B2ch,B3ch;
+  Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2;
+  Real hdtodx1 = 0.5*dtodx1, hdtodx2 = 0.5*dtodx2;
+  Real hdt = 0.5*pG->dt, dx2 = pG->dx2;
+  int i,il,iu,is=pG->is, ie=pG->ie;
+  int j,jl,ju,js=pG->js, je=pG->je;
+  int ks=pG->ks;
+  Real x1,x2,x3,phicl,phicr,phifc,phil,phir,phic,M1h,M2h,M3h,Bx=0.0;
+#ifndef BAROTROPIC
+  Real coolfl,coolfr,coolf,Eh=0.0;
 #endif
-// #if defined(MHD) || defined(SELF_GRAVITY)
-  Real dx1i=1.0/pG->dx1, dx2i=1.0/pG->dx2, dx3i=1.0/pG->dx3;
-// #endif
-
+#ifdef MHD
+  Real MHD_src,dbx,dby,B1,B2,B3,V3;
+  Real B1ch, B2ch, B3ch;
+#endif
+  Real dx1i=1.0/pG->dx1, dx2i=1.0/pG->dx2;
+#ifdef H_CORRECTION
+  Real cfr,cfl,lambdar,lambdal;
+#endif
 #if (NSCALARS > 0)
   int n;
 #endif
 #ifdef SELF_GRAVITY
-  Real gxl,gxr,gyl,gyr,gzl,gzr,flx_m1l,flx_m1r,flx_m2l,flx_m2r,flx_m3l,flx_m3r;
+  Real gxl,gxr,gyl,gyr,flux_m1l,flux_m1r,flux_m2l,flux_m2r;
 #endif
 #ifdef FEEDBACK
   Real dt1 = 1.0/pG->dt;
 #endif
-
-
+#ifdef SHEARING_BOX
+/* in XY shearing sheet 2=phi; in XZ shearing sheet 2=Z and 3=phi */
+  Real Vphi, Mphi;
+  Real M1n, dM2n, dM3n;   /* M1, dM2/3=(My+d*q*Omega_0*x) at time n */
+  Real M1e, dM2e, dM3e;   /* M1, dM2/3 evolved by dt/2  */
+  Real flx1_dM2, frx1_dM2, flx2_dM2, frx2_dM2;
+  Real flx1_dM3, frx1_dM3, flx2_dM3, frx2_dM3;
+  Real fact, qom, om_dt = Omega_0*pG->dt;
+#endif /* SHEARING_BOX */
+#ifdef ROTATING_FRAME
+#ifdef FARGO
+#error: Fargo cannot be used in rotating frame.
+#endif
+#ifndef CYLINDRICAL
+#error: ROTATING_FRAME has to be in CYLINDRICAL coordinates.
+#endif
+  Real tmp_M1, tmp_M2;
+#endif /* ROTATING_FRAME */
 #ifdef STATIC_MESH_REFINEMENT
   int ncg,npg,dim;
-  int ii,ics,ice,jj,jcs,jce,kk,kcs,kce,ips,ipe,jps,jpe,kps,kpe;
+  int ii,ics,ice,jj,jcs,jce,ips,ipe,jps,jpe;
 #endif
 
-
+  /* VARIABLES NEEDED FOR CYLINDRICAL COORDINATES */
+#ifdef CYLINDRICAL
+#ifndef ISOTHERMAL
+  Real Pavgh;
+#endif
+  Real rinv,geom_src_d,geom_src_Vx,geom_src_Vy,geom_src_P,geom_src_By,geom_src_Bz;
+  const Real *r=pG->r, *ri=pG->ri;
+#ifdef FARGO
+  Real Om, qshear, Mrn, Mpn, Mre, Mpe, Mrav, Mpav;
+#endif
+#endif /* CYLINDRICAL */
   Real g,gl,gr;
   Real lsf=1.0, rsf=1.0;
 
-
+#if defined(CYLINDRICAL) && defined(FARGO)
+  if (OrbitalProfile==NULL || ShearProfile==NULL)
+    ath_error("[integrate_2d_ctu]:  OrbitalProfile() and ShearProfile() *must* be defined.\n");
+#endif
 
 /* With particles, one more ghost cell must be updated in predict step */
 #ifdef PARTICLES
@@ -169,15 +214,11 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
   iu = ie + 3;
   jl = js - 3;
   ju = je + 3;
-  kl = ks - 3;
-  ku = ke + 3;
 #else
   il = is - 2;
   iu = ie + 2;
   jl = js - 2;
   ju = je + 2;
-  kl = ks - 2;
-  ku = ke + 2;
 #endif
 
 /* Set etah=0 so first calls to flux functions do not use H-correction */
@@ -188,6 +229,141 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
   feedback_predictor(pD);
   exchange_gpcouple(pD,1);
 #endif
+
+
+/*Used for hyperdiffusion computations*/
+int ii1, dim, ii, ii0;
+int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+
+
+/*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
+
+/*--- Step 1a ------------------------------------------------------------------
+ * Load 1D vector of conserved variables;
+ * U1d = (d, M1, M2, M3, E, B2c, B3c, s[n])
+ */
+
+  for (j=jl; j<=ju; j++) {
+    for (i=is-nghost; i<=ie+nghost; i++) {
+      U1d[i].d  = pG->U[ks][j][i].d;
+      U1d[i].Mx = pG->U[ks][j][i].M1;
+      U1d[i].My = pG->U[ks][j][i].M2;
+      U1d[i].Mz = pG->U[ks][j][i].M3;
+#ifndef BAROTROPIC
+      U1d[i].E  = pG->U[ks][j][i].E;
+#endif /* BAROTROPIC */
+#ifdef MHD
+      U1d[i].By = pG->U[ks][j][i].B2c;
+      U1d[i].Bz = pG->U[ks][j][i].B3c;
+
+      Bxc[i] = pG->U[ks][j][i].B1c;
+      Bxi[i] = pG->B1i[ks][j][i];
+      B1_x1[j][i] = pG->B1i[ks][j][i]; 
+#endif /* MHD */
+
+
+#ifdef SAC_INTEGRATOR
+        U1d[i].db  = pG->U[ks][j][i].db;
+
+#ifdef MHD
+        U1d[i].Byb = pG->U[ks][js][i].B2cb;
+        U1d[i].Bzb = pG->U[ks][js][i].B3cb;
+        Bxb[i] = pG->U[ks][js][i].B1cb;
+#endif /* MHD */
+
+#endif
+
+
+#ifdef SMAUG_INTEGRATOR
+        U1d[i].db  = pG->U[ks][j][i].db;
+
+#ifdef MHD
+        U1d[i].Byb = pG->U[ks][js][i].B2cb;
+        U1d[i].Bzb = pG->U[ks][js][i].B3cb;
+        Bxb[i] = pG->U[ks][js][i].B1cb;
+#endif /* MHD */
+
+#endif
+
+
+
+
+
+
+
+
+#if (NSCALARS > 0)
+      for (n=0; n<NSCALARS; n++) U1d[i].s[n] = pG->U[ks][j][i].s[n];
+#endif
+    }
+
+/*--- Step 1b ------------------------------------------------------------------
+ * Compute L and R states at X1-interfaces, add "MHD source terms" for 0.5*dt
+ */
+
+    for (i=is-nghost; i<=ie+nghost; i++) {
+      W[i] = Cons1D_to_Prim1D(&U1d[i],&Bxc[i],&Bxb[i]);
+
+      /* Calculate the cell-centered geometric source vector now using U^{n}
+      * This will be used at the end of the integration step as a source term
+      * for the cell-centered conserved variables (steps 6D,8B) */
+#ifdef CYLINDRICAL 
+      geom_src[j][i]  = (W[i].d+W[i].db)*SQR(W[i].Vy);   /*to here add background terms for B fields*/
+#ifdef MHD
+      geom_src[j][i] += 0.5*(SQR(Bxc[i]) - SQR(W[i].By) + SQR(W[i].Bz));
+#endif
+#ifdef ISOTHERMAL
+      geom_src[j][i] += Iso_csound2*W[i].d;
+#else
+      geom_src[j][i] += W[i].P;
+#endif
+      geom_src[j][i] /= r[i];
+#endif /* CYLINDRICAL */
+    }
+
+    lr_states(pG,W,Bxc,pG->dt,pG->dx1,il+1,iu-1,Wl,Wr,1);
+
+/* Apply density floor */
+    for (i=il+1; i<=iu; i++){
+      if (Wl[i].d < d_MIN) {
+        Wl[i].d = d_MIN;
+      }
+      if (Wr[i].d < d_MIN) {
+        Wr[i].d = d_MIN;
+      }
+    }
+
+#ifdef MHD
+    for (i=il+1; i<=iu; i++) {
+#ifdef CYLINDRICAL
+      rsf = ri[i]/r[i-1];  lsf = ri[i-1]/r[i-1];
+#endif
+      MHD_src = (pG->U[ks][j][i-1].M2/pG->U[ks][j][i-1].d)*
+                (rsf*pG->B1i[ks][j][i] - lsf*pG->B1i[ks][j][i-1])*dx1i;
+      Wl[i].By += hdt*MHD_src;
+
+#ifdef CYLINDRICAL
+      rsf = ri[i+1]/r[i];  lsf = ri[i]/r[i];
+#endif
+      MHD_src = (pG->U[ks][j][i].M2/pG->U[ks][j][i].d)*
+               (rsf*pG->B1i[ks][j][i+1] - lsf*pG->B1i[ks][j][i])*dx1i;
+      Wr[i].By += hdt*MHD_src;
+    }
+#endif /* MHD */
+
+
+
+/*upto here****************8*/
+
+
+
+
+
+
+
+
+
+
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
 
