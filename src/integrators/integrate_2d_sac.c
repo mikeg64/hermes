@@ -310,10 +310,10 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #ifdef CYLINDRICAL 
       geom_src[j][i]  = (W[i].d+W[i].db)*SQR(W[i].Vy);   /*to here add background terms for B fields*/
 #ifdef MHD
-      geom_src[j][i] += 0.5*(SQR(Bxc[i]) - SQR(W[i].By) + SQR(W[i].Bz));
+      geom_src[j][i] += 0.5*(SQR(Bxc[i]+Bxb[i]) - SQR(W[i].By+W[i].Byb) + SQR(W[i].Bz+W[i].Bzb));
 #endif
 #ifdef ISOTHERMAL
-      geom_src[j][i] += Iso_csound2*W[i].d;
+      geom_src[j][i] += Iso_csound2*(W[i].d+W[i].db);
 #else
       geom_src[j][i] += W[i].P;
 #endif
@@ -321,19 +321,19 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #endif /* CYLINDRICAL */
     }
 
-    lr_states(pG,W,Bxc,pG->dt,pG->dx1,il+1,iu-1,Wl,Wr,1);
+    /*lr_states(pG,W,Bxc,pG->dt,pG->dx1,il+1,iu-1,Wl,Wr,1);*/
 
 /* Apply density floor */
-    for (i=il+1; i<=iu; i++){
+   /* for (i=il+1; i<=iu; i++){
       if (Wl[i].d < d_MIN) {
         Wl[i].d = d_MIN;
       }
       if (Wr[i].d < d_MIN) {
         Wr[i].d = d_MIN;
       }
-    }
+    }*/
 
-#ifdef MHD
+/*#ifdef MHD
     for (i=il+1; i<=iu; i++) {
 #ifdef CYLINDRICAL
       rsf = ri[i]/r[i-1];  lsf = ri[i-1]/r[i-1];
@@ -349,7 +349,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
                (rsf*pG->B1i[ks][j][i+1] - lsf*pG->B1i[ks][j][i])*dx1i;
       Wr[i].By += hdt*MHD_src;
     }
-#endif /* MHD */
+#endif*/ /* MHD */
 
 
 
