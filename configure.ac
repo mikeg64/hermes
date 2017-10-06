@@ -48,6 +48,7 @@
 #   --enable-l1_inflow                             (enable inflow from L1 point)
 #   --enable-bkg                                      (enable background fields)
 #   --enable-smaug                 (enable Sheffield MHD accelerated using GPUs)
+#   --enable-athenagpu                (enable Athena MHD accelerated using GPUs)
 #
 #-------------------------------------------------------------------------------
 # generic things
@@ -502,7 +503,21 @@ else
   SMAUG_MODE_USER="OFF"
 fi
 
+#-------------------------------------------------------------------------------
+# ALGORITHM FEATURE: turn on ATHENAGPU
+#   --enable-athenagpu
 
+AC_SUBST(ATHENAGPU_MODE)
+AC_ARG_ENABLE(athenagpu,
+	[--enable-athenagpu  compile and link ATHENAGPU interface code (requires cuda compilers and drivers)],
+	ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  ATHENAGPU_MODE="ATHENAGPU_ENABLED"
+  ATHENAGPU_MODE_USER="ON"
+else
+  ATHENAGPU_MODE="NO_ATHENAGPU"
+  ATHENAGPU_MODE_USER="OFF"
+fi
 
 #-------------------------------------------------------------------------------
 # ALGORITHM FEATURE: turn on FFT libraries
