@@ -67,7 +67,7 @@ static Real **emf3=NULL, **emf3_cc=NULL;
 
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bxc=NULL, *Bxi=NULL, *Bxb=NULL;
+static Real *Bxc=NULL,  *Bxb=NULL;
 static Prim1DS *W=NULL;/*, not used for sac *Wl=NULL, *Wr=NULL;*/
 static Cons1DS *U1d=NULL;/*, not used for sac *Ul=NULL, *Ur=NULL;*/
 
@@ -257,8 +257,9 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       U1d[i].Bz = pG->U[ks][j][i].B3c;
 
       Bxc[i] = pG->U[ks][j][i].B1c;
-      Bxi[i] = pG->B1i[ks][j][i];
-      B1_x1[j][i] = pG->B1i[ks][j][i]; 
+      Bxb[i] = pG->U[ks][j][i].B1cb;
+      
+      //B1_x1[j][i] = pG->B1i[ks][j][i]; 
 #endif /* MHD */
 
 
@@ -296,6 +297,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       for (n=0; n<NSCALARS; n++) U1d[i].s[n] = pG->U[ks][j][i].s[n];
 #endif
     }
+
 
 /*--- Step 1b ------------------------------------------------------------------
  * Compute L and R states at X1-interfaces, add "MHD source terms" for 0.5*dt
@@ -353,90 +355,163 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
 
 
-/*upto here****************8*/
 
 
-
-
-
-
-
-
-
-
-
-/*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
-
-/*--- Step 1a ------------------------------------------------------------------
- * Load 1D vector of conserved variables;
- * U1d = (d, M1, M2, M3, E, B2c, B3c, s[n])
- */
-
- 
-    for (j=jl; j<=ju; j++) {
-      for (i=is-nghost; i<=ie+nghost; i++) {
-        U1d[i].d  = pG->U[ks][j][i].d;
-        U1d[i].Mx = pG->U[ks][j][i].M1;
-        U1d[i].My = pG->U[ks][j][i].M2;
-        U1d[i].Mz = pG->U[ks][j][i].M3;
-#ifndef BAROTROPIC
-        U1d[i].E  = pG->U[ks][j][i].E;
-#endif /* BAROTROPIC */
-#ifdef MHD
-        U1d[i].By = pG->U[ks][j][i].B2c;
-        U1d[i].Bz = pG->U[ks][j][i].B3c;
-        Bxc[i] = pG->U[ks][j][i].B1c;
-        Bxi[i] = pG->B1i[ks][j][i];
-        B1_x1[j][i] = pG->B1i[ks][j][i];       
-#endif /* MHD */
-#ifdef BKG
-        U1d[i].db  = pG->U[ks][j][i].db;
-        U1d[i].Byb = pG->U[ks][j][i].B2cb;
-        U1d[i].Bzb = pG->U[ks][j][i].B3cb;
-
-#endif
-#if (NSCALARS > 0)
-        for (n=0; n<NSCALARS; n++) U1d[i].s[n] = pG->U[ks][j][i].s[n];
-#endif
-      }
-
-/*--- Step 1b ------------------------------------------------------------------
- * Compute L and R states at X1-interfaces, add "MHD source terms" for 0.5*dt
- */
-
-   for (i=is-nghost; i<=ie+nghost; i++) {
-      W[i] = Cons1D_to_Prim1D(&U1d[i],&Bxc[i],&Bxb);
 
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
 
-      /*if (StaticGravPot != NULL){
-        for (i=il+1; i<=iu; i++) {
-          cc_pos(pG,i,j,ks,&x1,&x2,&x3);
+  if (StaticGravPot != NULL){
+    for (i=il+1; i<=iu; i++) {
+      cc_pos(pG,i,j,ks,&x1,&x2,&x3);
+// #ifdef CYLINDRICAL
+//       gl = (*x1GravAcc)(x1vc(pG,i-1),x2,x3);
+//       gr = (*x1GravAcc)(x1vc(pG,i),x2,x3);
+//       gl = (*x1GravAcc)(x1-pG->dx1,x2,x3);
+//       gr = (*x1GravAcc)(x1,x2,x3);
+      /* APPLY GRAV. SOURCE TERMS TO V1 USING ACCELERATION FOR (dt/2) */
+//       Wl[i].Vx -= hdt*gl;
+//       Wr[i].Vx -= hdt*gr;
+// #else
+      phicr = (*StaticGravPot)( x1             ,x2,x3);
+      phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
+     /* phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);*/
 
-          phicr = (*StaticGravPot)( x1             ,x2,x3);
-          phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
-          phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);
+      W[i].Vx -= dtodx1*(phifc -phicl);
 
-          gl = 2.0*(phifc - phicl)*dx1i;
-          gr = 2.0*(phicr - phifc)*dx1i;
-#if defined(CYLINDRICAL) && defined(FARGO)
-          gl -= r[i-1]*SQR((*OrbitalProfile)(r[i-1]));
-          gr -= r[i  ]*SQR((*OrbitalProfile)(r[i  ]));
+     /* Wl[i].Vx -= dtodx1*(phifc - phicl);
+      Wr[i].Vx -= dtodx1*(phicr - phifc);*/
+// #endif /* CYLINDRICAL */
+    }
+  }
+
+
+/*--- Step 1c (cont) -----------------------------------------------------------
+ * Add source terms for self-gravity for 0.5*dt to L/R states
+ */
+
+#ifdef SELF_GRAVITY
+    for (i=il+1; i<=iu; i++) {
+      //Wl[i].Vx -= hdtodx1*(pG->Phi[ks][j][i] - pG->Phi[ks][j][i-1]);
+      //Wr[i].Vx -= hdtodx1*(pG->Phi[ks][j][i] - pG->Phi[ks][j][i-1]);
+      W[i].Vx -= hdtodx1*(pG->Phi[ks][j][i] - pG->Phi[ks][j][i-1]);
+    }
 #endif
 
-          W[i].Vx -= hdt*gl;
-         
-        }
-      }*/
+
+
+
+
 
 
 
 /*--- Step 1c (cont) -----------------------------------------------------------
- * Add the geometric source-terms now using cell-centered primitive
- * variables at time t^n
+ * Add source terms from optically-thin cooling for 0.5*dt to L/R states
  */
+
+#ifndef BAROTROPIC
+    if (CoolingFunc != NULL){
+      for (i=il+1; i<=iu; i++) {
+        //coolfl = (*CoolingFunc)(Wl[i].d,Wl[i].P,(0.5*pG->dt));
+        //coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));
+        //coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));
+        //W[i].P -= 0.5*pG->dt*Gamma_1*coolfl;
+        //Wr[i].P -= 0.5*pG->dt*Gamma_1*coolfr;
+
+        /*check cooling function*/
+        coolf = (*CoolingFunc)(W[i].d+W[i].db,W[i].P,(pG->dt));
+        W[i].P -= pG->dt*Gamma_1*coolf;
+
+
+      }
+    }
+#endif /* BAROTROPIC */
+
+/*--- Step 1c (cont) -----------------------------------------------------------
+ * Add source terms for shearing box (Coriolis forces) for 0.5*dt to L/R states
+ * starting with tidal gravity terms added through the ShearingBoxPot
+ *    Vx source term = (dt/2)*( 2 Omega_0 Vy)
+ *    Vy source term = (dt/2)*(-2 Omega_0 Vx)
+ *    Vy source term = (dt/2)*((q-2) Omega_0 Vx) (with FARGO)
+ * (x1,x2,x3) in code = (X,Z,Y) in 2D shearing sheet
+ */
+
+#ifdef SHEARING_BOX
+    if (ShearingBoxPot != NULL){
+      for (i=il+1; i<=iu; i++) {
+        cc_pos(pG,i,j,ks,&x1,&x2,&x3);
+        phicr = (*ShearingBoxPot)( x1             ,x2,x3);
+        phicl = (*ShearingBoxPot)((x1-    pG->dx1),x2,x3);
+        //phifc = (*ShearingBoxPot)((x1-0.5*pG->dx1),x2,x3);
+
+        //Wl[i].Vx -= dtodx1*(phifc - phicl);
+        //Wr[i].Vx -= dtodx1*(phicr - phifc);
+
+        Wr[i].Vx -= dtodx1*(phicr - phifl);
+      }
+    }
+
+    if (ShBoxCoord == xz){
+      for (i=il+1; i<=iu; i++) {
+        //Wl[i].Vx += pG->dt*Omega_0*W[i-1].Vz;
+        //Wr[i].Vx += pG->dt*Omega_0*W[i].Vz;
+        W[i].Vx += 0.5*pG->dt*Omega_0*(W[i].Vz+W[i-1].Vz);
+#ifdef FARGO
+        //Wl[i].Vz += hdt*(qshear-2.)*Omega_0*W[i-1].Vx;
+        //Wr[i].Vz += hdt*(qshear-2.)*Omega_0*W[i].Vx;
+        W[i].Vz += 0.5*hdt*(qshear-2.)*Omega_0*(W[i].Vx+W[i-1].Vx);
+#else
+        //Wl[i].Vz -= pG->dt*Omega_0*W[i-1].Vx;
+        //Wr[i].Vz -= pG->dt*Omega_0*W[i].Vx;
+        W[i].Vz -= 0.5*pG->dt*Omega_0*(W[i].Vx+W[i-1].Vx);
+#endif
+      }
+    }
+
+    if (ShBoxCoord == xy) {
+      for (i=il+1; i<=iu; i++) {
+        //Wl[i].Vx += pG->dt*Omega_0*W[i-1].Vy;
+        //Wr[i].Vx += pG->dt*Omega_0*W[i].Vy;
+        W[i].Vx += 0.5*pG->dt*Omega_0*(W[i].Vy+W[i-1].Vy);
+#ifdef FARGO
+        //Wl[i].Vy += hdt*(qshear-2.)*Omega_0*W[i-1].Vx;
+        //Wr[i].Vy += hdt*(qshear-2.)*Omega_0*W[i].Vx;
+        W[i].Vy += 0.5*hdt*(qshear-2.)*Omega_0*(W[i].Vx+W[i-1].Vx);
+#else
+        //Wl[i].Vy -= pG->dt*Omega_0*W[i-1].Vx;
+        //Wr[i].Vy -= pG->dt*Omega_0*W[i].Vx;
+        W[i].Vy -= 0.5*pG->dt*Omega_0*(W[i].Vx+W[i-1].Vx);
+#endif
+      }
+    }
+#endif /* SHEARING_BOX */
+
+#if defined(CYLINDRICAL) && defined(FARGO)
+    for (i=il+1; i<=iu; i++) {
+      Om = (*OrbitalProfile)(r[i-1]);
+      qshear = (*ShearProfile)(r[i-1]);
+      W[i].Vx += 0.5*(pG->dt)*Om*W[i-1].Vy;
+      W[i].Vy += 0.5*hdt*(qshear - 2.0)*Om*W[i-1].Vx;
+
+      Om = (*OrbitalProfile)(r[i]);
+      qshear = (*ShearProfile)(r[i]);
+      W[i].Vx += 0.5*(pG->dt)*Om*W[i].Vy;
+      W[i].Vy += 0.5*hdt*(qshear - 2.0)*Om*W[i].Vx;
+    }
+#endif
+
+
+
+
+
+
+
+/****************************************/
+
+
+
+
 
 
 
@@ -444,14 +519,14 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
-      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxi[i],&Bxb);
+      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxi[i],&Bxb[i]);
       
-
-#ifdef MHD
+/*not needed used for computing field on face*/
+/*#ifdef MHD
       Bx = B1_x1[j][i];
       Bxb=0.0;//?????????????????????????
-#endif
-      fluxes(Uc_x1[j][i],Uc_x1[j][i],W[i],W[i],Bx,Bxb,&x1Flux[j][i]);
+#endif*/
+      fluxes(Uc_x1[j][i],Uc_x1[j][i],W[i],W[i],Bxc[i],Bxb[i],&x1Flux[j][i]);
     }
   }
 
@@ -484,6 +559,34 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       Bxi[j] = pG->B2i[ks][j][i];
       B2_x2[j][i] = pG->B2i[ks][j][i];
 #endif /* MHD */
+
+
+#ifdef SAC_INTEGRATOR
+        U1d[j].db  = pG->U[ks][j][i].db;
+
+#ifdef MHD
+        U1d[j].Byb = pG->U[ks][j][i].B3cb;
+        U1d[j].Bzb = pG->U[ks][j][i].B1cb;
+        Bxb[j] = pG->U[ks][j][i].B2cb;
+#endif /* MHD */
+
+#endif
+
+
+#ifdef SMAUG_INTEGRATOR
+        U1d[j].db  = pG->U[ks][j][i].db;
+
+#ifdef MHD
+        U1d[j].Byb = pG->U[ks][j][i].B3cb;
+        U1d[j].Bzb = pG->U[ks][j][i].B1cb;
+        Bxb[j] = pG->U[ks][j][i].B2cb;
+#endif /* MHD */
+
+#endif
+
+
+
+
 #if (NSCALARS > 0)
       for (n=0; n<NSCALARS; n++) U1d[j].s[n] = pG->U[ks][j][i].s[n];
 #endif
@@ -493,7 +596,9 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Compute L and R states at X2-interfaces, add "MHD source terms" for 0.5*dt
  */
 
-
+    for (j=js-nghost; j<=je+nghost; j++) {
+      W[j] = Cons1D_to_Prim1D(&U1d[j],&Bxi[j],&Bxb[j]);
+    }
 
 /*--- Step 2c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
@@ -518,13 +623,13 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  */
 
     for (j=jl+1; j<=ju; j++) {
-      Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],&Bxi[j],&Bxb);
+      Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],&Bxi[j],&Bxb[j]);
       
-#ifdef MHD
+/*#ifdef MHD
       Bx = B2_x2[j][i];
       Bxb=0.0;//?????????????????????????
-#endif
-      fluxes(Uc_x2[j][i],Uc_x2[j][i],W[j],W[j],Bx,Bxb,&x2Flux[j][i]);
+#endif*/
+      fluxes(Uc_x2[j][i],Uc_x2[j][i],W[j],W[j],Bxc[j],Bxb[j],&x2Flux[j][i]);
     }
   }
 
@@ -938,165 +1043,6 @@ for(dim=0; dim<2; dim++) //each direction
 
 #endif  /*hyperdiffusion source term for bfield*/
 
-/*static mesh refinement part goes here*/
-#ifdef STATIC_MESH_REFINEMENT
-/*--- Step 12e -----------------------------------------------------------------
- * With SMR, store fluxes at boundaries of child and parent grids.
- */
-
-  for (ncg=0; ncg<pG->NCGrid; ncg++) {
-
-/* x1-boundaries of child Grids (interior to THIS Grid) */
-
-    for (dim=0; dim<2; dim++){
-      if (pG->CGrid[ncg].myFlx[dim] != NULL) {
-
-        if (dim==0) i = pG->CGrid[ncg].ijks[0];
-        if (dim==1) i = pG->CGrid[ncg].ijke[0] + 1;
-        jcs = pG->CGrid[ncg].ijks[1];
-        jce = pG->CGrid[ncg].ijke[1];
-
-        for (j=jcs, jj=0; j<=jce; j++, jj++){
-          pG->CGrid[ncg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d; 
-          pG->CGrid[ncg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx; 
-          pG->CGrid[ncg].myFlx[dim][ks][jj].M2 = x1Flux[j][i].My;
-          pG->CGrid[ncg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz; 
-#ifndef BAROTROPIC
-          pG->CGrid[ncg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E; 
-#endif /* BAROTROPIC */
-#ifdef MHD
-          pG->CGrid[ncg].myFlx[dim][ks][jj].B1c = 0.0;
-          pG->CGrid[ncg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By; 
-          pG->CGrid[ncg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz; 
-#endif /* MHD */
-#if (NSCALARS > 0)
-          for (n=0; n<NSCALARS; n++)
-            pG->CGrid[ncg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
-#endif
-        }
-#ifdef MHD
-        for (j=jcs, jj=0; j<=jce+1; j++, jj++){
-          pG->CGrid[ncg].myEMF3[dim][ks][jj] = emf3[j][i];
-        }
-#endif /* MHD */
-      }
-    }
-
-/* x2-boundaries of child Grids (interior to THIS Grid) */
-
-    for (dim=2; dim<4; dim++){
-      if (pG->CGrid[ncg].myFlx[dim] != NULL) {
-
-        ics = pG->CGrid[ncg].ijks[0];
-        ice = pG->CGrid[ncg].ijke[0];
-        if (dim==2) j = pG->CGrid[ncg].ijks[1];
-        if (dim==3) j = pG->CGrid[ncg].ijke[1] + 1;
-
-        for (i=ics, ii=0; i<=ice; i++, ii++){
-          pG->CGrid[ncg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d; 
-          pG->CGrid[ncg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz; 
-          pG->CGrid[ncg].myFlx[dim][ks][ii].M2 = x2Flux[j][i].Mx;
-          pG->CGrid[ncg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My; 
-#ifndef BAROTROPIC
-          pG->CGrid[ncg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E; 
-#endif /* BAROTROPIC */
-#ifdef MHD
-          pG->CGrid[ncg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz; 
-          pG->CGrid[ncg].myFlx[dim][ks][ii].B2c = 0.0;
-          pG->CGrid[ncg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By; 
-#endif /* MHD */
-#if (NSCALARS > 0)
-          for (n=0; n<NSCALARS; n++)
-            pG->CGrid[ncg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
-#endif
-        }
-#ifdef MHD
-        for (i=ics, ii=0; i<=ice+1; i++, ii++){
-          pG->CGrid[ncg].myEMF3[dim][ks][ii] = emf3[j][i];
-        }
-#endif /* MHD */
-      }
-    }
-  }
-
-  for (npg=0; npg<pG->NPGrid; npg++) {
-
-/* x1-boundaries of parent Grids (at boundaries of THIS Grid)  */
-
-    for (dim=0; dim<2; dim++){
-      if (pG->PGrid[npg].myFlx[dim] != NULL) {
-
-        if (dim==0) i = pG->PGrid[npg].ijks[0];
-        if (dim==1) i = pG->PGrid[npg].ijke[0] + 1;
-        jps = pG->PGrid[npg].ijks[1];
-        jpe = pG->PGrid[npg].ijke[1];
-
-        for (j=jps, jj=0; j<=jpe; j++, jj++){
-          pG->PGrid[npg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d; 
-          pG->PGrid[npg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx; 
-          pG->PGrid[npg].myFlx[dim][ks][jj].M2 = x1Flux[j][i].My;
-          pG->PGrid[npg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz; 
-#ifndef BAROTROPIC
-          pG->PGrid[npg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E; 
-#endif /* BAROTROPIC */
-#ifdef MHD
-          pG->PGrid[npg].myFlx[dim][ks][jj].B1c = 0.0;
-          pG->PGrid[npg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By; 
-          pG->PGrid[npg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz; 
-#endif /* MHD */
-#if (NSCALARS > 0)
-          for (n=0; n<NSCALARS; n++)
-            pG->PGrid[npg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
-#endif
-        }
-#ifdef MHD
-        for (j=jps, jj=0; j<=jpe+1; j++, jj++){
-          pG->PGrid[npg].myEMF3[dim][ks][jj] = emf3[j][i];
-        }
-#endif /* MHD */
-      }
-    }
-
-/* x2-boundaries of parent Grids (at boundaries of THIS Grid)  */
-
-    for (dim=2; dim<4; dim++){
-      if (pG->PGrid[npg].myFlx[dim] != NULL) {
-
-        ips = pG->PGrid[npg].ijks[0];
-        ipe = pG->PGrid[npg].ijke[0];
-        if (dim==2) j = pG->PGrid[npg].ijks[1];
-        if (dim==3) j = pG->PGrid[npg].ijke[1] + 1;
-
-        for (i=ips, ii=0; i<=ipe; i++, ii++){
-          pG->PGrid[npg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d; 
-          pG->PGrid[npg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz; 
-          pG->PGrid[npg].myFlx[dim][ks][ii].M2 = x2Flux[j][i].Mx;
-          pG->PGrid[npg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My; 
-#ifndef BAROTROPIC
-          pG->PGrid[npg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E; 
-#endif /* BAROTROPIC */
-#ifdef MHD
-          pG->PGrid[npg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz; 
-          pG->PGrid[npg].myFlx[dim][ks][ii].B2c = 0.0;
-          pG->PGrid[npg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By; 
-#endif /* MHD */
-#if (NSCALARS > 0)
-          for (n=0; n<NSCALARS; n++)
-            pG->PGrid[npg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
-#endif
-        }
-#ifdef MHD
-        for (i=ips, ii=0; i<=ipe+1; i++, ii++){
-          pG->PGrid[npg].myEMF3[dim][ks][ii] = emf3[j][i];
-        }
-#endif /* MHD */
-      }
-    }
-  }
-
-#endif /* STATIC_MESH_REFINEMENT */
-}
-
   return;
 }
 
@@ -1132,7 +1078,8 @@ void integrate_init_2d(MeshS *pM)
 
 /*refer to material  integrate_2d_ctu.c*/
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
-  if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+  //if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+  if ((Bxb = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
 
   if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
@@ -1158,9 +1105,45 @@ void integrate_init_2d(MeshS *pM)
  */
 void integrate_destruct_2d(void)
 {
-/*refer to material  integrate_3d_ctu.c*/
+/*#ifdef MHD
+  if (emf3    != NULL) free_2d_array(emf3);
+  if (emf3_cc != NULL) free_2d_array(emf3_cc);
+#endif *//* MHD */
+/*#ifdef H_CORRECTION
+  if (eta1 != NULL) free_2d_array(eta1);
+  if (eta2 != NULL) free_2d_array(eta2);
+#endif *//* H_CORRECTION */
+  if (Bxc != NULL) free(Bxc);
+  //if (Bxi != NULL) free(Bxi);
+  if (Bxb != NULL) free(Bxb);
+/*#ifdef MHD
+  if (B1_x1Face != NULL) free_2d_array(B1_x1Face);
+  if (B2_x2Face != NULL) free_2d_array(B2_x2Face);
+#endif *//* MHD */
+
+  if (U1d      != NULL) free(U1d);
+ /* if (Ul       != NULL) free(Ul);
+  if (Ur       != NULL) free(Ur);*/
+  if (W        != NULL) free(W);
+ /* if (Wl       != NULL) free(Wl);
+  if (Wr       != NULL) free(Wr);*/
+
+/*  if (Ul_x1Face != NULL) free_2d_array(Ul_x1Face);
+  if (Ur_x1Face != NULL) free_2d_array(Ur_x1Face);
+  if (Ul_x2Face != NULL) free_2d_array(Ul_x2Face);
+  if (Ur_x2Face != NULL) free_2d_array(Ur_x2Face);*/
+  if (x1Flux    != NULL) free_2d_array(x1Flux);
+  if (x2Flux    != NULL) free_2d_array(x2Flux);
+ /* if (dhalf     != NULL) free_2d_array(dhalf);
+  if (phalf     != NULL) free_2d_array(phalf);*/
+
+  /* data structures for cylindrical coordinates */
+#ifdef CYLINDRICAL
+  if (geom_src  != NULL) free_2d_array(geom_src);
+#endif
 
   return;
+
 }
 
 /*=========================== PRIVATE FUNCTIONS ==============================*/

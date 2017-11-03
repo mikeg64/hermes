@@ -55,7 +55,7 @@
 static Cons1DS *Uc_x1=NULL, *Ur_x1Face=NULL, *x1Flux=NULL;
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bx=NULL, *Bxb=NULL, *Bxi=NULL;
+static Real *Bx=NULL, *Bxb=NULL, *Bxc=NULL;
 static Prim1DS *W=NULL, *Wl=NULL, *Wr=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -170,7 +170,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #ifdef MHD
     U1d[i].By = pG->U[ks][js][i].B2c;
     U1d[i].Bz = pG->U[ks][js][i].B3c;
-    Bx[i] = pG->U[ks][js][i].B1c;
+    Bxc[i] = pG->U[ks][js][i].B1c;
     /*Bxi[i] = pG->B1i[ks][js][i];*/
 #endif /* MHD */
 #ifdef SAC_INTEGRATOR
@@ -206,7 +206,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
 
   for (i=is-nghost; i<=ie+nghost; i++) {
-    W[i] = Cons1D_to_Prim1D(&U1d[i], &Bx[i],&Bxb[i]);
+    W[i] = Cons1D_to_Prim1D(&U1d[i], &Bxc[i],&Bxb[i]);
   }
 
  /* lr_states(pG,W,Bxc,pG->dt,pG->dx1,il+1,iu-1,Wl,Wr,1);*/
@@ -244,31 +244,34 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 //       Wl[i].Vx -= hdt*gl;
 //       Wr[i].Vx -= hdt*gr;
 // #else
-    /*  phicr = (*StaticGravPot)( x1             ,x2,x3);
-      phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);*/
+      phicr = (*StaticGravPot)( x1             ,x2,x3);
+      phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
       phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);
 
-      W[i].Vx -= dtodx1*(phifc );
-
-     /* Wl[i].Vx -= dtodx1*(phifc - phicl);
-      Wr[i].Vx -= dtodx1*(phicr - phifc);*/
+      W[i].Vx -= dtodx1*(phicr - phicl);
+      //Wr[i].Vx -= dtodx1*(phicr - phifc);
 // #endif /* CYLINDRICAL */
     }
   }
 
 
+
+
 /*--- Step 1c (cont) -----------------------------------------------------------
- * Add the geometric source-terms now using cell-centered primitive
- * variables at time t^n
+ * Add source terms for self-gravity for 0.5*dt to L/R states
  */
 
 #ifdef SELF_GRAVITY
-  for (i=il+1; i<=iu-1; i++) {
-   /* Wl[i].Vx -= hdtodx1*(pG->Phi[ks][js][i] - pG->Phi[ks][js][i-1]);
-    Wr[i].Vx -= hdtodx1*(pG->Phi[ks][js][i] - pG->Phi[ks][js][i-1]);*/
-    W[i].Vx -= hdtodx1*(pG->Phi[ks][js][i+1] - pG->Phi[ks][js][i-1]);
+  for (i=il+1; i<=iu; i++) {
+    //Wl[i].Vx -= hdtodx1*(pG->Phi[ks][js][i] - pG->Phi[ks][js][i-1]);
+    //Wr[i].Vx -= hdtodx1*(pG->Phi[ks][js][i] - pG->Phi[ks][js][i-1]);
+    W[i].Vx -= hdtodx1*(pG->Phi[ks][js][i] - pG->Phi[ks][js][i-1]);
   }
 #endif
+
+
+
+
 
 
 /*--- Step 1c (cont) -----------------------------------------------------------
@@ -282,13 +285,39 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));*/
 
       /*check cooling function*/
-      coolf = (*CoolingFunc)(W[i].d,W[i].P,(pG->dt));
+      coolf = (*CoolingFunc)(W[i].d+W[i].db,W[i].P,(pG->dt));
       W[i].P -= pG->dt*Gamma_1*coolf;
       /*Wl[i].P -= 0.5*pG->dt*Gamma_1*coolfl;
       Wr[i].P -= 0.5*pG->dt*Gamma_1*coolfr;*/
     }
   }
 #endif /* BAROTROPIC */
+
+
+
+/*--- Step 1c (cont) -----------------------------------------------------------
+ * Add source terms for particle feedback for 0.5*dt to L/R states
+ */
+
+#ifdef FEEDBACK
+    for (i=il+1; i<=iu; i++) {
+
+      d1 = 1.0/(W[i].d+W[i].db);
+      W[i].Vx -= pG->Coup[ks][js][i].fb1*d1;
+      W[i].Vy -= pG->Coup[ks][js][i].fb2*d1;
+      W[i].Vz -= pG->Coup[ks][js][i].fb3*d1;
+
+#ifndef BAROTROPIC
+      //Wl[i].P += pG->Coup[ks][js][i-1].Eloss*Gamma_1;
+      //Wr[i].P += pG->Coup[ks][js][i].Eloss*Gamma_1;
+      W[i].P += pG->Coup[ks][js][i].Eloss*Gamma_1;
+#endif
+    }
+#endif /* FEEDBACK */
+
+
+
+
 
 
 /*--- Step 1d ------------------------------------------------------------------
@@ -773,9 +802,9 @@ void integrate_init_1d(MeshS *pM)
   size1 = size1 + 2*nghost;
 
   /*if ((Bxc = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;*/
-  if ((Bx = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
+  if ((Bxc = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
   if ((Bxb = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
-  if ((Bxi = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
+  //if ((Bxi = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
 
   if ((U1d       =(Cons1DS*)malloc(size1*sizeof(Cons1DS)))==NULL) goto on_error;
   if ((Uc_x1 =(Cons1DS*)malloc(size1*sizeof(Cons1DS)))==NULL) goto on_error;
@@ -825,9 +854,9 @@ void integrate_destruct_1d(void)
 
   
   /*if (Bxc != NULL) free(Bxc);*/
-  if (Bx != NULL) free(Bx);
+  if (Bxc != NULL) free(Bxc);
   if (Bxb != NULL) free(Bxb);
-  if (Bxi != NULL) free(Bxi);
+  //if (Bxi != NULL) free(Bxi);
 
   if (U1d != NULL) free(U1d);
   if (Uc_x1 != NULL) free(Uc_x1);

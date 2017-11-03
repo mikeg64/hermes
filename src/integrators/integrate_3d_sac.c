@@ -52,7 +52,7 @@
 
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bxc=NULL, *Bxi=NULL;
+static Real *Bxc=NULL, *Bxb=NULL;
 static Prim1DS *W=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -125,7 +125,9 @@ void integrate_3d_sac(DomainS *pD)
   int j,jl,ju, js = pG->js, je = pG->je;
   int k,kl,ku, ks = pG->ks, ke = pG->ke;
   Real x1,x2,x3,phicl,phicr,phifc,phil,phir,phic,M1h,M2h,M3h,Bx=0.0,Bxb=0.0;
-
+#ifndef BAROTROPIC
+  Real coolfl,coolfr,coolf,coolfc,Eh=0.0;
+#endif
 
 /*Used for hyperdiffusion computations*/
 int ii1, dim, ii, ii0;
@@ -144,7 +146,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
   int n;
 #endif
 #ifdef SELF_GRAVITY
-  Real gxl,gxr,gyl,gyr,gzl,gzr,flx_m1l,flx_m1r,flx_m2l,flx_m2r,flx_m3l,flx_m3r;
+  Real gxc,gyc,gzc,gxl,gxr,gyl,gyr,gzl,gzr,flx_m1l,flx_m1r,flx_m2l,flx_m2r,flx_m3l,flx_m3r;
 #endif
 #ifdef FEEDBACK
   Real dt1 = 1.0/pG->dt;
@@ -157,7 +159,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #endif
 
 
-  Real g,gl,gr;
+  Real g,gc,gl,gr;
   Real lsf=1.0, rsf=1.0;
 
 
@@ -210,11 +212,13 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
         U1d[i].By = pG->U[ks][j][i].B2c;
         U1d[i].Bz = pG->U[ks][j][i].B3c;
         Bxc[i] = pG->U[ks][j][i].B1c;
-        Bxi[i] = pG->B1i[ks][j][i];
-        B1_x1[j][i] = pG->B1i[ks][j][i];       
+        //Bxi[i] = pG->B1i[ks][j][i];
+        //B1_x1[j][i] = pG->B1i[ks][j][i];       
 #endif /* MHD */
 #ifdef BKG
         U1d[i].db  = pG->U[ks][j][i].db;
+
+        Bxb[i] = pG->U[ks][j][i].B1cb;
         U1d[i].Byb = pG->U[ks][j][i].B2cb;
         U1d[i].Bzb = pG->U[ks][j][i].B3cb;
 
@@ -229,15 +233,16 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  */
 
    for (i=is-nghost; i<=ie+nghost; i++) {
-      W[i] = Cons1D_to_Prim1D(&U1d[i],&Bxc[i],&Bxb);
+      W[i] = Cons1D_to_Prim1D(&U1d[i],&Bxc[i],&Bxb[i]);
 
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
 
-      /*if (StaticGravPot != NULL){
+
+      if (StaticGravPot != NULL){
         for (i=il+1; i<=iu; i++) {
-          cc_pos(pG,i,j,ks,&x1,&x2,&x3);
+          cc_pos(pG,i,j,k,&x1,&x2,&x3);
 
           phicr = (*StaticGravPot)( x1             ,x2,x3);
           phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
@@ -250,17 +255,44 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
           gr -= r[i  ]*SQR((*OrbitalProfile)(r[i  ]));
 #endif
 
-          W[i].Vx -= hdt*gl;
-         
+          W[i].Vx -= (hdt*gl+hdt*gr);
+          //Wr[i].Vx -= hdt*gr;
         }
-      }*/
+      }
+
+
+/*--- Step 1c (cont) -----------------------------------------------------------
+ * Add source terms for self-gravity for 0.5*dt to L/R states
+ */
+
+#ifdef SELF_GRAVITY
+      for (i=il+1; i<=iu; i++) {
+        //Wl[i].Vx -= q1*(pG->Phi[k][j][i] - pG->Phi[k][j][i-1]);
+        //Wr[i].Vx -= q1*(pG->Phi[k][j][i] - pG->Phi[k][j][i-1]);
+        W[i].Vx -= q1*(pG->Phi[k][j][i] - pG->Phi[k][j][i-1]);
+      }
+#endif
 
 
 
 /*--- Step 1c (cont) -----------------------------------------------------------
- * Add the geometric source-terms now using cell-centered primitive
- * variables at time t^n
+ * Add source terms from optically-thin cooling for 0.5*dt to L/R states
  */
+
+#ifndef BAROTROPIC
+      if (CoolingFunc != NULL){
+        for (i=il+1; i<=iu; i++) {
+          /*coolfl = (*CoolingFunc)(Wl[i].d,Wl[i].P,(0.5*pG->dt));
+          coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));
+
+          Wl[i].P -= 0.5*pG->dt*Gamma_1*coolfl;
+          Wr[i].P -= 0.5*pG->dt*Gamma_1*coolfr;*/
+
+          coolfc = (*CoolingFunc)(W[i].d+W[i].db,W[i].P,(0.5*pG->dt));
+          W[i].P -= 0.5*pG->dt*Gamma_1*coolfc;
+        }
+      }
+#endif /* BAROTROPIC */
 
 
 
@@ -268,13 +300,13 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
-      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxi[i],&Bxb);
+      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bx[i],&Bxb[i]);
       
 
-#ifdef MHD
-      Bx = B1_x1[j][i];
-      Bxb=0.0;//?????????????????????????
-#endif
+//#ifdef MHD
+//      Bx = B1_x1[j][i];
+//      Bxb=0.0;//?????????????????????????
+//#endif
       fluxes(Uc_x1[j][i],Uc_x1[j][i],W[i],W[i],Bx,Bxb,&x1Flux[j][i]);
     }
   }
@@ -956,7 +988,7 @@ void integrate_init_3d(MeshS *pM)
 
 /*refer to material  integrate_2d_ctu.c*/
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
-  if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+  if ((Bxb = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
 
   if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
