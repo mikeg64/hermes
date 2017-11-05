@@ -324,13 +324,17 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
-      Uc_x1[i] = Prim1D_to_Cons1D(&W[i],&Bx[i],&Bxb[i]);
+      Uc_x1[i] = Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
       
 
 
-      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],*Bx,*Bxb,&x1Flux[i]);
+      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],*Bxc,*Bxb,&x1Flux[i]);
     }
   
+
+
+********************************************************
+
 
 /*=== STEP 8: Compute cell-centered values at n+1/2 ==========================*/
 
