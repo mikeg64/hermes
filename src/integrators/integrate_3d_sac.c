@@ -20,13 +20,13 @@
  *
  *
  * CONTAINS PUBLIC FUNCTIONS: 
- * - integrate_2d_sac()
- * - integrate_init_2d()
- * - integrate_destruct_2d() */
+ * - integrate_3d_sac()
+ * - integrate_init_3d()
+ * - integrate_destruct_3d() */
 
 /*
  * PROGRESS
- * Initial boiler plate based on athena integrate_2d_ctu.c
+ * Initial boiler plate based on athena integrate_3d_ctu.c
 
  */
 /*============================================================================*/
