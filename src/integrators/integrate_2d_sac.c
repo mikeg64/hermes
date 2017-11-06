@@ -590,7 +590,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
-      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxi[i],&Bxb[i]);
+      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
       
 /*not needed used for computing field on face*/
 /*#ifdef MHD
@@ -627,7 +627,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       U1d[j].By = pG->U[ks][j][i].B3c;
       U1d[j].Bz = pG->U[ks][j][i].B1c;
       Bxc[j] = pG->U[ks][j][i].B2c;
-      Bxb[j] = pG->B2b[ks][j][i];
+      //Bxb[j] = pG->B2b[ks][j][i];
       //B2_x2[j][i] = pG->B2i[ks][j][i];
 #endif /* MHD */
 
@@ -710,7 +710,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       for (j=jl+1; j<=ju; j++) {
         //coolfl = (*CoolingFunc)(Wl[j].d,Wl[j].P,(0.5*pG->dt));
         //coolfr = (*CoolingFunc)(Wr[j].d,Wr[j].P,(0.5*pG->dt));
-        coolfc = (*CoolingFunc)(W[j].d+W[j].db,Wr[j].P,(0.5*pG->dt));
+        coolfc = (*CoolingFunc)(W[j].d+W[j].db,W[j].P,(0.5*pG->dt));
 
         //Wl[j].P -= 0.5*pG->dt*Gamma_1*coolfl;
         //Wr[j].P -= 0.5*pG->dt*Gamma_1*coolfr;
