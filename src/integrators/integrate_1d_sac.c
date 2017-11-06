@@ -100,7 +100,7 @@ void integrate_1d_sac(DomainS *pD)
   int ks = pG->ks;
   Real x1,x2,x3,phicl,phicr,phifc,phil,phir,phic,M1h,M2h,M3h;
 #ifndef BAROTROPIC
-  Real coolfl,coolfr,coolf,Eh=0.0;
+  Real coolfl,coolfr,coolfc,coolf,Eh=0.0;
 #endif
 #if defined(MHD) 
   Real B1ch,B2ch,B3ch;
@@ -241,12 +241,13 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 //       gl = (*x1GravAcc)(x1-pG->dx1,x2,x3);
 //       gr = (*x1GravAcc)(x1,x2,x3);
       /* APPLY GRAV. SOURCE TERMS TO V1 USING ACCELERATION FOR (dt/2) */
-//       Wl[i].Vx -= hdt*gl;
-//       Wr[i].Vx -= hdt*gr;
+      // Wl[i].Vx -= hdt*gl;
+      // Wr[i].Vx -= hdt*gr;
+//      W[i].Vx -= 0.5*hdt*(gr+gl);
 // #else
       phicr = (*StaticGravPot)( x1             ,x2,x3);
       phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
-      phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);
+//      phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);
 
       W[i].Vx -= dtodx1*(phicr - phicl);
       //Wr[i].Vx -= dtodx1*(phicr - phifc);
@@ -285,8 +286,8 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       coolfr = (*CoolingFunc)(Wr[i].d,Wr[i].P,(0.5*pG->dt));*/
 
       /*check cooling function*/
-      coolf = (*CoolingFunc)(W[i].d+W[i].db,W[i].P,(pG->dt));
-      W[i].P -= pG->dt*Gamma_1*coolf;
+      coolfc = (*CoolingFunc)(W[i].d+W[i].db,W[i].P,(pG->dt));
+      W[i].P -= pG->dt*Gamma_1*coolfc;
       /*Wl[i].P -= 0.5*pG->dt*Gamma_1*coolfl;
       Wr[i].P -= 0.5*pG->dt*Gamma_1*coolfr;*/
     }
@@ -318,6 +319,82 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
 
 
+/*--- Step 1c (cont) -----------------------------------------------------------
+ * Add the geometric source-terms now using cell-centered primitive
+ * variables at time t^n
+ */
+
+#ifdef CYLINDRICAL
+      for (i=il+1; i<=iu; i++) {
+        // left state geometric source term (uses W[i-1])
+//         rinv = 1.0/x1vc(pG,i-1);
+        rinv = 1.0/r[i-1];
+        geom_src_d  = -(W[i-1].d+W[i-1].db)*W[i-1].Vx*rinv;
+        geom_src_Vx =  SQR(W[i-1].Vy);
+        geom_src_Vy = -W[i-1].Vx*W[i-1].Vy;
+#ifdef MHD
+        geom_src_Vx -= SQR(W[i-1].By)/(W[i-1].d+W[i-1].db);
+        geom_src_Vy += Bxc[i-1]*W[i-1].By/(W[i-1].d+W[i-1].db);
+        geom_src_By =  -W[i-1].Vy*Bxc[i-1]*rinv;
+        geom_src_Bz =  -W[i-1].Vx*W[i-1].Bz*rinv;
+#endif /* MHD */
+        geom_src_Vx *= rinv;
+        geom_src_Vy *= rinv;
+#ifndef ISOTHERMAL
+        geom_src_P  = -Gamma*W[i-1].P*W[i-1].Vx*rinv;
+#endif /* ISOTHERMAL */
+
+        // add source term to left state
+        //Wl[i].d  += hdt*geom_src_d;
+        //Wl[i].Vx += hdt*geom_src_Vx;
+        //Wl[i].Vy += hdt*geom_src_Vy;
+#ifdef MHD
+        //Wl[i].By += hdt*geom_src_By;
+        //Wl[i].Bz += hdt*geom_src_Bz;
+#endif /* MHD */
+#ifndef ISOTHERMAL
+        //Wl[i].P  += hdt*geom_src_P;
+#endif /* ISOTHERMAL */
+
+        // right state geometric source term (uses W[i])
+//         rinv = 1.0/x1vc(pG,i);
+        rinv = 1.0/r[i];
+        geom_src_d  += -(W[i].d+W[i].db)*W[i].Vx*rinv;
+        geom_src_Vx +=  SQR(W[i].Vy);
+        geom_src_Vy += -W[i].Vx*W[i].Vy;
+#ifdef MHD
+        geom_src_Vx -= SQR(W[i].By)/(W[i].d+W[i].db);
+        geom_src_Vy += Bxc[i]*W[i].By/(W[i].d+W[i].db);
+        geom_src_By +=  -W[i].Vy*Bxc[i]*rinv;
+        geom_src_Bz +=  -W[i].Vx*W[i].Bz*rinv;
+#endif /* MHD */
+        geom_src_Vx *= rinv;
+        geom_src_Vy *= rinv;
+#ifndef ISOTHERMAL
+        geom_src_P  += -Gamma*W[i].P*W[i].Vx*rinv;
+#endif /* ISOTHERMAL */
+
+        // add source term to right state
+        W[i].d  += hdt*geom_src_d;
+        W[i].Vx += hdt*geom_src_Vx;
+        W[i].Vy += hdt*geom_src_Vy;
+#ifdef MHD
+        Wr[i].By += hdt*geom_src_By;
+        Wr[i].Bz += hdt*geom_src_Bz;
+#endif /* MHD */
+#ifndef ISOTHERMAL
+        Wr[i].P  += hdt*geom_src_P;
+#endif /* ISOTHERMAL */
+      }
+#endif /* CYLINDRICAL */
+
+
+
+
+
+
+
+
 
 
 /*--- Step 1d ------------------------------------------------------------------
@@ -331,12 +408,6 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],*Bxc,*Bxb,&x1Flux[i]);
     }
   
-
-
-********************************************************
-
-
-/*=== STEP 8: Compute cell-centered values at n+1/2 ==========================*/
 
 /*checked for sac to here*/
 /*=== STEP 8: Compute cell-centered values at n+1/2 ==========================*/
@@ -388,7 +459,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #ifdef SELF_GRAVITY
       phir = 0.5*(pG->Phi[ks][js][i] + pG->Phi[ks][js][i+1]);
       phil = 0.5*(pG->Phi[ks][js][i] + pG->Phi[ks][js][i-1]);
-      M1h -= hdtodx1*(phir-phil)*pG->U[ks][js][i].d;
+      M1h -= hdtodx1*(phir-phil)*(pG->U[ks][js][i].d+pG->U[ks][js][i].db);
 #endif /* SELF_GRAVITY */
 
 /* Add the particle feedback terms */
@@ -597,8 +668,8 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
     pG->U[ks][js][i].B2c -= dtodx1*(x1Flux[i+1].By - x1Flux[i].By);
     pG->U[ks][js][i].B3c -= dtodx1*(rsf*x1Flux[i+1].Bz - lsf*x1Flux[i].Bz);
 /* For consistency, set B2i and B3i to cell-centered values.  */
-    pG->B2i[ks][js][i] = pG->U[ks][js][i].B2c;
-    pG->B3i[ks][js][i] = pG->U[ks][js][i].B3c;
+//    pG->B2i[ks][js][i] = pG->U[ks][js][i].B2c;
+//    pG->B3i[ks][js][i] = pG->U[ks][js][i].B3c;
 #endif /* MHD */
 #if (NSCALARS > 0)
     for (n=0; n<NSCALARS; n++)

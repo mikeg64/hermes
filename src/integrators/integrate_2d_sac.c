@@ -204,7 +204,7 @@ void integrate_2d_sac(DomainS *pD)
 
 #if defined(CYLINDRICAL) && defined(FARGO)
   if (OrbitalProfile==NULL || ShearProfile==NULL)
-    ath_error("[integrate_2d_ctu]:  OrbitalProfile() and ShearProfile() *must* be defined.\n");
+    ath_error("[integrate_2d_sac]:  OrbitalProfile() and ShearProfile() *must* be defined.\n");
 #endif
 
 /* With particles, one more ghost cell must be updated in predict step */
@@ -378,7 +378,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       phicl = (*StaticGravPot)((x1-    pG->dx1),x2,x3);
      /* phifc = (*StaticGravPot)((x1-0.5*pG->dx1),x2,x3);*/
 
-      W[i].Vx -= dtodx1*(phifc -phicl);
+      W[i].Vx -= dtodx1*(phicr -phicl);
 
      /* Wl[i].Vx -= dtodx1*(phifc - phicl);
       Wr[i].Vx -= dtodx1*(phicr - phifc);*/
@@ -448,7 +448,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
         //Wl[i].Vx -= dtodx1*(phifc - phicl);
         //Wr[i].Vx -= dtodx1*(phicr - phifc);
 
-        Wr[i].Vx -= dtodx1*(phicr - phifl);
+        W[i].Vx -= dtodx1*(phicr - phicl);
       }
     }
 
@@ -1377,6 +1377,28 @@ void integrate_init_2d(MeshS *pM)
 
 
 
+#ifndef CYLINDRICAL
+#ifndef MHD
+#ifndef PARTICLES
+  if((StaticGravPot != NULL) || (CoolingFunc != NULL))
+#endif
+#endif
+#endif
+  {
+  if ((dhalf = (Real**)calloc_2d_array(size2, size1, sizeof(Real))) == NULL)
+    goto on_error;
+  if ((phalf = (Real**)calloc_2d_array(size2, size1, sizeof(Real))) == NULL)
+    goto on_error;
+  }
+
+  /* data structures for cylindrical coordinates */
+#ifdef CYLINDRICAL
+  if ((geom_src = (Real**)calloc_2d_array(size2, size1, sizeof(Real))) == NULL) 
+    goto on_error;
+#endif
+
+
+
   return;
 
   on_error:
@@ -1419,8 +1441,8 @@ void integrate_destruct_2d(void)
   if (Ur_x2Face != NULL) free_2d_array(Ur_x2Face);*/
   if (x1Flux    != NULL) free_2d_array(x1Flux);
   if (x2Flux    != NULL) free_2d_array(x2Flux);
- /* if (dhalf     != NULL) free_2d_array(dhalf);
-  if (phalf     != NULL) free_2d_array(phalf);*/
+  if (dhalf     != NULL) free_2d_array(dhalf);
+  if (phalf     != NULL) free_2d_array(phalf);
 
   /* data structures for cylindrical coordinates */
 #ifdef CYLINDRICAL

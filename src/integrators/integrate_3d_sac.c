@@ -254,6 +254,25 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
    for (i=is-nghost; i<=ie+nghost; i++) {
       W[i] = Cons1D_to_Prim1D(&U1d[i],&Bxc[i],&Bxb[i]);
 
+        /* Calculate the cell-centered geometric source vector now using U^{n}
+         * This will be used at the end of the integration step as a source term
+         * for the cell-centered conserved variables (steps 6D,7D,8B) */
+#ifdef CYLINDRICAL
+        geom_src[k][j][i]  = (W[i].d+W[i].db)*SQR(W[i].Vy);
+#ifdef MHD
+        geom_src[k][j][i] += 0.5*(SQR(Bxc[i]+Bxb[i]) - SQR(W[i].By+W[i].Byb) + SQR(W[i].Bz+W[i].Bzb));
+#endif
+#ifdef ISOTHERMAL
+        geom_src[k][j][i] += Iso_csound2*(W[i].d+W[i].db);
+#else
+        geom_src[k][j][i] += W[i].P;
+#endif
+        geom_src[k][j][i] /= r[i];
+#endif /* CYLINDRICAL */
+     }
+
+
+
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
@@ -275,7 +294,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
           //Wl[i].Vx -= hdt*gl;
           //Wr[i].Vx -= hdt*gr;
-          W[i].Vx -= 0.5*hdt*(gr+gr);
+          W[i].Vx -= 0.5*hdt*(gl+gr);
         }
       }
 
@@ -420,14 +439,14 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
         /* left state geometric source term (uses W[i-1]) */
         rinv = 1.0/r[i-1];
-        geom_src_d  = -W[i-1].d*W[i-1].Vx*rinv;
+        geom_src_d  = -(W[i-1].d+W[i-1].db)*W[i-1].Vx*rinv;
         geom_src_Vx =  SQR(W[i-1].Vy);
         geom_src_Vy = -W[i-1].Vx*W[i-1].Vy;
 #ifdef MHD
-        geom_src_Vx -= SQR(W[i-1].By)/W[i-1].d;
-        geom_src_Vy += Bxc[i-1]*W[i-1].By/W[i-1].d;
-        geom_src_By =  -W[i-1].Vy*Bxc[i-1]*rinv;
-        geom_src_Bz =  -W[i-1].Vx*W[i-1].Bz*rinv;
+        geom_src_Vx -= SQR(W[i-1].By)/(W[i-1].d+W[i-1].db);
+        geom_src_Vy += (Bxc[i-1]+Bxb[i-1])*(W[i-1].By+W[i-1].Byb)/(W[i-1].d+W[i-1].db);
+        geom_src_By =  -W[i-1].Vy*(Bxc[i-1]+Bxb[i-1])*rinv;
+        geom_src_Bz =  -W[i-1].Vx*(W[i-1].Bz+W[i-1].Bzb)*rinv;
 #endif
         geom_src_Vx *= rinv;
         geom_src_Vy *= rinv;
@@ -449,14 +468,14 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
         /* right state geometric source term (uses W[i]) */
         rinv = 1.0/r[i];
-        geom_src_d  = -W[i].d*W[i].Vx*rinv;
+        geom_src_d  = -(W[i].d+W[i].db)*W[i].Vx*rinv;
         geom_src_Vx =  SQR(W[i].Vy);
         geom_src_Vy = -W[i].Vx*W[i].Vy;
 #ifdef MHD
-        geom_src_Vx -= SQR(W[i].By)/W[i].d;
-        geom_src_Vy += Bxc[i]*W[i].By/W[i].d;
-        geom_src_By =  -W[i].Vy*Bxc[i]*rinv;
-        geom_src_Bz =  -W[i].Vx*W[i].Bz*rinv;
+        geom_src_Vx -= SQR(W[i].By+W[i].Byb)/(W[i].d+W[i].db);
+        geom_src_Vy += (Bxc[i]+Bxb[i])*(W[i].By+W[i].Byb)/(W[i].d+W[i].db);
+        geom_src_By =  -W[i].Vy*(Bxc[i]+Bxb[i])*rinv;
+        geom_src_Bz =  -W[i].Vx*(W[i].Bz+W[i].Bzb)*rinv;
 #endif
         geom_src_Vx *= rinv;
         geom_src_Vy *= rinv;
@@ -495,6 +514,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       fluxes(Uc_x1[k][j][i],Uc_x1[k][j][i],W[i],W[i],Bxc,Bxb,&x1Flux[k][j][i]);
     }
   }
+}
 
 /*=== STEP 2: Compute L/R x2-interface states and 1D x2-Fluxes ===============*/
 
@@ -503,41 +523,44 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * U1d = (d, M2, M3, M1, E, B3c, B1c, s[n])
  */
 
-  for (i=il; i<=iu; i++) {
+  for (k=kl; k<=ku; k++) {
+    for (i=il; i<=iu; i++) {
 #ifdef CYLINDRICAL
-    dx2 = r[i]*pG->dx2;
-    dx2i = 1.0/dx2;
-    dtodx2 = pG->dt*dx2i;
-    hdtodx2 = 0.5*dtodx2;
+      rsf = ri[i+1]/r[i];  lsf = ri[i]/r[i];
+      dx2 = r[i]*pG->dx2;
+      dtodx2 = pG->dt/dx2;
 #endif
     for (j=js-nghost; j<=je+nghost; j++) {
-      U1d[j].d  = pG->U[ks][j][i].d;
-      U1d[j].Mx = pG->U[ks][j][i].M2;
-      U1d[j].My = pG->U[ks][j][i].M3;
-      U1d[j].Mz = pG->U[ks][j][i].M1;
+      U1d[j].d  = pG->U[k][j][i].d;
+      U1d[j].Mx = pG->U[k][j][i].M2;
+      U1d[j].My = pG->U[k][j][i].M3;
+      U1d[j].Mz = pG->U[k][j][i].M1;
 #ifndef BAROTROPIC
-      U1d[j].E  = pG->U[ks][j][i].E;
+      U1d[j].E  = pG->U[k][j][i].E;
 #endif /* BAROTROPIC */
 #ifdef MHD
-      U1d[j].By = pG->U[ks][j][i].B3c;
-      U1d[j].Bz = pG->U[ks][j][i].B1c;
-      Bxc[j] = pG->U[ks][j][i].B2c;
-      Bxb[j] = pG->B2b[ks][j][i];
-      B2_x2[j][i] = pG->B2i[ks][j][i];
+      U1d[j].By = pG->U[k][j][i].B3c;
+      U1d[j].Bz = pG->U[k][j][i].B1c;
+      Bxc[j] = pG->U[k][j][i].B2c;
+      Bxb[j] = pG->B2b[k][j][i];
+//      B2_x2[j][i] = pG->B2i[k][j][i];
 #endif /* MHD */
 
 
 #ifdef BKG
         U1d[j].db  = pG->U[k][j][i].db;
+
+#ifdef MHD
         Bxb[j] = pG->U[k][j][i].B2cb;
         U1d[j].Byb = pG->U[k][j][i].B3cb;
         U1d[j].Bzb = pG->U[k][j][i].B1cb;
+#endif /* MHD */
 #endif
 
 
 
 #if (NSCALARS > 0)
-      for (n=0; n<NSCALARS; n++) U1d[j].s[n] = pG->U[ks][j][i].s[n];
+      for (n=0; n<NSCALARS; n++) U1d[j].s[n] = pG->U[k][j][i].s[n];
 #endif
     }
 
@@ -585,7 +608,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
         for (j=jl+1; j<=ju; j++) {
           //coolfl = (*CoolingFunc)(Wl[j].d,Wl[j].P,(0.5*pG->dt));
           //coolfr = (*CoolingFunc)(Wr[j].d,Wr[j].P,(0.5*pG->dt));
-          coolfc = (*CoolingFunc)(W[j].d,W[j].P,(0.5*pG->dt));
+          coolfc = (*CoolingFunc)(W[j].d+W[j].db,W[j].P,(0.5*pG->dt));
 
           //Wl[j].P -= 0.5*pG->dt*Gamma_1*coolfl;
           //Wr[j].P -= 0.5*pG->dt*Gamma_1*coolfr;
@@ -842,9 +865,9 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 #endif /* BAROTROPIC */
 
 #ifdef MHD
-        pG->U[k][j][i].B1c -= dtodx1*(rsf*x2Flux[k][j+1][i].Bz-lsf*x2Flux[k][j][i].Bz);
+        pG->U[k][j][i].B1c -= dtodx2*(rsf*x2Flux[k][j+1][i].Bz-lsf*x2Flux[k][j][i].Bz);
         //pG->U[k][j][i].B2c -= dtodx1*(rsf*x2Flux[k][j+1][i].By-lsf*x2Flux[k][j][i].By);
-        pG->U[k][j][i].B3c -= dtodx1*(rsf*x2Flux[k][j+1][i].By-lsf*x2Flux[k][j][i].By);
+        pG->U[k][j][i].B3c -= dtodx2*(rsf*x2Flux[k][j+1][i].By-lsf*x2Flux[k][j][i].By);
 #endif /* MHD */
 
 
@@ -876,8 +899,8 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
 
 #ifdef MHD
-        pG->U[k][j][i].B1c -= dtodx1*(rsf*x3Flux[k+1][j][i].By-lsf*x3Flux[k][j][i].By);
-        pG->U[k][j][i].B2c -= dtodx1*(rsf*x3Flux[k+1][j][i].Bz-lsf*x3Flux[k][j][i].Bz);
+        pG->U[k][j][i].B1c -= dtodx3*(rsf*x3Flux[k+1][j][i].By-lsf*x3Flux[k][j][i].By);
+        pG->U[k][j][i].B2c -= dtodx3*(rsf*x3Flux[k+1][j][i].Bz-lsf*x3Flux[k][j][i].Bz);
         //pG->U[k][j][i].B3c -= dtodx1*(rsf*x3Flux[k+1][j][i].Bz-lsf*x3Flux[k][j][i].Bz);
 #endif /* MHD */
 
@@ -1026,11 +1049,11 @@ for(dim=0; dim<2; dim++) //each direction
             pG->CGrid[ncg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
 #endif
         }
-#ifdef MHD
-        for (j=jcs, jj=0; j<=jce+1; j++, jj++){
-          pG->CGrid[ncg].myEMF3[dim][ks][jj] = emf3[j][i];
-        }
-#endif /* MHD */
+//#ifdef MHD
+//        for (j=jcs, jj=0; j<=jce+1; j++, jj++){
+//          pG->CGrid[ncg].myEMF3[dim][ks][jj] = emf3[j][i];
+//        }
+//#endif /* MHD */
       }
     }
 
@@ -1062,11 +1085,11 @@ for(dim=0; dim<2; dim++) //each direction
             pG->CGrid[ncg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
 #endif
         }
-#ifdef MHD
-        for (i=ics, ii=0; i<=ice+1; i++, ii++){
-          pG->CGrid[ncg].myEMF3[dim][ks][ii] = emf3[j][i];
-        }
-#endif /* MHD */
+//#ifdef MHD
+//        for (i=ics, ii=0; i<=ice+1; i++, ii++){
+//          pG->CGrid[ncg].myEMF3[dim][ks][ii] = emf3[j][i];
+//        }
+//#endif /* MHD */
       }
     }
   }
@@ -1101,11 +1124,11 @@ for(dim=0; dim<2; dim++) //each direction
             pG->PGrid[npg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
 #endif
         }
-#ifdef MHD
-        for (j=jps, jj=0; j<=jpe+1; j++, jj++){
-          pG->PGrid[npg].myEMF3[dim][ks][jj] = emf3[j][i];
-        }
-#endif /* MHD */
+//#ifdef MHD
+//        for (j=jps, jj=0; j<=jpe+1; j++, jj++){
+//          pG->PGrid[npg].myEMF3[dim][ks][jj] = emf3[j][i];
+//        }
+//#endif /* MHD */
       }
     }
 
@@ -1137,11 +1160,11 @@ for(dim=0; dim<2; dim++) //each direction
             pG->PGrid[npg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
 #endif
         }
-#ifdef MHD
-        for (i=ips, ii=0; i<=ipe+1; i++, ii++){
-          pG->PGrid[npg].myEMF3[dim][ks][ii] = emf3[j][i];
-        }
-#endif /* MHD */
+//#ifdef MHD
+//        for (i=ips, ii=0; i<=ipe+1; i++, ii++){
+//          pG->PGrid[npg].myEMF3[dim][ks][ii] = emf3[j][i];
+//        }
+//#endif /* MHD */
       }
     }
   }
