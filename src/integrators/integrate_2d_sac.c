@@ -627,7 +627,7 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
       U1d[j].By = pG->U[ks][j][i].B3c;
       U1d[j].Bz = pG->U[ks][j][i].B1c;
       Bxc[j] = pG->U[ks][j][i].B2c;
-      //Bxb[j] = pG->B2b[ks][j][i];
+      Bxb[j] = pG->U[ks][j][i].B2cb;
       //B2_x2[j][i] = pG->B2i[ks][j][i];
 #endif /* MHD */
 
