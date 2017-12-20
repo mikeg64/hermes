@@ -5,12 +5,16 @@
  *
  * PURPOSE: A variety of useful utility functions.
  *
- * CONTAINS PUBLIC FUNCTIONS: 
+ * CONTAINS PUBLIC FUNCTIONS:
+ *  
  * - ath_strdup()     - not supplied by fancy ANSI C, but ok in C89 
  * - ath_gcd()        - computes greatest common divisor by Euler's method
  * - ath_big_endian() - run-time detection of endianism of the host cpu
  * - ath_bswap()      - fast byte swapping routine
  * - ath_error()      - fatal error routine
+ * - gradient1()      - gradient 1d array
+ * - gradient1l()     - left gradient 1d array
+ * - gradient1r()     - right gradient 1d array
  * - minmax1()        - fast Min/Max for a 1d array using registers
  * - minmax2()        - fast Min/Max for a 2d array using registers
  * - minmax3()        - fast Min/Max for a 3d array using registers
@@ -132,6 +136,96 @@ void ath_error(char *fmt, ...)
 
   exit(EXIT_FAILURE);
 }
+
+
+/*----------------------------------------------------------------------------*/
+/*! \fn void gradient1(Real *data, int nx1, int i, Real *grad)
+ *  \brief Return the gradient of a 1D array at given point i
+ *  Works on data of type float, not Real.
+ */
+
+void gradient1(Real *data, int nx1, Real *grad)
+{
+  int ip;
+  register Real dmin, dmax;
+
+  dmin = dmax = data[0];
+  for (ip=0; ip<nx1; ip++) {
+    dmin = MIN(dmin,data[ip]);
+    dmax = MAX(dmax,data[ip]);
+  }
+  *data = dmin;
+ 
+}
+
+
+
+/*----------------------------------------------------------------------------*/
+/*! \fn void gradient4(Real *data, int nx1, int i, Real *grad)
+ *  \brief Return the gradient of a 1D array at given point i
+ *  Works on data of type float, not Real.
+ */
+
+void gradient4(Real *data, int nx1, Real *grad)
+{
+  int ip;
+  /*register Real dmin, dmax;*/
+
+  
+  for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+  for (ip=2; ip<(nx1-2); ip++) {
+    grad[ip]=(data[ip-2]+8*data[ip+1]  - 8*data[ip-1] -data[i+2])/12;
+
+  }
+
+  
+}
+
+
+
+
+/*----------------------------------------------------------------------------*/
+/*! \fn void gradient1l(Real *data, int nx1, int i, Real *grad)
+ *  \brief Return the gradient of a 1D array at given point i
+ *  Works on data of type float, not Real.
+ */
+
+void gradient1l(Real *data, int nx1, Real *grad)
+{
+  int ip;
+  register Real dmin, dmax;
+
+  dmin = dmax = data[0];
+  for (ip=0; ip<nx1; ip++) {
+    dmin = MIN(dmin,data[i]);
+    dmax = MAX(dmax,data[i]);
+  }
+  *data = dmin;
+  
+}
+
+/*----------------------------------------------------------------------------*/
+/*! \fn void gradient1r(Real *data, int nx1, int i, Real *grad)
+ *  \brief Return the gradient of a 1D array at given point i
+ *  Works on data of type float, not Real.
+ */
+
+void gradient1r(Real *data, int nx1, Real *grad)
+{
+  int ip;
+  register Real dmin, dmax;
+
+  dmin = dmax = data[0];
+  for (ip=0; ip<nx1; ip++) {
+    dmin = MIN(dmin,data[i]);
+    dmax = MAX(dmax,data[i]);
+  }
+
+}
+
+
+
+
 
 /*----------------------------------------------------------------------------*/
 /*! \fn void minmax1(Real *data, int nx1, Real *dmino, Real *dmaxo)

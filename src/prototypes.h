@@ -271,6 +271,12 @@ void ath_error(char *fmt, ...);
 void minmax1(Real   *data, int nx1,                   Real *dmin, Real *dmax);
 void minmax2(Real  **data, int nx2, int nx1,          Real *dmin, Real *dmax);
 void minmax3(Real ***data, int nx3, int nx2, int nx1, Real *dmin, Real *dmax);
+
+void gradient4(Real *data, int nx1,Real *grad);
+void gradient1(Real *data, int nx1,Real *grad);
+void gradient1l(Real *data, int nx1, Real *grad);
+void gradient1r(Real *data, int nx1,  Real *grad);
+
 void do_nothing_bc(GridS *pG);
 Real compute_div_b(GridS *pG);
 int sign_change(Real (*func)(const Real,const Real), const Real a0, const Real b0, const Real x, Real *a, Real *b);
