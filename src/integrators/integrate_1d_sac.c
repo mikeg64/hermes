@@ -55,7 +55,7 @@
 static Cons1DS *Uc_x1=NULL, *Ur_x1Face=NULL, *x1Flux=NULL;
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bx=NULL, *Bxb=NULL, *Bxc=NULL;
+static Real *Bx=NULL, *Bxb=NULL, *Bxc=NULL, *temp=NULL;
 static Prim1DS *W=NULL, *Wl=NULL, *Wr=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -69,9 +69,9 @@ static Real *geom_src=NULL;
 
 
 
-/*static void hyperdifviscr(int field,int dim,const GridS *pG);
+static void hyperdifviscr(int field,int dim,const GridS *pG);
 static void hyperdifviscl(int field,int dim,const GridS *pG);
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
+/*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
 static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG);*/
@@ -379,11 +379,11 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
         W[i].Vx += hdt*geom_src_Vx;
         W[i].Vy += hdt*geom_src_Vy;
 #ifdef MHD
-        Wr[i].By += hdt*geom_src_By;
-        Wr[i].Bz += hdt*geom_src_Bz;
+        W[i].By += hdt*geom_src_By;
+        W[i].Bz += hdt*geom_src_Bz;
 #endif /* MHD */
 #ifndef ISOTHERMAL
-        Wr[i].P  += hdt*geom_src_P;
+        W[i].P  += hdt*geom_src_P;
 #endif /* ISOTHERMAL */
       }
 #endif /* CYLINDRICAL */
@@ -644,7 +644,6 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
 
 
 
-
 /*--- Step 12c -----------------------------------------------------------------
  * Update cell-centered variables in pG using 3D x3-Fluxes
  */
@@ -653,30 +652,65 @@ int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,ene
  * Update cell-centered variables in pG using 1D x1-fluxes
  */
 
-  for (i=is; i<=ie; i++) {
+
+
+/*for (i=is; i<=ie; i++) {*/
+/*
+Use conserved Uc_x1[i] Cons1DS
+and primitive W[i] Prim1DS
+
+First add divergence of flux
+*/
+
+/*compute gradient of velocity*/
+for (i=is; i<=ie; i++)
+{
+   temp[i]=W[i].Vx;
+   grad[i]=0;
+}
+gradient4(temp, size1 ,grad);
+
+for (i=is+2; i<=ie-2; i++) {
+
 #ifdef CYLINDRICAL
     rsf = ri[i+1]/r[i];  lsf = ri[i]/r[i];
 #endif
-    pG->U[ks][js][i].d  -= dtodx1*(rsf*x1Flux[i+1].d  - lsf*x1Flux[i].d );
-    pG->U[ks][js][i].M1 -= dtodx1*(rsf*x1Flux[i+1].Mx - lsf*x1Flux[i].Mx);
-    pG->U[ks][js][i].M2 -= dtodx1*(SQR(rsf)*x1Flux[i+1].My - SQR(lsf)*x1Flux[i].My);
-    pG->U[ks][js][i].M3 -= dtodx1*(rsf*x1Flux[i+1].Mz - lsf*x1Flux[i].Mz);
+    pG->U[ks][js][i].d  -= dtodx1*(lsf*x1Flux[i-2].d+8*rsf*x1Flux[i+1].d  - 8*lsf*x1Flux[i-1].d -rsf*x1Flux[i+2].d)/12;
+    pG->U[ks][js][i].M1  -= dtodx1*(lsf*x1Flux[i-2].Mx+8*rsf*x1Flux[i+1].Mx  - 8*lsf*x1Flux[i-1].Mx -rsf*x1Flux[i+2].Mx)/12;
+    pG->U[ks][js][i].M2  -= dtodx1*(SQR(lsf)*x1Flux[i-2].My+8*SQR(rsf)*x1Flux[i+1].My  - 8*SQR(lsf)*x1Flux[i-1].My -SQR(rsf)*x1Flux[i+2].My)/12;
+    pG->U[ks][js][i].M3  -= dtodx1*(lsf*x1Flux[i-2].Mz+8*rsf*x1Flux[i+1].Mz  - 8*lsf*x1Flux[i-1].Mz -rsf*x1Flux[i+2].Mz)/12;
+
 #ifndef BAROTROPIC
-    pG->U[ks][js][i].E  -= dtodx1*(rsf*x1Flux[i+1].E  - lsf*x1Flux[i].E );
+    pG->U[ks][js][i].E  -= dtodx1*(lsf*x1Flux[i-2].E+8*rsf*x1Flux[i+1].E  - 8*lsf*x1Flux[i-1].E -rsf*x1Flux[i+2].E)/12;
+    pG->U[ks][js][i].E  -= (pG->dt)*grad[i]*W[i].Pb;
+    pG->U[ks][js][i].E  += (pG->dt)*grad[i]*W[i].Bxb*W[i].Bxb;
+  /*remember energy contribution from background b-field*/
+
+
+
 #endif /* BAROTROPIC */
 #ifdef MHD
-    pG->U[ks][js][i].B2c -= dtodx1*(x1Flux[i+1].By - x1Flux[i].By);
-    pG->U[ks][js][i].B3c -= dtodx1*(rsf*x1Flux[i+1].Bz - lsf*x1Flux[i].Bz);
+    pG->U[ks][js][i].B2c  -= dtodx1*(lsf*x1Flux[i-2].By+8*rsf*x1Flux[i+1].By  - 8*lsf*x1Flux[i-1].By -rsf*x1Flux[i+2].By)/12;
+    pG->U[ks][js][i].B3c  -= dtodx1*(lsf*x1Flux[i-2].Bz+8*rsf*x1Flux[i+1].Bz  - 8*lsf*x1Flux[i-1].Bz -rsf*x1Flux[i+2].Bz)/12;
+
 /* For consistency, set B2i and B3i to cell-centered values.  */
 //    pG->B2i[ks][js][i] = pG->U[ks][js][i].B2c;
 //    pG->B3i[ks][js][i] = pG->U[ks][js][i].B3c;
 #endif /* MHD */
 #if (NSCALARS > 0)
     for (n=0; n<NSCALARS; n++)
-      pG->U[ks][js][i].s[n] -= dtodx1*(rsf*x1Flux[i+1].s[n] - lsf*x1Flux[i].s[n]);
+       pG->U[ks][js][i].s[n]  -= dtodx1*(lsf*x1Flux[i-2].s[n]+8*rsf*x1Flux[i+1].s[n]  - 8*lsf*x1Flux[i-1].s[n] -rsf*x1Flux[i+2].s[n])/12;
 #endif
-  }
 
+
+
+}
+
+
+
+
+
+ 
 /*--- Step 12b: Not needed in 1D ---*/
 /*--- Step 12c: Not needed in 1D ---*/
 /*--- Step 12d: Not needed in 1D ---*/
@@ -879,6 +913,9 @@ void integrate_init_1d(MeshS *pM)
   /*if ((Bxc = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;*/
   if ((Bxc = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
   if ((Bxb = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
+  if ((temp = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
+  if ((grad = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
+
   //if ((Bxi = (Real*)malloc(size1*sizeof(Real))) == NULL) goto on_error;
 
   if ((U1d       =(Cons1DS*)malloc(size1*sizeof(Cons1DS)))==NULL) goto on_error;
@@ -931,6 +968,8 @@ void integrate_destruct_1d(void)
   /*if (Bxc != NULL) free(Bxc);*/
   if (Bxc != NULL) free(Bxc);
   if (Bxb != NULL) free(Bxb);
+  if (temp != NULL) free(temp);
+  if (grad != NULL) free(grad);
   //if (Bxi != NULL) free(Bxi);
 
   if (U1d != NULL) free(U1d);
@@ -961,13 +1000,13 @@ void integrate_destruct_1d(void)
 
 
 
-/*
+
 
 static void hyperdifviscr(int field,int dim,const GridS *pG)
 {
 
 	return;
-}
+}   
 
 static void hyperdifviscl(int field,int dim,const GridS *pG)
 {
@@ -975,6 +1014,7 @@ static void hyperdifviscl(int field,int dim,const GridS *pG)
 	return;
 }
 
+/*
 static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG)
 {
 

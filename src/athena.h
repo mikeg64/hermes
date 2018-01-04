@@ -84,6 +84,35 @@ typedef struct GridsData_s{
 #endif
 }GridsDataS;
 
+
+/*----------------------------------------------------------------------------*/
+/*! \struct HyperviscS
+ *  \brief hyperviscosity variables.
+ *  IMPORTANT!! The order of the elements in HyperviscS CANNOT be changed.
+ */
+
+
+#ifdef SAC_INTEGRATOR
+typedef struct Hypervisc_s{
+	Real hdnur;
+	Real hdnul;
+
+	Real soundspeed;
+#ifdef MHD
+	Real cfast;
+#endif
+
+/*Shock viscosity*/
+/*
+nushk1,nushk2,nushk3
+*/
+
+}HyperviscS;
+#endif
+
+
+
+
 /*----------------------------------------------------------------------------*/
 /*! \struct ConsS
  *  \brief Conserved variables.
@@ -452,6 +481,11 @@ Real *d_wtemp,*d_wtemp1,*d_wtemp2;
 
 typedef struct Grid_s{
   ConsS ***U;                /*!< conserved variables */
+
+#ifdef SAC_INTEGRATOR
+  HyperviscS ***Hv;
+#endif
+
 #ifdef MHD
   Real ***B1i,***B2i,***B3i;    /*!< interface magnetic fields */
 #ifdef RESISTIVITY

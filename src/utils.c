@@ -174,7 +174,7 @@ void gradient4(Real *data, int nx1, Real *grad)
   
   for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
   for (ip=2; ip<(nx1-2); ip++) {
-    grad[ip]=(data[ip-2]+8*data[ip+1]  - 8*data[ip-1] -data[i+2])/12;
+    grad[ip]=(data[ip-2]+8*data[ip+1]  - 8*data[ip-1] -data[ip+2])/12;
 
   }
 
@@ -197,8 +197,8 @@ void gradient1l(Real *data, int nx1, Real *grad)
 
   dmin = dmax = data[0];
   for (ip=0; ip<nx1; ip++) {
-    dmin = MIN(dmin,data[i]);
-    dmax = MAX(dmax,data[i]);
+    dmin = MIN(dmin,data[ip]);
+    dmax = MAX(dmax,data[ip]);
   }
   *data = dmin;
   
@@ -217,8 +217,8 @@ void gradient1r(Real *data, int nx1, Real *grad)
 
   dmin = dmax = data[0];
   for (ip=0; ip<nx1; ip++) {
-    dmin = MIN(dmin,data[i]);
-    dmax = MAX(dmax,data[i]);
+    dmin = MIN(dmin,data[ip]);
+    dmax = MAX(dmax,data[ip]);
   }
 
 }
