@@ -164,6 +164,12 @@ void init_grid(MeshS *pM)
         n3z = pG->Nx[2] + 2*nghost;
       else
         n3z = 1;
+#ifdef SAC_INTEGRATOR
+/* Build a 3D array of type HyperviscS */
+      pG->Hv = (HyperviscS***)calloc_3d_array(n3z, n2z, n1z, sizeof(HyperviscS));
+      if (pG->Hv == NULL) goto on_error1;
+
+#endif
 
 /* Build a 3D array of type ConsS */
 
