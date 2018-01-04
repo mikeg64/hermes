@@ -1337,6 +1337,138 @@ void integrate_destruct_3d(void)
 /*=========================== PRIVATE FUNCTIONS ==============================*/
 
 
+static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
+{
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***fieldd=NULL;
+
+	int n1z,n2z,n3z;
+        int i,j,k;
+
+	int i,il,iu, is = pG->is, ie = pG->ie;
+	int j,jl,ju, js = pG->js, je = pG->je;
+	int k,kl,ku, ks = pG->ks, ke = pG->ke;
+
+
+	/* With particles, one more ghost cell must be updated in predict step */
+	#ifdef PARTICLES
+	  Real d1;
+	  il = is - 3;
+	  iu = ie + 3;
+	  jl = js - 3;
+	  ju = je + 3;
+	  kl = ks - 3;
+	  ku = ke + 3;
+	#else
+	  il = is - 2;
+	  iu = ie + 2;
+	  jl = js - 2;
+	  ju = je + 2;
+	  kl = ks - 2;
+	  ku = ke + 2;
+	#endif
+
+        /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
+
+
+
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
+
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
+
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+
+	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+	//for(i=0;i<n1z;i++)
+	//for(j=0;j<n2z;j++)
+	//for(k=0;i<n3z;k++)
+  for (k=kl; k<=ku; k++) {
+    for (j=jl; j<=ju; j++) {
+    	for (i=il; i<=iu; i++) {
+	
+		switch field
+		{
+		case rho:
+			fieldd[k][j][i]=pG->U[k][j][i].d;
+		break;
+		case mom1:
+			fieldd[k][j][i]=pG->U[k][j][i].M1;
+		break;
+		case mom2:
+
+		break;
+		case mom3:
+
+		break;
+		case energy:
+			fieldd=pG->U[ks][js][i].E;
+		break;
+		case b1:
+			fieldd=pG->U[ks][js][i].B1c;
+		break;
+		case b2:
+
+		break;
+		case b3:
+
+		break;
+		}
+
+        }
+}
+}
+
+
+
+
+
+	//for(i=0;i<n1z;i++)
+	//for(j=0;j<n2z;j++)
+	//for(k=0;i<n3z;k++)
+  for (k=kl; k<=ku; k++) {
+    for (j=jl; j<=ju; j++) {
+    	for (i=il; i<=iu; i++) {
+		wtemp1[i][j][k]=0.0;
+		wtemp2[i][j][k]=0.0;
+		pG->Hv[i][j][k].hdnur[dim][field]=0.0;
+
+	       if(field==energy)
+		wtemp1[k][j][i]=fieldd[k][j][i]-0.5*((pG->U[k][j][i].B1c*pG->U[k][j][i].B1c+pG->U[k][j][i].B2c*pG->U[k][j][i].B2c+pG->U[k][j][i].B3c*pG->U[k][j][i].B3c)
+	+(pG->U[k][j][i].M1*pG->U[k][j][i].M1+pG->U[k][j][i].M2*pG->U[k][j][i].M2+pG->U[k][j][i].M3*pG->U[k][j][i].M3)/(pG->U[k][j][i].d+pG->U[k][j][i].db ));       
+	       else
+	       {
+		  wtemp1[k][j][i]=fieldd[k][j][i];
+		if((field ==mom1 || field == mom2 || field == mom3))
+			wtemp1[k][j][i]=fieldd[k][j][i]/(pG->U[k][j][i].d+pG->U[k][j][i].db);
+
+		}
+
+
+
+	}
+}
+}
+
+
+        //comment removed below to test mpi 29/10/2013
+        wtemp2[encode3_hdv1r(p,i+1,j+1,k+1,tmpnui)]=wtemp[fencode3_hdv1r(p,ii,tmp6)];
+
+	if (wtemp1 != NULL) free(wtemp1);
+	if (wtemp2 != NULL) free(wtemp2);
+
+
+	return;
+}   
 
 
 /*

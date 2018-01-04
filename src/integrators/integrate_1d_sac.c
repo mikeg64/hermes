@@ -721,7 +721,7 @@ for (i=is+2; i<=ie-2; i++) {
 
 
 
-#ifdef SAC_INTEGRATOR
+
 //hyperdifvisc1r
 
 //hyperdifvisc1l
@@ -730,11 +730,10 @@ for (i=is+2; i<=ie-2; i++) {
 //computemaxc
 
 //density contribution
-field=rho;
 for(dim=0; dim<2; dim++) //each direction
 {
 
-hyperdifviscr(field,dim,pG)
+
 
 //hyperdifvisc1ir
 //hyperdifvisc1il
@@ -811,9 +810,7 @@ for(dim=0; dim<2; dim++) //each direction
 
 }
 
-#endif  /*hyperdiffusion source term for bfield   MHD*/
-
-#endif  /*hyperdiffusion source terms for SAC_INTEGRATOR*/
+#endif  /*hyperdiffusion source term for bfield*/
 
 
 #ifdef STATIC_MESH_REFINEMENT
@@ -1005,8 +1002,119 @@ void integrate_destruct_1d(void)
 
 
 
-static void hyperdifviscr(int field,int dim,const GridS *pG)
+static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 {
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***fieldd=NULL;
+
+	int n1z,n2z,n3z;
+        int i1,i2,i3;
+	int i,il,iu, is = pG->is, ie = pG->ie;
+	int js = pG->js;
+	int ks = pG->ks;
+        /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
+
+	/* With particles, one more ghost cell must be updated in predict step */
+	#ifdef PARTICLES
+	  Real d1;
+	  il = is - 3;
+	  iu = ie + 3;
+	#else
+	  il = is - 1;
+	  iu = ie + 1;
+	#endif
+
+
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
+
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
+
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+
+	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+	//for(i1=0;i1<n1z;i1++)
+	//for(i2=0;i2<n2z;i2++)
+	//for(i3=0;i1<n3z;i3++)
+	i3=ks;
+        i2=js;
+	for (i1=il; i1<=iu; i1++)
+	{
+		switch field
+		{
+		case rho:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].d;
+		break;
+		case mom1:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].M1;
+		break;
+		case mom2:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].M2;
+		break;
+		case mom3:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].M3;
+		break;
+		case energy:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].E;
+		break;
+		case b1:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].B1c;
+		break;
+		case b2:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].B2c;
+		break;
+		case b3:
+			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].B3c;
+		break;
+		}
+        }
+
+
+
+
+
+	//for(i1=0;i1<n1z;i1++)
+	//for(i2=0;i2<n2z;i2++)
+	//for(i3=0;i1<n3z;i3++)
+	i3=ks;
+        i2=js;
+	for (i1=il; i1<=iu; i1++)
+	{
+		wtemp1[i3][i2][i1]=0.0;
+		wtemp2[i3][i2][i1]=0.0;
+		pG->Hv[i1][i2][i3].hdnur[dim][field]=0.0;
+
+	       if(field==energy)
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((pG->U[i3][i2][i1].B1c*pG->U[i3][i2][i1].B1c+pG->U[i3][i2][i1].B2c*pG->U[i3][i2][i1].B2c+pG->U[i3][i2][i1].B3c*pG->U[i3][i2][i1].B3c)
+	+(pG->U[i3][i2][i1].M1*pG->U[i3][i2][i1].M1+pG->U[i3][i2][i1].M2*pG->U[i3][i2][i1].M2+pG->U[i3][i2][i1].M3*pG->U[i3][i2][i1].M3)/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db ));       
+	       else
+	       {
+		  wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
+		if((field ==mom1 || field == mom2 || field == mom3))
+			wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db);
+
+		}
+
+		//comment removed below to test mpi 29/10/2013
+		wtemp2[i3+1][i2+1][i1+1]=wtemp[i3][i2][i1];
+
+
+	}
+
+
+
+	if (wtemp1 != NULL) free(wtemp1);
+	if (wtemp2 != NULL) free(wtemp2);
+
 
 	return;
 }   
