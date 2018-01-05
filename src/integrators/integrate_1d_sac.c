@@ -721,7 +721,7 @@ for (i=is+2; i<=ie-2; i++) {
 
 
 
-
+#ifdef SAC_INTEGRATOR
 //hyperdifvisc1r
 
 //hyperdifvisc1l
@@ -730,10 +730,11 @@ for (i=is+2; i<=ie-2; i++) {
 //computemaxc
 
 //density contribution
+field=rho;
 for(dim=0; dim<2; dim++) //each direction
 {
 
-
+hyperdifviscr(field,dim,pG)
 
 //hyperdifvisc1ir
 //hyperdifvisc1il
@@ -810,7 +811,9 @@ for(dim=0; dim<2; dim++) //each direction
 
 }
 
-#endif  /*hyperdiffusion source term for bfield*/
+#endif  /*hyperdiffusion source term for bfield   MHD*/
+
+#endif  /*hyperdiffusion source terms for SAC_INTEGRATOR*/
 
 
 #ifdef STATIC_MESH_REFINEMENT

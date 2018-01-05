@@ -93,9 +93,12 @@ typedef struct GridsData_s{
 
 
 #ifdef SAC_INTEGRATOR
+
+typedef enum fvars {rho, mom1, mom2, mom3, energy, b1, b2, b3,energyb,rhob,b1b,b2b,b3b} FVAR;  /*Field enumeration variable*/
+
 typedef struct Hypervisc_s{
-	Real hdnur;
-	Real hdnul;
+	Real hdnur[3][8];
+	Real hdnul[3][8];
 
 	Real soundspeed;
 #ifdef MHD
