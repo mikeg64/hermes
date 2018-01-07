@@ -69,9 +69,9 @@ static Real *geom_src=NULL;
 
 
 
-/*static void hyperdifviscr(int field,int dim,const GridS *pG);
+static void hyperdifviscr(int field,int dim,const GridS *pG);
 static void hyperdifviscl(int field,int dim,const GridS *pG);
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
+/*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
 static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG);*/
@@ -721,7 +721,7 @@ for (i=is+2; i<=ie-2; i++) {
 
 
 
-
+#ifdef SAC_INTEGRATOR
 //hyperdifvisc1r
 
 //hyperdifvisc1l
@@ -730,10 +730,11 @@ for (i=is+2; i<=ie-2; i++) {
 //computemaxc
 
 //density contribution
+field=rho;
 for(dim=0; dim<2; dim++) //each direction
 {
 
-
+hyperdifviscr(field,dim,pG)
 
 //hyperdifvisc1ir
 //hyperdifvisc1il
@@ -810,7 +811,9 @@ for(dim=0; dim<2; dim++) //each direction
 
 }
 
-#endif  /*hyperdiffusion source term for bfield*/
+#endif  /*hyperdiffusion source term for bfield   MHD*/
+
+#endif  /*hyperdiffusion source terms for SAC_INTEGRATOR*/
 
 
 #ifdef STATIC_MESH_REFINEMENT
@@ -1000,13 +1003,13 @@ void integrate_destruct_1d(void)
 
 
 
-/*
+
 
 static void hyperdifviscr(int field,int dim,const GridS *pG)
 {
 
 	return;
-}
+}   
 
 static void hyperdifviscl(int field,int dim,const GridS *pG)
 {
@@ -1014,6 +1017,7 @@ static void hyperdifviscl(int field,int dim,const GridS *pG)
 	return;
 }
 
+/*
 static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG)
 {
 

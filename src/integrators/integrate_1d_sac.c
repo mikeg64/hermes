@@ -1004,7 +1004,7 @@ void integrate_destruct_1d(void)
 
 static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 {
-	Real ***wtemp1=NULL, ***wtemp2=NULL, ***fieldd=NULL;
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***tmpnu=NULL, ***d1=NULL, ***d3=NULL, ***fieldd=NULL;
 
 	int n1z,n2z,n3z;
         int i1,i2,i3;
@@ -1041,6 +1041,9 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 
 	//for(i1=0;i1<n1z;i1++)
 	//for(i2=0;i2<n2z;i2++)
@@ -1091,6 +1094,8 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 	{
 		wtemp1[i3][i2][i1]=0.0;
 		wtemp2[i3][i2][i1]=0.0;
+		d3[i3][i2][i1]=0.0;
+
 		pG->Hv[i1][i2][i3].hdnur[dim][field]=0.0;
 
 	       if(field==energy)
@@ -1098,22 +1103,39 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 	+(pG->U[i3][i2][i1].M1*pG->U[i3][i2][i1].M1+pG->U[i3][i2][i1].M2*pG->U[i3][i2][i1].M2+pG->U[i3][i2][i1].M3*pG->U[i3][i2][i1].M3)/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db ));       
 	       else
 	       {
-		  wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
 		if((field ==mom1 || field == mom2 || field == mom3))
 			wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db);
 
 		}
 
 		//comment removed below to test mpi 29/10/2013
-		wtemp2[i3+1][i2+1][i1+1]=wtemp[i3][i2][i1];
+		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
 
 
 	}
 
 
 
+	i3=ks;
+        i2=js;
+	for (i1=il+1; i1<=iu; i1++)
+		   d3[i3][i2][i1]=fabs(3.0*(tmpnu[i3][i2][i1+(dim==0)] - tmpnu[i3][i2][i1] ) - (tmpnu[i3][i2][i1+2*(dim==0)] - tmpnu[i3][i2][i1-(dim==0)]   ));
+
+
+
+	i3=ks;
+        i2=js;
+	for (i1=il; i1<=iu; i1++)
+		   d1[i3][i2][i1+1]=fabs((tmpnu[i3][i2][i1+(dim==0)+1] - tmpnu[i3][i2][i1+1] ));
+        
+
+
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
+	if (tmpnu != NULL) free(tmpnu);
+	if (d3 != NULL) free(d3);
+	if (d1 != NULL) free(d1);
 
 
 	return;

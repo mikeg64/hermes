@@ -1339,7 +1339,7 @@ void integrate_destruct_3d(void)
 
 static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 {
-	Real ***wtemp1=NULL, ***wtemp2=NULL, ***fieldd=NULL;
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***tmpnu=NULL, ***fieldd=NULL;
 
 	int n1z,n2z,n3z;
         int i,j,k;
@@ -1388,6 +1388,7 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 
 	//for(i=0;i<n1z;i++)
 	//for(j=0;j<n2z;j++)
@@ -1405,22 +1406,22 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 			fieldd[k][j][i]=pG->U[k][j][i].M1;
 		break;
 		case mom2:
-
+			fieldd[k][j][i]=pG->U[k][j][i].M2;
 		break;
 		case mom3:
-
+			fieldd[k][j][i]=pG->U[k][j][i].M3;
 		break;
 		case energy:
-			fieldd=pG->U[ks][js][i].E;
+			fieldd[k][j][i]=pG->U[k][j][i].E;
 		break;
 		case b1:
-			fieldd=pG->U[ks][js][i].B1c;
+			fieldd[k][j][i]=pG->U[k][j][i].B1c;
 		break;
 		case b2:
-
+			fieldd[k][j][i]=pG->U[k][j][i].B2c;
 		break;
 		case b3:
-
+			fieldd[k][j][i]=pG->U[k][j][i].B3c;
 		break;
 		}
 
@@ -1443,16 +1444,18 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 		pG->Hv[i][j][k].hdnur[dim][field]=0.0;
 
 	       if(field==energy)
-		wtemp1[k][j][i]=fieldd[k][j][i]-0.5*((pG->U[k][j][i].B1c*pG->U[k][j][i].B1c+pG->U[k][j][i].B2c*pG->U[k][j][i].B2c+pG->U[k][j][i].B3c*pG->U[k][j][i].B3c)
+		tmpnu[k][j][i]=fieldd[k][j][i]-0.5*((pG->U[k][j][i].B1c*pG->U[k][j][i].B1c+pG->U[k][j][i].B2c*pG->U[k][j][i].B2c+pG->U[k][j][i].B3c*pG->U[k][j][i].B3c)
 	+(pG->U[k][j][i].M1*pG->U[k][j][i].M1+pG->U[k][j][i].M2*pG->U[k][j][i].M2+pG->U[k][j][i].M3*pG->U[k][j][i].M3)/(pG->U[k][j][i].d+pG->U[k][j][i].db ));       
 	       else
 	       {
-		  wtemp1[k][j][i]=fieldd[k][j][i];
+		  tmpnu[k][j][i]=fieldd[k][j][i];
 		if((field ==mom1 || field == mom2 || field == mom3))
-			wtemp1[k][j][i]=fieldd[k][j][i]/(pG->U[k][j][i].d+pG->U[k][j][i].db);
+			tmpnu[k][j][i]=fieldd[k][j][i]/(pG->U[k][j][i].d+pG->U[k][j][i].db);
 
 		}
 
+        //comment removed below to test mpi 29/10/2013
+        wtemp2[k+1][j+1][i+1]=tmpnu[k][j][i];
 
 
 	}
@@ -1460,9 +1463,7 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 }
 
 
-        //comment removed below to test mpi 29/10/2013
-        wtemp2[encode3_hdv1r(p,i+1,j+1,k+1,tmpnui)]=wtemp[fencode3_hdv1r(p,ii,tmp6)];
-
+	if (tmpnu != NULL) free(tmpnu);
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
 
