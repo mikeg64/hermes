@@ -55,7 +55,7 @@
 static Cons1DS *Uc_x1=NULL, *Ur_x1Face=NULL, *x1Flux=NULL;
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bx=NULL, *Bxb=NULL, *Bxc=NULL, *temp=NULL;
+static Real *Bx=NULL, *Bxb=NULL, *Bxc=NULL, *temp=NULL, *grad=NULL;
 static Prim1DS *W=NULL, *Wl=NULL, *Wr=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -150,6 +150,10 @@ void integrate_1d_sac(DomainS *pD)
 /*Used for hyperdiffusion computations*/
 int ii1, dim, ii, ii0;
 int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+
+int size1;
+
+size1=1+ie+2*nghost-is;
 
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
@@ -683,7 +687,7 @@ for (i=is+2; i<=ie-2; i++) {
 #ifndef BAROTROPIC
     pG->U[ks][js][i].E  -= dtodx1*(lsf*x1Flux[i-2].E+8*rsf*x1Flux[i+1].E  - 8*lsf*x1Flux[i-1].E -rsf*x1Flux[i+2].E)/12;
     pG->U[ks][js][i].E  -= (pG->dt)*grad[i]*W[i].Pb;
-    pG->U[ks][js][i].E  += (pG->dt)*grad[i]*W[i].Bxb*W[i].Bxb;
+    pG->U[ks][js][i].E  += (pG->dt)*grad[i]*Bxb[i]*Bxb[i];
   /*remember energy contribution from background b-field*/
 
 
@@ -1052,7 +1056,7 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
         i2=js;
 	for (i1=il; i1<=iu; i1++)
 	{
-		switch field
+		switch(fieldi)
 		{
 		case rho:
 			fieldd[i3][i2][i1]=pG->U[i3][i2][i1].d;
@@ -1096,15 +1100,15 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 		wtemp2[i3][i2][i1]=0.0;
 		d3[i3][i2][i1]=0.0;
 
-		pG->Hv[i1][i2][i3].hdnur[dim][field]=0.0;
+		pG->Hv[i1][i2][i3].hdnur[dim][fieldi]=0.0;
 
-	       if(field==energy)
+	       if(fieldi==energy)
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((pG->U[i3][i2][i1].B1c*pG->U[i3][i2][i1].B1c+pG->U[i3][i2][i1].B2c*pG->U[i3][i2][i1].B2c+pG->U[i3][i2][i1].B3c*pG->U[i3][i2][i1].B3c)
 	+(pG->U[i3][i2][i1].M1*pG->U[i3][i2][i1].M1+pG->U[i3][i2][i1].M2*pG->U[i3][i2][i1].M2+pG->U[i3][i2][i1].M3*pG->U[i3][i2][i1].M3)/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db ));       
 	       else
 	       {
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
-		if((field ==mom1 || field == mom2 || field == mom3))
+		if((fieldi ==mom1 || fieldi == mom2 || fieldi == mom3))
 			wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]/(pG->U[i3][i2][i1].d+pG->U[i3][i2][i1].db);
 
 		}

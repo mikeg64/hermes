@@ -1344,9 +1344,9 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int i,il,iu, is = pG->is, ie = pG->ie;
-	int j,jl,ju, js = pG->js, je = pG->je;
-	int k,kl,ku, ks = pG->ks, ke = pG->ke;
+	int il,iu, is = pG->is, ie = pG->ie;
+	int jl,ju, js = pG->js, je = pG->je;
+	int kl,ku, ks = pG->ks, ke = pG->ke;
 
 
 	/* With particles, one more ghost cell must be updated in predict step */
@@ -1397,7 +1397,7 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
     for (j=jl; j<=ju; j++) {
     	for (i=il; i<=iu; i++) {
 	
-		switch field
+		switch(fieldi)
 		{
 		case rho:
 			fieldd[k][j][i]=pG->U[k][j][i].d;
@@ -1441,15 +1441,15 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
     	for (i=il; i<=iu; i++) {
 		wtemp1[i][j][k]=0.0;
 		wtemp2[i][j][k]=0.0;
-		pG->Hv[i][j][k].hdnur[dim][field]=0.0;
+		pG->Hv[i][j][k].hdnur[dim][fieldi]=0.0;
 
-	       if(field==energy)
+	       if(fieldi==energy)
 		tmpnu[k][j][i]=fieldd[k][j][i]-0.5*((pG->U[k][j][i].B1c*pG->U[k][j][i].B1c+pG->U[k][j][i].B2c*pG->U[k][j][i].B2c+pG->U[k][j][i].B3c*pG->U[k][j][i].B3c)
 	+(pG->U[k][j][i].M1*pG->U[k][j][i].M1+pG->U[k][j][i].M2*pG->U[k][j][i].M2+pG->U[k][j][i].M3*pG->U[k][j][i].M3)/(pG->U[k][j][i].d+pG->U[k][j][i].db ));       
 	       else
 	       {
 		  tmpnu[k][j][i]=fieldd[k][j][i];
-		if((field ==mom1 || field == mom2 || field == mom3))
+		if((fieldi ==mom1 || fieldi == mom2 || fieldi == mom3))
 			tmpnu[k][j][i]=fieldd[k][j][i]/(pG->U[k][j][i].d+pG->U[k][j][i].db);
 
 		}
