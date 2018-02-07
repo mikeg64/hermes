@@ -73,7 +73,7 @@ static Cons1DS ***Uc_x3=NULL;
 //#endif /* MHD */
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bxc=NULL, *Bxb=NULL;
+static Real *Bxc=NULL, *Bxb=NULL, *temp=NULL, *grad=NULL;
 static Prim1DS *W=NULL, *Wl=NULL, *Wr=NULL;
 static Cons1DS *U1d=NULL;
 
@@ -108,9 +108,9 @@ static Real ***geom_src=NULL;
  *============================================================================*/
 
 
-/*static void hyperdifviscr(int field,int dim,const GridS *pG);
+static void hyperdifviscr(int field,int dim,const GridS *pG);
 static void hyperdifviscl(int field,int dim,const GridS *pG);
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
+/*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
 static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG);*/
@@ -141,8 +141,18 @@ void integrate_3d_sac(DomainS *pD)
 #endif
 
 /*Used for hyperdiffusion computations*/
+
 int ii1, dim, ii, ii0;
-int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+int jj1, jj, jj0;
+int kk1, kk, kk0;
+int fieldi; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+
+int size1,size2,size3;
+
+size1=1+ie+2*nghost-is;
+size2=1+je+2*nghost-js;
+size3=1+ke+2*nghost-ks;
+
 
 #ifdef MHD
   Real MHD_src_By,MHD_src_Bz,mdb1,mdb2,mdb3;
@@ -986,11 +996,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 
@@ -1016,11 +1026,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 
@@ -1230,7 +1240,8 @@ void integrate_init_3d(MeshS *pM)
 /*refer to material  integrate_2d_ctu.c*/
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((Bxb = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
-
+  if ((temp = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+  if ((grad = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
   if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
   if ((W  = (Prim1DS*)malloc(nmax*sizeof(Prim1DS))) == NULL) goto on_error;
@@ -1301,12 +1312,13 @@ void integrate_destruct_3d(void)
 
   if (Bxc != NULL) free(Bxc);
   if (Bxb != NULL) free(Bxb);
-
+  if (temp != NULL) free(temp);
+  if (grad != NULL) free(grad);
 
   if (U1d      != NULL) free(U1d);
   if (W        != NULL) free(W);
-  if (Wl       != NULL) free(Wl);
-  if (Wr       != NULL) free(Wr);
+  /*if (Wl       != NULL) free(Wl);
+  if (Wr       != NULL) free(Wr);*/
 
   if (Uc_x1 != NULL) free_3d_array(Uc_x1);
   if (Uc_x2 != NULL) free_3d_array(Uc_x2);

@@ -67,7 +67,7 @@ static Real **emf3=NULL, **emf3_cc=NULL;
 
 
 /* 1D scratch vectors used by lr_states and flux functions */
-static Real *Bxc=NULL,  *Bxb=NULL;
+static Real *Bxc=NULL,  *Bxb=NULL, *temp=NULL, *grad=NULL;
 static Prim1DS *W=NULL;/*, not used for sac *Wl=NULL, *Wr=NULL;*/
 static Cons1DS *U1d=NULL;/*, not used for sac *Ul=NULL, *Ur=NULL;*/
 
@@ -108,9 +108,9 @@ static Real **geom_src=NULL;
  *============================================================================*/
 
 
-/*static void hyperdifviscr(int field,int dim,const GridS *pG);
+static void hyperdifviscr(int field,int dim,const GridS *pG);
 static void hyperdifviscl(int field,int dim,const GridS *pG);
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
+/*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
 static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG);*/
@@ -233,7 +233,14 @@ void integrate_2d_sac(DomainS *pD)
 
 /*Used for hyperdiffusion computations*/
 int ii1, dim, ii, ii0;
-int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+int jj1, jj, jj0;
+int fieldi; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+
+int size1,size2;
+
+size1=1+ie+2*nghost-is;
+size2=1+je+2*nghost-js;
+
 
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
@@ -1104,11 +1111,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 
@@ -1134,11 +1141,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 
@@ -1349,23 +1356,21 @@ void integrate_init_2d(MeshS *pM)
         if (pM->Domain[nl][nd].Grid->Nx[1] > size2){
           size2 = pM->Domain[nl][nd].Grid->Nx[1];
         }
-        if (pM->Domain[nl][nd].Grid->Nx[2] > size3){
-          size3 = pM->Domain[nl][nd].Grid->Nx[2];
-        }
       }
     }
   }
 
   size1 = size1 + 2*nghost;
   size2 = size2 + 2*nghost;
-  size3 = size3 + 2*nghost;
-  nmax = MAX((MAX(size1,size2)),size3);
+ 
+  nmax = MAX(size1,size2);
 
 /*refer to material  integrate_2d_ctu.c*/
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   //if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((Bxb = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
-
+  if ((temp = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+  if ((grad = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
   if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
   if ((W  = (Prim1DS*)malloc(nmax*sizeof(Prim1DS))) == NULL) goto on_error;
@@ -1423,6 +1428,8 @@ void integrate_destruct_2d(void)
   if (Bxc != NULL) free(Bxc);
   //if (Bxi != NULL) free(Bxi);
   if (Bxb != NULL) free(Bxb);
+  if (temp != NULL) free(temp);
+  if (grad != NULL) free(grad);
 /*#ifdef MHD
   if (B1_x1Face != NULL) free_2d_array(B1_x1Face);
   if (B2_x2Face != NULL) free_2d_array(B2_x2Face);

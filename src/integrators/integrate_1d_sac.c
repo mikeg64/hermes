@@ -149,7 +149,7 @@ void integrate_1d_sac(DomainS *pD)
 
 /*Used for hyperdiffusion computations*/
 int ii1, dim, ii, ii0;
-int field; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
+int fieldi; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
 
 int size1;
 
@@ -767,11 +767,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 
@@ -797,11 +797,11 @@ for(dim=0; dim<2; dim++) //each direction
 		                  if (ii1 == 0)
 		                  {
 				           ii=dim;
-				           ii0=field;  //f is field
+				           ii0=fieldi;  //f is field
 		                  }
 		                  else
 		                  {
-				           ii=field;
+				           ii=fieldi;
 				           ii0=dim;
 		                   }
 

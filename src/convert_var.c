@@ -642,21 +642,20 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
 #ifdef MHD
   Prim1D.P -= 0.5*(SQR(*pBx) + SQR(pU->By) + SQR(pU->Bz));
 
-
-#ifdef SAC_INTEGRATOR
-Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
-#endif
-#ifdef SMAUG_INTEGRATOR
-Prim1D.P -= ((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
-#endif
-
 #endif /* MHD */
 
   Prim1D.P *= Gamma_1;
   Prim1D.P = MAX(Prim1D.P,TINY_NUMBER);
 #endif /* ISOTHERMAL */
 
-
+#ifdef SAC_INTEGRATOR
+Prim1D.P -= (Gamma_1-1)*((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
+Prim1D.Pb = (Gamma_1*(pU->Eb))-0.5*(Gamma_1-1)*((*pBxb)*(*pBxb) + (pU->Byb)*(pU->Byb) + (pU->Bzb)*(pU->Bzb));
+#endif
+#ifdef SMAUG_INTEGRATOR
+Prim1D.P -= (Gamma_1-1)*((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
+Prim1D.Pb = (Gamma_1*(pU->Eb))-0.5*(Gamma_1-1)*((*pBxb)*(*pBxb) + (pU->Byb)*(pU->Byb) + (pU->Bzb)*(pU->Bzb));
+#endif
 
 #ifdef MHD
   Prim1D.By = pU->By;
@@ -726,21 +725,34 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
 #ifndef ISOTHERMAL
 
 #ifdef SAC_INTEGRATOR  /*SAC_INTEGRATOR field*/
-  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
-  Cons1D.Eb = pW->Pb/Gamma_1 ;
+  Cons1D.Eb=0;
+  Cons1D.E=0;
 #ifdef MHD
-  Cons1D.Eb += 0.5*(SQR(*pBxb) + SQR(pW->Byb) + SQR(pW->Bzb));
+  Cons1D.Eb = 0.5*(Gamma_1-1)*(SQR(*pBxb) + SQR(pW->Byb) + SQR(pW->Bzb));
   Cons1D.E += 0.5*(SQR(*pBx) + SQR(pW->By) + SQR(pW->Bz));
   Cons1D.E += ((*pBx)*(*pBxb) + (pW->By)*(pW->Byb) + (pW->Bz)*(pW->Bzb));
 #endif /* MHD */
+
+  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
+  Cons1D.Eb += pW->Pb;
+  Cons1D.Eb /= Gamma_1 ;
+
+
 #elif defined SMAUG_INTEGRATOR
-  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
-  Cons1D.Eb = pW->Pb/Gamma_1 ;
+  Cons1D.Eb=0;
+  Cons1D.E=0;
+
 #ifdef MHD
   Cons1D.Eb += 0.5*(SQR(*pBxb) + SQR(pW->Byb) + SQR(pW->Bzb));
   Cons1D.E += 0.5*(SQR(*pBx) + SQR(pW->By) + SQR(pW->Bz));
   Cons1D.E += ((*pBx)*(*pBxb) + (pW->By)*(pW->Byb) + (pW->Bz)*(pW->Bzb));
 #endif /* MHD */
+
+  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
+  Cons1D.Eb += pW->Pb;
+  Cons1D.Eb /= Gamma_1 ;
+
+
 #else
   Cons1D.E = pW->P/Gamma_1 + 0.5*pW->d*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
 #ifdef MHD

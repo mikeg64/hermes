@@ -73,8 +73,8 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 
   Fc.d  = Ul.Mx;   /*computed using (rho+rhob)*velocity */
   Fc.Mx = Ul.Mx*Wl.Vx;
-  Fc.My = Ul.Mx*Wl.Vy;
-  Fc.Mz = Ul.Mx*Wl.Vz;
+  Fc.My = Ul.My*Wl.Vx;
+  Fc.Mz = Ul.Mz*Wl.Vx;
 
 #ifdef ISOTHERMAL
   Fc.Mx += (Wl.d+Wl.db)*Iso_csound2;
@@ -84,18 +84,29 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 #endif /* ISOTHERMAL */
 
 #ifdef MHD
-  Fc.Mx += 0.5*(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz))+(Bxi*Bxib+Wl.By*Wl.Byb+Wl.Bz*Wl.Bzb);/*thermal pressure plus mag pressure time*/
-  Fc.Mx += -(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz));
-  Fc.Mx -= (Bxi*Bxib+Bxi*Wl.Byb+Bxi*Wl.Bzb)+(Bxib*Bxi+Bxib*Wl.By+Bxib*Wl.Bz);
-  Fc.My -= (Wl.By*Bxib+Wl.By*Wl.Bzb+Bxi*Wl.Byb+Wl.Bz*Wl.Byb )-(Wl.By*Bxi+Wl.By*Wl.Bz);
-  Fc.Mz -= (Wl.Bz*Bxib+Wl.Bz*Wl.Byb+Bxi*Wl.Bzb+Wl.By*Wl.Bzb )-(Wl.Bz*Bxi+Wl.Bz*Wl.By);
+  //Fc.Mx += 0.5*(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz))+(Bxi*Bxib+Wl.By*Wl.Byb+Wl.Bz*Wl.Bzb);/*thermal pressure plus mag pressure time*/
+  //Fc.Mx += -(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz));
+  //Fc.Mx -= (Bxi*Bxib+Bxi*Wl.Byb+Bxi*Wl.Bzb)+(Bxib*Bxi+Bxib*Wl.By+Bxib*Wl.Bz);
+  Fc.Mx -= (Bxi*Bxib+Bxib*Bxi+Bxi*Bxi);
+
+  //Fc.My -= (Wl.By*Bxib+Wl.By*Wl.Bzb+Bxi*Wl.Byb+Wl.Bz*Wl.Byb )-(Wl.By*Bxi+Wl.By*Wl.Bz);
+  Fc.My -= (Wl.By*Bxib+Bxi*Wl.Byb+Wl.By*Bxi);
+
+  //Fc.Mz -= (Wl.Bz*Bxib+Wl.Bz*Wl.Byb+Bxi*Wl.Bzb+Wl.By*Wl.Bzb )-(Wl.Bz*Bxi+Wl.Bz*Wl.By);
+  Fc.Mz -= (Wl.Bz*Bxib+Bxi*Wl.Byb+Wl.By*Bxi );
+
 
 #ifndef ISOTHERMAL
-  Fc.E += (pbl*Wl.Vx - Bxi*(Bxi*Wl.Vx + Wl.By*Wl.Vy + Wl.Bz*Wl.Vz));
+  Fc.E += (pbl*Wl.Vx - Bxi*(Bxi*Wl.Vx + Wl.By*Wl.Vy + Wl.Bz*Wl.Vz)- Bxib*(Bxi*Wl.Vx + Wl.By*Wl.Vy + Wl.Bz*Wl.Vz)- Bxi*(Bxib*Wl.Vx + Wl.Byb*Wl.Vy + Wl.Bzb*Wl.Vz));
 #endif /* ISOTHERMAL */
 
-  Fc.By = Wl.By*Wl.Vx - Bxi*Wl.Vy;
-  Fc.Bz = Wl.Bz*Wl.Vx - Bxi*Wl.Vz;
+  /*Fc.By = Wl.By*Wl.Vx - Bxi*Wl.Vy;
+  Fc.Bz = Wl.Bz*Wl.Vx - Bxi*Wl.Vz;*/
+
+  Fc.By = Wl.Vx*(Wl.By+Wl.Byb)-Wl.Vy*(Bxi+Bxib)+Wl.Vx*Wl.Byb;
+  Fc.Bz = Wl.Vx*(Wl.Bz+Wl.Bzb)-Wl.Vz*(Bxi+Bxib)+Wl.Vx*Wl.Bzb;
+
+
 #endif /* MHD */
 
 /* Fluxes of passively advected scalars, computed from density flux */
