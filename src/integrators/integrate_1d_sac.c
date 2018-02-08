@@ -686,8 +686,8 @@ for (i=is+2; i<=ie-2; i++) {
 
 #ifndef BAROTROPIC
     pG->U[ks][js][i].E  -= dtodx1*(lsf*x1Flux[i-2].E+8*rsf*x1Flux[i+1].E  - 8*lsf*x1Flux[i-1].E -rsf*x1Flux[i+2].E)/12;
-    pG->U[ks][js][i].E  -= (pG->dt)*grad[i]*W[i].Pb;
-    pG->U[ks][js][i].E  += (pG->dt)*grad[i]*Bxb[i]*Bxb[i];
+    pG->U[ks][js][i].E  -= dtodx1*grad[i]*W[i].Pb;//(pG->dt)*grad[i]*W[i].Pb;
+    pG->U[ks][js][i].E  += dtodx1*grad[i]*Bxb[i]*Bxb[i]; //(pG->dt)*grad[i]*Bxb[i]*Bxb[i];
   /*remember energy contribution from background b-field*/
 
 
