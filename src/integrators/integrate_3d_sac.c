@@ -8,8 +8,8 @@
  *   -  U.[d,M1,M2,E,B1c,B2c,s] -- where U is of type ConsS
  *   -  B1i, B2i  -- interface magnetic field
  *   Also adds gravitational source terms.
- *   - For adb hydro, requires (9*Cons1DS +  3*Real) = 48 3D arrays
- *   - For adb mhd, requires   (9*Cons1DS + 10*Real) = 73 3D arrays
+ *   - For adb hydro, requires (9*ConsS +  3*Real) = 48 3D arrays
+ *   - For adb mhd, requires   (9*ConsS + 10*Real) = 73 3D arrays
  *   
  *  Source terms added are hyperdiffusion terms
  *
@@ -53,16 +53,17 @@
 
 
 /* The L/R states of conserved variables and fluxes at each cell face */
-//static Cons1DS ***U1d=NULL, ***Ur_x1Face=NULL;
-//static Cons1DS ***Ul_x2Face=NULL, ***Ur_x2Face=NULL;
-//static Cons1DS ***Ul_x3Face=NULL, ***Ur_x3Face=NULL;
+//static ConsS ***U1d=NULL, ***Ur_x1Face=NULL;
+//static ConsS ***Ul_x2Face=NULL, ***Ur_x2Face=NULL;
+//static ConsS ***Ul_x3Face=NULL, ***Ur_x3Face=NULL;
 Cons1DS ***x1Flux=NULL, ***x2Flux=NULL, ***x3Flux=NULL;
+static ConsS ***Uinit=NULL; /*Uinit used to store initial fields*/
 static Cons1DS ***Uc_x1=NULL;
 static Cons1DS ***Uc_x2=NULL;
 static Cons1DS ***Uc_x3=NULL;
 
 
-//static Cons1DS ***Uc=NULL;
+//static ConsS ***Uc=NULL;
 
 
 /* The interface magnetic fields and emfs */
@@ -88,8 +89,8 @@ static Real ***eta1=NULL, ***eta2=NULL, ***eta3=NULL;
 
 /* variables needed to conserve net Bz in shearing box */
 #ifdef SHEARING_BOX
-static ConsS **Flxiib=NULL, **Flxoib=NULL;
-static ConsS **rFlxiib=NULL, **rFlxoib=NULL;
+static Cons1DS **Flxiib=NULL, **Flxoib=NULL;
+static Cons1DS **rFlxiib=NULL, **rFlxoib=NULL;
 #endif
 
 /* variables need for cylindrical coordinates */
@@ -106,10 +107,9 @@ static Real ***geom_src=NULL;
  *   integrate_emf2_corner() - the upwind CT method in GS05, for emf2
  *   integrate_emf3_corner() - the upwind CT method in GS05, for emf3
  *============================================================================*/
+static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
+static void hyperdifviscl(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
 
-
-static void hyperdifviscr(int field,int dim,const GridS *pG);
-static void hyperdifviscl(int field,int dim,const GridS *pG);
 /*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
@@ -218,7 +218,49 @@ size3=1+ke+2*nghost-ks;
  * Load 1D vector of conserved variables;
  * U1d = (d, M1, M2, M3, E, B2c, B3c, s[n])
  */
+  for (k=kl; k<=ku; k++) {
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
 
+        Uinit[k][j][i].d  = pG->U[k][j][i].d;
+        Uinit[k][j][i].M1 = pG->U[k][j][i].M1;
+        Uinit[k][j][i].M2 = pG->U[k][j][i].M2;
+        Uinit[k][j][i].M3 = pG->U[k][j][i].M3;
+#ifndef BAROTROPIC
+        Uinit[k][j][i].E  = pG->U[k][j][i].E;
+#endif /* BAROTROPIC */
+#ifdef MHD
+        Uinit[k][j][i].B1c = pG->U[k][j][i].B1c;
+        Uinit[k][j][i].B2c = pG->U[k][j][i].B2c;
+        Uinit[k][j][i].B3c = pG->U[k][j][i].B3c;
+        //Bxc[i] = pG->U[k][j][i].B1c;
+        //Bxb[i] = pG->B1cb[k][j][i];
+        //B1_x1Face[k][j][i] = pG->B1i[k][j][i];
+#endif /* MHD */
+
+
+#ifdef SAC_INTEGRATOR
+        Uinit[k][j][i].db  = pG->U[k][j][i].db;
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
+        Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
+#endif
+#ifdef SMAUG_INTEGRATOR
+        Uinit[k][j][i].db  = pG->U[k][j][i].db;
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
+        Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
+#endif
+
+
+#if (NSCALARS > 0)
+        for (n=0; n<NSCALARS; n++) Uinit[k][j][i].s[n] = pG->U[k][j][i].s[n];
+#endif
+
+
+}
+}
+}
  
 
   for (k=kl; k<=ku; k++) {
@@ -1255,6 +1297,9 @@ void integrate_init_3d(MeshS *pM)
   if ((Uc_x3=(Cons1DS***)calloc_3d_array(size3,size2,size1,sizeof(Cons1DS)))== NULL) goto on_error;
 
 
+  if ((Uinit   =(ConsS***)calloc_3d_array(size3,size2,size1,sizeof(ConsS)))
+    == NULL) goto on_error;
+
   if ((x1Flux   =(Cons1DS***)calloc_3d_array(size3,size2,size1,sizeof(Cons1DS)))
     == NULL) goto on_error;
   if ((x2Flux   =(Cons1DS***)calloc_3d_array(size3,size2,size1,sizeof(Cons1DS)))
@@ -1277,13 +1322,13 @@ void integrate_init_3d(MeshS *pM)
   }
 
 #ifdef SHEARING_BOX
-  if ((Flxiib = (ConsS**)calloc_2d_array(size3,size2,sizeof(ConsS)))==NULL)
+  if ((Flxiib = (Cons1DS**)calloc_2d_array(size3,size2,sizeof(Cons1DS)))==NULL)
     goto on_error;
-  if ((Flxoib = (ConsS**)calloc_2d_array(size3,size2,sizeof(ConsS)))==NULL)
+  if ((Flxoib = (Cons1DS**)calloc_2d_array(size3,size2,sizeof(Cons1DS)))==NULL)
     goto on_error;
-  if ((rFlxiib = (ConsS**)calloc_2d_array(size3,size2,sizeof(ConsS)))==NULL)
+  if ((rFlxiib = (Cons1DS**)calloc_2d_array(size3,size2,sizeof(Cons1DS)))==NULL)
     goto on_error;
-  if ((rFlxoib = (ConsS**)calloc_2d_array(size3,size2,sizeof(ConsS)))==NULL)
+  if ((rFlxoib = (Cons1DS**)calloc_2d_array(size3,size2,sizeof(Cons1DS)))==NULL)
     goto on_error;
 #endif
 
@@ -1324,6 +1369,8 @@ void integrate_destruct_3d(void)
   if (Uc_x2 != NULL) free_3d_array(Uc_x2);
   if (Uc_x3 != NULL) free_3d_array(Uc_x3);
 
+  if (Uinit    != NULL) free_3d_array(Uinit);
+
   if (x1Flux    != NULL) free_3d_array(x1Flux);
   if (x2Flux    != NULL) free_3d_array(x2Flux);
   if (x3Flux    != NULL) free_3d_array(x3Flux);
@@ -1349,7 +1396,7 @@ void integrate_destruct_3d(void)
 /*=========================== PRIVATE FUNCTIONS ==============================*/
 
 
-static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
+static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG)
 {
 	Real ***wtemp1=NULL, ***wtemp2=NULL, ***tmpnu=NULL, ***fieldd=NULL;
 
@@ -1486,40 +1533,40 @@ static void hyperdifviscr(int fieldi,int dim,const GridS *pG)
 
 /*
 
-static void hyperdifviscr(int field,int dim,const GridS *pG)
+static void hyperdifviscr(int field,int dim,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
-static void hyperdifviscl(int field,int dim,const GridS *pG)
+static void hyperdifviscl(int field,int dim,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG)
+static void hyperdifrhosource(int field,int dim,Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifesource(int dim,Real dt,const GridS *pG)
+static void hyperdifesource(int dim,Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
  
-static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG)
+static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG)
+static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
@@ -1529,14 +1576,14 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 
 #ifdef MHD
 
-/*static void hyperdifbsource(int ii,int ii0, Real dt, const GridS *pG)
+/*static void hyperdifbsource(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifbsourcene(int ii,int ii0, Real dt, const GridS *pG)
+static void hyperdifbsourcene(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
 {
 
 	return;

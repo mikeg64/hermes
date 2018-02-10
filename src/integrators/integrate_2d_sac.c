@@ -8,8 +8,8 @@
  *   -  U.[d,M1,M2,E,B1c,B2c,s] -- where U is of type ConsS
  *   -  B1i, B2i  -- interface magnetic field
  *   Also adds gravitational source terms.
- *   - For adb hydro, requires (9*Cons1DS +  3*Real) = 48 3D arrays
- *   - For adb mhd, requires   (9*Cons1DS + 10*Real) = 73 3D arrays
+ *   - For adb hydro, requires (9*ConsS +  3*Real) = 48 3D arrays
+ *   - For adb mhd, requires   (9*ConsS + 10*Real) = 73 3D arrays
  *   
  *  Source terms added are hyperdiffusion terms
  *
@@ -53,7 +53,7 @@
 static Cons1DS **Uc_x1=NULL;
 static Cons1DS **Uc_x2=NULL;
 static Cons1DS **x1Flux=NULL, **x2Flux=NULL;
-
+static ConsS ***Uinit=NULL; /*Uinit used to store initial fields*/
 
 /* The interface magnetic fields and emfs */
 /*not needed for sac*/
@@ -106,10 +106,9 @@ static Real **geom_src=NULL;
  *   integrate_emf2_corner() - the upwind CT method in GS05, for emf2
  *   integrate_emf3_corner() - the upwind CT method in GS05, for emf3
  *============================================================================*/
+static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
+static void hyperdifviscl(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
 
-
-static void hyperdifviscr(int field,int dim,const GridS *pG);
-static void hyperdifviscl(int field,int dim,const GridS *pG);
 /*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
 static void hyperdifesource(int dim,Real dt,const GridS *pG); 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
@@ -119,8 +118,6 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 //static void hyperdifbsource(int ii,int ii0, Real dt, const GridS *pG);
 //static void hyperdifbsourcene(int ii,int ii0, Real dt, const GridS *pG);
 #endif /* MHD */
-
-
 
 
 /*=========================== PUBLIC FUNCTIONS ===============================*/
@@ -244,6 +241,57 @@ size2=1+je+2*nghost-js;
 
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
+
+
+    int k=0;
+  
+    for (j=jl; j<=ju; j++) {
+      for (i=il; i<=iu; i++) {
+
+        Uinit[k][j][i].d  = pG->U[k][j][i].d;
+        Uinit[k][j][i].M1 = pG->U[k][j][i].M1;
+        Uinit[k][j][i].M2 = pG->U[k][j][i].M2;
+        Uinit[k][j][i].M3 = pG->U[k][j][i].M3;
+#ifndef BAROTROPIC
+        Uinit[k][j][i].E  = pG->U[k][j][i].E;
+#endif /* BAROTROPIC */
+#ifdef MHD
+        Uinit[k][j][i].B1c = pG->U[k][j][i].B1c;
+        Uinit[k][j][i].B2c = pG->U[k][j][i].B2c;
+        Uinit[k][j][i].B3c = pG->U[k][j][i].B3c;
+        //Bxc[i] = pG->U[k][j][i].B1c;
+        //Bxb[i] = pG->B1cb[k][j][i];
+        //B1_x1Face[k][j][i] = pG->B1i[k][j][i];
+#endif /* MHD */
+
+
+#ifdef SAC_INTEGRATOR
+        Uinit[k][j][i].db  = pG->U[k][j][i].db;
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
+        Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
+#endif
+#ifdef SMAUG_INTEGRATOR
+        Uinit[k][j][i].db  = pG->U[k][j][i].db;
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
+        Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
+#endif
+
+
+#if (NSCALARS > 0)
+        for (n=0; n<NSCALARS; n++) Uinit[k][j][i].s[n] = pG->U[k][j][i].s[n];
+#endif
+
+
+}
+}
+
+
+
+
+
+
 
 /*--- Step 1a ------------------------------------------------------------------
  * Load 1D vector of conserved variables;
@@ -1380,7 +1428,8 @@ void integrate_init_2d(MeshS *pM)
   if ((x2Flux   =(Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS)))==NULL)
     goto on_error;
 
-
+  if ((Uinit   =(ConsS***)calloc_3d_array(1,size2,size1,sizeof(ConsS)))
+    == NULL) goto on_error;
 
 #ifndef CYLINDRICAL
 #ifndef MHD
@@ -1451,6 +1500,9 @@ void integrate_destruct_2d(void)
   if (dhalf     != NULL) free_2d_array(dhalf);
   if (phalf     != NULL) free_2d_array(phalf);
 
+  if (Uinit    != NULL) free_3d_array(Uinit);
+
+
   /* data structures for cylindrical coordinates */
 #ifdef CYLINDRICAL
   if (geom_src  != NULL) free_2d_array(geom_src);
@@ -1467,40 +1519,44 @@ void integrate_destruct_2d(void)
 
 /*
 
-static void hyperdifviscr(int field,int dim,const GridS *pG)
+
+
+
+
+static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG)
 {
 
 	return;
 }
 
-static void hyperdifviscl(int field,int dim,const GridS *pG)
+static void hyperdifviscl(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG)
 {
 
 	return;
 }
 
-static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG)
+static void hyperdifrhosource(int field,int dim,Real dt,const ConsS ***Uint, const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifesource(int dim,Real dt,const GridS *pG)
+static void hyperdifesource(int dim,Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
  
-static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG)
+static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG)
+static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const ConsS ***Uint,const GridS *pG)
 {
 
 	return;
@@ -1510,14 +1566,14 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 
 #ifdef MHD
 
-/*static void hyperdifbsource(int ii,int ii0, Real dt, const GridS *pG)
+/*static void hyperdifbsource(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifbsourcene(int ii,int ii0, Real dt, const GridS *pG)
+static void hyperdifbsourcene(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
 {
 
 	return;
