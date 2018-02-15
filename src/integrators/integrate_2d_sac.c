@@ -106,17 +106,17 @@ static Real **geom_src=NULL;
  *   integrate_emf2_corner() - the upwind CT method in GS05, for emf2
  *   integrate_emf3_corner() - the upwind CT method in GS05, for emf3
  *============================================================================*/
-static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
-static void hyperdifviscl(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG);
+static void hyperdifviscr(int fieldi,int dim,ConsS ***Uint, GridS *pG);
+static void hyperdifviscl(int fieldi,int dim,ConsS ***Uint, GridS *pG);
 
-/*static void hyperdifrhosource(int field,int dim,Real dt,const GridS *pG);
-static void hyperdifesource(int dim,Real dt,const GridS *pG); 
-static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const GridS *pG);
-static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const GridS *pG);*/
+/*static void hyperdifrhosource(int field,int dim,Real dt,ConsS ***Uint, GridS *pG);
+static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG); 
+static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
+static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);*/
 
 #ifdef MHD
-//static void hyperdifbsource(int ii,int ii0, Real dt, const GridS *pG);
-//static void hyperdifbsourcene(int ii,int ii0, Real dt, const GridS *pG);
+//static void hyperdifbsource(int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG);
+//static void hyperdifbsourcene(int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 
@@ -1516,47 +1516,503 @@ void integrate_destruct_2d(void)
 
 
 
+static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
+{
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***wtemp3=NULL, ***tmpnu=NULL, ***d1=NULL, ***d3=NULL, ***fieldd=NULL;
+        Real maxt1,maxt2;
+
+	int n1z,n2z,n3z;
+        int i,j,k;
+
+	int il,iu, is = pG->is, ie = pG->ie;
+	int jl,ju, js = pG->js, je = pG->je;
+	int kl,ku, ks = pG->ks, ke = pG->ke;
+
+
+        int i1,i2,i3;
+        int iss,jss,kss;
+
+        /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
+
+	/* With particles, one more ghost cell must be updated in predict step */
+	#ifdef PARTICLES
+	  Real d1;
+	  il = is - 3;
+	  iu = ie + 3;
+	  jl = js - 3;
+	  ju = je + 3;
+	  kl = ks - 3;
+	  ku = ke + 3;
+	#else
+	  il = is - 2;
+	  iu = ie + 2;
+	  jl = js - 2;
+	  ju = je + 2;
+	  kl = ks - 2;
+	  ku = ke + 2;
+	#endif
+
+
+
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
+
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
+
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+
+	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+        // TODO
+        //getcmax();
+
+
+	//for(i1=0;i1<n1z;i1++)
+	//for(i2=0;i2<n2z;i2++)
+	//for(i3=0;i1<n3z;i3++)
+	//i3=ks;
+        //i2=js;
+	//for (i1=il; i1<=iu; i1++)
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+		switch(fieldi)
+		{
+		case rho:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].d;
+		break;
+		case mom1:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M1;
+		break;
+		case mom2:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M2;
+		break;
+		case mom3:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M3;
+		break;
+		case energy:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].E;
+		break;
+		case b1:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B1c;
+		break;
+		case b2:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B2c;
+		break;
+		case b3:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B3c;
+		break;
+		}
+        }
+}
+}
+
+
+
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+		wtemp1[i3][i2][i1]=0.0;
+		wtemp2[i3][i2][i1]=0.0;
+		d3[i3][i2][i1]=0.0;
+
+		pG->Hv[i3][i2][i1].hdnur[dim][fieldi]=0.0;
+
+	       if(fieldi==energy)
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
+	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));       
+	       else
+	       {
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
+		if((fieldi ==mom1 || fieldi == mom2 || fieldi == mom3))
+			wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+
+		}
+
+		//comment removed below to test mpi 29/10/2013
+		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+
+
+	}
+}
+}
+
+        // TODO boundary terms 
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+		   d3[i3][i2][i1]=fabs(3.0*(tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ) - (tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)] - tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)]   ));
+}
+}
+}
+
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+		   d1[i3+1][i2+1][i1+1]=fabs((tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1] - tmpnu[i3+1][i2+1][i1+1] ));
+}
+}
+}
+
+   /*to here*/
+        maxt2=0.0;
+        maxt1=0.0;
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+           for(kss=-(dim==2); kss<=(dim==2); kss++)
+           for(jss=-(dim==1); jss<=(dim==1); jss++)
+           for(iss=-(dim==0); iss<=(dim==0); iss++)
+           {
+{
+{
+                   if(d3[i3+1+kss][i2+1+jss][i1+1+iss]>maxt1)
+                         maxt1=d3[i3+1+kss][i2+1+jss][i1+1+iss];
+}
+}
+}
+
+           wtemp2[i3][i2][i1]=maxt1;
+           for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
+           for(jss=-2*(dim==1); jss<=2*(dim==1); jss++)
+           for(iss=-2*(dim==0); iss<=2*(dim==0); iss++)
+{
+{
+{
+                                     if(d1[i3+1+kss][i2+1+jss][i1+1+iss]>maxt2)
+                                            maxt2=d1[i3+1+kss][i2+1+jss][i1+1+iss];
+
+}
+}
+}
+
+
+            wtemp3[i3][i2][i1]=maxt2;
+        }
+        }
+}
+
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+           if(wtemp3[i3][i2][i1]>0)
+           {
+
+	pG->Hv[i3][i2][i1].hdnur[dim][fieldi]=((dim==0)*(pG->dx1)+(dim==1)*(pG->dx2)+(dim==2)*(pG->dx3))*(pG->cmax)*(pG->chyp[fieldi])*wtemp2[i3][i2][i1]/wtemp3[i3][i2][i1];
+
+
+         }
+         else
+           	pG->Hv[i3][i2][i1].hdnur[dim][fieldi]=0;
+
+
+            if(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]>(pG->maxviscoef))
+                        pG->maxviscoef=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];
+         //}
+         }
+}
+}
+
+
+
+        
+	if (wtemp1 != NULL) free(wtemp1);
+	if (wtemp2 != NULL) free(wtemp2);
+	if (wtemp3 != NULL) free(wtemp2);
+	if (tmpnu != NULL) free(tmpnu);
+	if (d3 != NULL) free(d3);
+	if (d1 != NULL) free(d1);
+
+
+	return;
+
+}
+
+static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
+{
+	Real ***wtemp1=NULL, ***wtemp2=NULL, ***wtemp3=NULL, ***tmpnu=NULL, ***d1=NULL, ***d3=NULL, ***fieldd=NULL;
+        Real maxt1,maxt2;
+
+	int n1z,n2z,n3z;
+        int i,j,k;
+
+	int il,iu, is = pG->is, ie = pG->ie;
+	int jl,ju, js = pG->js, je = pG->je;
+	int kl,ku, ks = pG->ks, ke = pG->ke;
+
+
+        int i1,i2,i3;
+        int iss,jss,kss;
+
+        /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
+
+	/* With particles, one more ghost cell must be updated in predict step */
+	#ifdef PARTICLES
+	  Real d1;
+	  il = is - 3;
+	  iu = ie + 3;
+	  jl = js - 3;
+	  ju = je + 3;
+	  kl = ks - 3;
+	  ku = ke + 3;
+	#else
+	  il = is - 2;
+	  iu = ie + 2;
+	  jl = js - 2;
+	  ju = je + 2;
+	  kl = ks - 2;
+	  ku = ke + 2;
+	#endif
+
+
+
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
+
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
+
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+
+	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+        // TODO
+        //getcmax();
+
+
+	//for(i1=0;i1<n1z;i1++)
+	//for(i2=0;i2<n2z;i2++)
+	//for(i3=0;i1<n3z;i3++)
+	//i3=ks;
+        //i2=js;
+	//for (i1=il; i1<=iu; i1++)
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+		switch(fieldi)
+		{
+		case rho:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].d;
+		break;
+		case mom1:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M1;
+		break;
+		case mom2:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M2;
+		break;
+		case mom3:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].M3;
+		break;
+		case energy:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].E;
+		break;
+		case b1:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B1c;
+		break;
+		case b2:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B2c;
+		break;
+		case b3:
+			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B3c;
+		break;
+		}
+        }
+}
+}
+
+
+
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+		wtemp1[i3][i2][i1]=0.0;
+		wtemp2[i3][i2][i1]=0.0;
+		d3[i3][i2][i1]=0.0;
+
+		pG->Hv[i3][i2][i1].hdnul[dim][fieldi]=0.0;
+
+	       if(fieldi==energy)
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
+	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));       
+	       else
+	       {
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
+		if((fieldi ==mom1 || fieldi == mom2 || fieldi == mom3))
+			wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+
+		}
+
+		//comment removed below to test mpi 29/10/2013
+		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+
+
+	}
+}
+}
+
+	  
+
+
+        // TODO boundary terms 
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+		   d3[i3][i2][i1]=fabs(3.0*( tmpnu[i3][i2][i1] -  tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ) - ( tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)] - tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)]    ));
+}
+}
+}
+
+
+
+      
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+		   d1[i3+1][i2+1][i1+1]=fabs(( tmpnu[i3+1][i2+1][i1+1] -   tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1]  ));
+}
+}
+}
+
+   /*to here*/
+        maxt2=0.0;
+        maxt1=0.0;
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+
+           for(kss=-(dim==2); kss<=(dim==2); kss++)
+           for(jss=-(dim==1); jss<=(dim==1); jss++)
+           for(iss=-(dim==0); iss<=(dim==0); iss++)
+           {
+{
+{
+                   if(d3[i3+1+kss][i2+1+jss][i1+1+iss]>maxt1)
+                         maxt1=d3[i3+1+kss][i2+1+jss][i1+1+iss];
+}
+}
+}
+
+           wtemp2[i3][i2][i1]=maxt1;
+           for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
+           for(jss=-2*(dim==1); jss<=2*(dim==1); jss++)
+           for(iss=-2*(dim==0); iss<=2*(dim==0); iss++)
+{
+{
+{
+                                     if(d1[i3+1+kss][i2+1+jss][i1+1+iss]>maxt2)
+                                            maxt2=d1[i3+1+kss][i2+1+jss][i1+1+iss];
+
+}
+}
+}
+
+
+            wtemp3[i3][i2][i1]=maxt2;
+        }
+        }
+}
+
+
+  for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+           if(wtemp3[i3][i2][i1]>0)
+           {
+
+	pG->Hv[i3][i2][i1].hdnul[dim][fieldi]=((dim==0)*(pG->dx1)+(dim==1)*(pG->dx2)+(dim==2)*(pG->dx3))*(pG->cmax)*(pG->chyp[fieldi])*wtemp2[i3][i2][i1]/wtemp3[i3][i2][i1];
+
+
+         }
+         else
+           	pG->Hv[i3][i2][i1].hdnul[dim][fieldi]=0;
+
+
+            if(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]>(pG->maxviscoef))
+                        pG->maxviscoef=pG->Hv[i3][i2][i1].hdnul[dim][fieldi];
+         //}
+         }
+}
+}
+
+
+
+        
+	if (wtemp1 != NULL) free(wtemp1);
+	if (wtemp2 != NULL) free(wtemp2);
+	if (wtemp3 != NULL) free(wtemp2);
+	if (tmpnu != NULL) free(tmpnu);
+	if (d3 != NULL) free(d3);
+	if (d1 != NULL) free(d1);
+
+
+	return;
+
+
+}
+
+
 
 /*
 
-
-
-
-
-static void hyperdifviscr(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG)
-{
-
-	return;
-}
-
-static void hyperdifviscl(int fieldi,int dim,const ConsS ***Uinit, const GridS *pG)
-{
-
-	return;
-}
-
-static void hyperdifrhosource(int field,int dim,Real dt,const ConsS ***Uint, const GridS *pG)
+static void hyperdifrhosource(int field,int dim,Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifesource(int dim,Real dt,const ConsS ***Uint,const GridS *pG)
+static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
 }
 
  
-static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,const ConsS ***Uint,const GridS *pG)
+static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const ConsS ***Uint,const GridS *pG)
+static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
@@ -1566,14 +2022,14 @@ static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,const 
 
 #ifdef MHD
 
-/*static void hyperdifbsource(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
+/*static void hyperdifbsource(int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
 }
 
 
-static void hyperdifbsourcene(int ii,int ii0, Real dt,const ConsS ***Uint, const GridS *pG)
+static void hyperdifbsourcene(int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;

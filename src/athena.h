@@ -487,6 +487,9 @@ typedef struct Grid_s{
 
 #ifdef SAC_INTEGRATOR
   HyperviscS ***Hv;
+  Real maxviscoef;
+  Real cmax;
+  Real chyp[8];  /*hyperdiffusion coefficients*/
 #endif
 
 #ifdef MHD
