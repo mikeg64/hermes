@@ -144,17 +144,25 @@ void ath_error(char *fmt, ...)
  *  Works on data of type float, not Real.
  */
 
-void gradient1(Real *data, int nx1, Real *grad)
+void gradient1(Real *data, int nx1, Real dx, Real *grad)
 {
   int ip;
-  register Real dmin, dmax;
 
-  dmin = dmax = data[0];
-  for (ip=0; ip<nx1; ip++) {
-    dmin = MIN(dmin,data[ip]);
-    dmax = MAX(dmax,data[ip]);
+
+/*hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2);hxmax1=ixmax1-kr(idim,1)
+  hxmax2=ixmax2-kr(idim,2);
+  kxmin1=ixmin1+kr(idim,1);kxmin2=ixmin2+kr(idim,2);kxmax1=ixmax1+kr(idim,1)
+  kxmax2=ixmax2+kr(idim,2);
+  gradq(ixmin1:ixmax1,ixmin2:ixmax2)=(q(kxmin1:kxmax1,kxmin2:kxmax2)&
+     -q(hxmin1:hxmax1,hxmin2:hxmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)/two*/
+
+  for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+  for (ip=1; ip<(nx1-1); ip++) {
+    grad[ip]=2*(data[ip+1]  - data[ip-1] )/dx;
+
   }
-  *data = dmin;
+
+
  
 }
 
@@ -166,7 +174,7 @@ void gradient1(Real *data, int nx1, Real *grad)
  *  Works on data of type float, not Real.
  */
 
-void gradient4(Real *data, int nx1, Real *grad)
+void gradient4(Real *data, int nx1, Real dx, Real *grad)
 {
   int ip;
   /*register Real dmin, dmax;*/
@@ -174,7 +182,7 @@ void gradient4(Real *data, int nx1, Real *grad)
   
   for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
   for (ip=2; ip<(nx1-2); ip++) {
-    grad[ip]=(data[ip-2]+8*data[ip+1]  - 8*data[ip-1] -data[ip+2])/12;
+    grad[ip]=(data[ip-2]+8*data[ip+1]  - 8*data[ip-1] -data[ip+2])/(12*dx);
 
   }
 
@@ -190,17 +198,20 @@ void gradient4(Real *data, int nx1, Real *grad)
  *  Works on data of type float, not Real.
  */
 
-void gradient1l(Real *data, int nx1, Real *grad)
+void gradient1l(Real *data, int nx1, Real dx, Real *grad)
 {
   int ip;
-  register Real dmin, dmax;
 
-  dmin = dmax = data[0];
-  for (ip=0; ip<nx1; ip++) {
-    dmin = MIN(dmin,data[ip]);
-    dmax = MAX(dmax,data[ip]);
+  /*hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2);hxmax1=ixmax1-kr(idim,1)
+  hxmax2=ixmax2-kr(idim,2);
+  gradq(ixmin1:ixmax1,ixmin2:ixmax2)=(q(ixmin1:ixmax1,ixmin2:ixmax2)&
+     -q(hxmin1:hxmax1,hxmin2:hxmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)*/
+
+  for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+  for (ip=1; ip<(nx1); ip++) {
+    grad[ip]=(data[ip]  - data[ip-1] )/dx;
+
   }
-  *data = dmin;
   
 }
 
@@ -210,16 +221,24 @@ void gradient1l(Real *data, int nx1, Real *grad)
  *  Works on data of type float, not Real.
  */
 
-void gradient1r(Real *data, int nx1, Real *grad)
+void gradient1r(Real *data, int nx1, Real dx, Real *grad)
 {
   int ip;
-  register Real dmin, dmax;
 
-  dmin = dmax = data[0];
-  for (ip=0; ip<nx1; ip++) {
-    dmin = MIN(dmin,data[ip]);
-    dmax = MAX(dmax,data[ip]);
+  /*hxmin1=ixmin1+kr(idim,1);hxmin2=ixmin2+kr(idim,2);hxmax1=ixmax1+kr(idim,1)
+  hxmax2=ixmax2+kr(idim,2);
+  gradq(ixmin1:ixmax1,ixmin2:ixmax2)=(q(hxmin1:hxmax1,hxmin2:hxmax2)&
+     -q(ixmin1:ixmax1,ixmin2:ixmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)*/
+
+
+
+
+  for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+  for (ip=0; ip<(nx1-1); ip++) {
+    grad[ip]=(data[ip+1]  - data[ip] )/dx;
+
   }
+
 
 }
 
