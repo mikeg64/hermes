@@ -2256,8 +2256,8 @@ for (i3=kl; i3<=ku; i3++) {
      pG->U[ks][j][i].d  += dtodx1*(wtempr-wtempl);
 
 
-	if (wtemp1 != NULL) free(wtemp1);
-	if (wtemp2 != NULL) free(wtemp2);
+	if (wtempr != NULL) free(wtempr);
+	if (wtempl != NULL) free(wtempl);
 	if (wtemp3 != NULL) free(wtemp2);
 	if (tmp != NULL) free(tmp);
 	if (tmp2 != NULL) free(tmp2);
