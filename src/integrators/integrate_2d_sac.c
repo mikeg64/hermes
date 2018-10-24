@@ -1139,7 +1139,7 @@ hyperdifviscl(rho,dim,Uinit, pG);
 //hyperdifvisc1ir
 //hyperdifvisc1il
 //int dim,Real dt,ConsS ***Uint, GridS *pG
-hyperdifrhosource1(dim,pG->dt,Uinit, pG) ;
+hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
 }
 
 //energy hyperdiffusion term
@@ -1532,8 +1532,12 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 	int jl,ju, js = pG->js, je = pG->je;
 	int kl,ku, ks = pG->ks, ke = pG->ke;
  
-        int i1,i2,i3;
+        int i1,i2,i3,n1z,n2z,n3z;
         int iss,jss,kss;
+
+	register Real cmax=0;
+	Real rhotot,rhototsq,pthermal,cs2,cfast2;
+	Real cfasttemp,momfield,bfield;
 
         /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
 	/* With particles, one more ghost cell must be updated in predict step */
@@ -1572,9 +1576,7 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 	else
 		n3z = 1;
 
-	register Real cmax=0;
-	Real rhotot,rhototsq,pthermal,cs2,cfast2;
-	Real cfasttemp,momfield,bfield;
+
         // TODO
         //getcmax();
 	
@@ -1592,12 +1594,12 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 
 		rhotot=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
 		rhototsq*=rhotot*rhotot;
-		pthermal=Uinit[i3][i2][i1].e -((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/rhotot)  ;
+		pthermal=Uinit[i3][i2][i1].E -((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/rhotot)  ;
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
 		pthermal*=(Gamma_1-1);
-		cs2=Gamma_1*pthermal+(Gamma_1-1)*(Uinit[i3][i2][i1].eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  ))
-		cs2/=rhototsq
+		cs2=Gamma_1*pthermal+(Gamma_1-1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  )));
+		cs2/=rhototsq;
 
 		pG->Hv[i3][i2][i1].csound=sqrt(cs2);
                 //cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound)
@@ -1662,6 +1664,8 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
         int i1,i2,i3;
         int iss,jss,kss;
+
+	Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2;
 
         /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
 	/* With particles, one more ghost cell must be updated in predict step */
@@ -2141,7 +2145,7 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
         int iss,jss,kss;
 
 	int fieldi=rho;
-
+        Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2;
         /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
 
 	/* With particles, one more ghost cell must be updated in predict step */
@@ -2203,7 +2207,7 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
      //CALL gradient1L(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1l(fieldd[i3][i2], n1z,tmp2[i3][i2]);
+			gradient1l(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
 				}
 			}
       
@@ -2228,7 +2232,7 @@ for (i3=kl; i3<=ku; i3++) {
      //CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1r(fieldd[i3][i2], n1z,tmp2[i3][i2]);
+			gradient1r(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
 				}
 			}
 
@@ -2258,7 +2262,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 	if (wtempr != NULL) free(wtempr);
 	if (wtempl != NULL) free(wtempl);
-	if (wtemp3 != NULL) free(wtemp2);
+	if (wtemp3 != NULL) free(wtemp3);
 	if (tmp != NULL) free(tmp);
 	if (tmp2 != NULL) free(tmp2);
 	if (fieldd != NULL) free(fieldd);

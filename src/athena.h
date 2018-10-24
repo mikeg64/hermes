@@ -100,7 +100,7 @@ typedef struct Hypervisc_s{
 	Real hdnur[3][8];
 	Real hdnul[3][8];
 
-	Real soundspeed;
+	Real csound;
 	Real cmaxd;
 #ifdef MHD
 	Real cfast;

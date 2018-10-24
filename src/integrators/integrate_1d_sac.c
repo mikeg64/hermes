@@ -717,7 +717,7 @@ for (i=is; i<=ie; i++)
    temp[i]=W[i].Vx;
    grad[i]=0;
 }
-gradient4(temp, size1 ,grad);
+gradient4(temp, size1 ,pG->dx1,grad);
 
 for (i=is+2; i<=ie-2; i++) {
 
