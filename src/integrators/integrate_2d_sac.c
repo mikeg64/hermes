@@ -1426,6 +1426,12 @@ void integrate_init_2d(MeshS *pM)
   if ((grad = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
   if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
+
+  if ((Uc_x1= (Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS))) == NULL) goto on_error;
+  if ((Uc_x2= (Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS))) == NULL) goto on_error;
+
+
+
   if ((W  = (Prim1DS*)malloc(nmax*sizeof(Prim1DS))) == NULL) goto on_error;
 
   if ((x1Flux   =(Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS)))==NULL)
@@ -1492,6 +1498,11 @@ void integrate_destruct_2d(void)
   if (U1d      != NULL) free(U1d);
  /* if (Ul       != NULL) free(Ul);
   if (Ur       != NULL) free(Ur);*/
+
+  if (Uc_x1      != NULL) free(Uc_x1);
+  if (Uc_x2      != NULL) free(Uc_x2);
+
+
   if (W        != NULL) free(W);
  /* if (Wl       != NULL) free(Wl);
   if (Wr       != NULL) free(Wr);*/
@@ -1707,6 +1718,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
 	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
@@ -1721,9 +1735,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	//i3=ks;
         //i2=js;
 	//for (i1=il; i1<=iu; i1++)
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
 		switch(fieldi)
 		{
@@ -1759,9 +1773,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 		wtemp1[i3][i2][i1]=0.0;
 		wtemp2[i3][i2][i1]=0.0;
 		d3[i3][i2][i1]=0.0;
@@ -1789,9 +1803,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
         // TODO boundary terms 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
 		   d3[i3][i2][i1]=fabs(3.0*(tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ) - (tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)] - tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)]   ));
 }
@@ -1799,9 +1813,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 		   d1[i3+1][i2+1][i1+1]=fabs((tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1] - tmpnu[i3+1][i2+1][i1+1] ));
 }
 }
@@ -1810,9 +1824,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
    /*to here*/
         maxt2=0.0;
         maxt1=0.0;
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
            for(kss=-(dim==2); kss<=(dim==2); kss++)
            for(jss=-(dim==1); jss<=(dim==1); jss++)
@@ -1847,9 +1861,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
            if(wtemp3[i3][i2][i1]>0)
            {
 
@@ -1873,7 +1887,8 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
         
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
-	if (wtemp3 != NULL) free(wtemp2);
+	if (wtemp3 != NULL) free(wtemp3);
+	if (fieldd != NULL) free(fieldd);
 	if (tmpnu != NULL) free(tmpnu);
 	if (d3 != NULL) free(d3);
 	if (d1 != NULL) free(d1);
@@ -1940,6 +1955,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
+	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+
 	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
@@ -1954,9 +1972,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	//i3=ks;
         //i2=js;
 	//for (i1=il; i1<=iu; i1++)
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
 		switch(fieldi)
 		{
@@ -1992,9 +2010,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 		wtemp1[i3][i2][i1]=0.0;
 		wtemp2[i3][i2][i1]=0.0;
 		d3[i3][i2][i1]=0.0;
@@ -2025,9 +2043,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
         // TODO boundary terms 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
 		   d3[i3][i2][i1]=fabs(3.0*( tmpnu[i3][i2][i1] -  tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ) - ( tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)] - tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)]    ));
 }
@@ -2038,9 +2056,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
       
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 		   d1[i3+1][i2+1][i1+1]=fabs(( tmpnu[i3+1][i2+1][i1+1] -   tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1]  ));
 }
 }
@@ -2086,9 +2104,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 
 
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
            if(wtemp3[i3][i2][i1]>0)
            {
 
@@ -2112,11 +2130,11 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
         
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
-	if (wtemp3 != NULL) free(wtemp2);
+	if (wtemp3 != NULL) free(wtemp3);
 	if (tmpnu != NULL) free(tmpnu);
 	if (d3 != NULL) free(d3);
 	if (d1 != NULL) free(d1);
-
+	if (fieldd != NULL) free(fieldd);
 
 	return;
 
