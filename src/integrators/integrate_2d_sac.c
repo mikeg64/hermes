@@ -241,7 +241,7 @@ int size1,size2;
 size1=1+ie+2*nghost-is;
 size2=1+je+2*nghost-js;
 
-
+//printf("step1\n");
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
 
@@ -294,7 +294,7 @@ size2=1+je+2*nghost-js;
 
 
 
-
+//printf("step1a\n");
 
 /*--- Step 1a ------------------------------------------------------------------
  * Load 1D vector of conserved variables;
@@ -344,7 +344,7 @@ size2=1+je+2*nghost-js;
 
 #endif
 
-
+ Bxb[i] =0.0; //temporary debug seg fault
 
 
 
@@ -414,7 +414,7 @@ size2=1+je+2*nghost-js;
 
 
 
-
+//printf("step1c\n");
 
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
@@ -642,14 +642,17 @@ size2=1+je+2*nghost-js;
 #endif /* CYLINDRICAL */
 
 
-
+//printf("step1d\n");
 
 /*--- Step 1d ------------------------------------------------------------------
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
+      //printf("step1d part2a %d %d %d %d\n",i,il,iu,j);
+      //printf("step1d part2a %g %g \n",Bxc[i],Bxb[i]);
       Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
-      
+      //Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
+      //printf("step1d part2\n");
 /*not needed used for computing field on face*/
 /*#ifdef MHD
       Bx = B1_x1[j][i];
@@ -805,7 +808,7 @@ size2=1+je+2*nghost-js;
 
 
 
-
+//printf("step2d\n");
 
 /*--- Step 2d ------------------------------------------------------------------
  * Compute 1D fluxes in x2-direction, storing into 3D array
@@ -1087,7 +1090,7 @@ size2=1+je+2*nghost-js;
     }
   }
  
-
+//printf("step12b\n");
 /*--- Step 12b -----------------------------------------------------------------
  * Update cell-centered variables in pG using 3D x2-Fluxes
  */
@@ -1116,7 +1119,7 @@ size2=1+je+2*nghost-js;
     }
   }
 
-
+printf("step12c\n");
 /*--- Step 12c -----------------------------------------------------------------
  * Update cell-centered variables in pG using 3D x3-Fluxes
  */
@@ -1132,13 +1135,16 @@ size2=1+je+2*nghost-js;
 for(dim=0; dim<2; dim++) //each direction
 {
 
-
+printf("step12c maxc\n");
 computemaxc(Uinit,pG,dim);
+printf("step12c viscr\n");
 hyperdifviscr(rho,dim,Uinit, pG);
+printf("step12c viscl\n");
 hyperdifviscl(rho,dim,Uinit, pG);
 //hyperdifvisc1ir
 //hyperdifvisc1il
 //int dim,Real dt,ConsS ***Uint, GridS *pG
+printf("step12c rhosource\n");
 hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
 }
 
@@ -1425,13 +1431,11 @@ void integrate_init_2d(MeshS *pM)
   if ((temp = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((grad = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
-  if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
-
   if ((Uc_x1= (Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS))) == NULL) goto on_error;
   if ((Uc_x2= (Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS))) == NULL) goto on_error;
 
 
-
+  if ((U1d= (Cons1DS*)malloc(nmax*sizeof(Cons1DS))) == NULL) goto on_error;
   if ((W  = (Prim1DS*)malloc(nmax*sizeof(Prim1DS))) == NULL) goto on_error;
 
   if ((x1Flux   =(Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS)))==NULL)
@@ -1439,8 +1443,7 @@ void integrate_init_2d(MeshS *pM)
   if ((x2Flux   =(Cons1DS**)calloc_2d_array(size2,size1,sizeof(Cons1DS)))==NULL)
     goto on_error;
 
-  if ((Uinit   =(ConsS***)calloc_3d_array(1,size2,size1,sizeof(ConsS)))
-    == NULL) goto on_error;
+  if ((Uinit   =(ConsS***)calloc_3d_array(1,size2,size1,sizeof(ConsS)))== NULL) goto on_error;
 
 #ifndef CYLINDRICAL
 #ifndef MHD
@@ -1496,13 +1499,12 @@ void integrate_destruct_2d(void)
 #endif *//* MHD */
 
   if (U1d      != NULL) free(U1d);
- /* if (Ul       != NULL) free(Ul);
-  if (Ur       != NULL) free(Ur);*/
 
   if (Uc_x1      != NULL) free(Uc_x1);
   if (Uc_x2      != NULL) free(Uc_x2);
 
-
+ /* if (Ul       != NULL) free(Ul);
+  if (Ur       != NULL) free(Ur);*/
   if (W        != NULL) free(W);
  /* if (Wl       != NULL) free(Wl);
   if (Wr       != NULL) free(Wr);*/
@@ -1718,13 +1720,13 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-
 	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-
 	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 
+
+        printf("viscr maxc %d %d %d\n",n3z,n2z,n1z);
         // TODO
         //getcmax();
         computemaxc(Uinit, pG, dim);
@@ -1735,6 +1737,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	//i3=ks;
         //i2=js;
 	//for (i1=il; i1<=iu; i1++)
+        printf("viscr after maxc\n");
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
@@ -1770,7 +1773,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 }
 
-
+printf("fields define\n");
 
 
   for (i3=kl; i3<ku; i3++) {
@@ -1800,6 +1803,8 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	}
 }
 }
+
+printf("temp1 tmpnu fields define\n");
 
         // TODO boundary terms 
 
@@ -1882,7 +1887,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 }
 
-
+printf("free memory \n");
 
         
 	if (wtemp1 != NULL) free(wtemp1);
@@ -1893,7 +1898,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	if (d3 != NULL) free(d3);
 	if (d1 != NULL) free(d1);
 
-
+printf("memory freed\n");
 	return;
 
 }
@@ -1955,9 +1960,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	wtemp1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-
 	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-
 	tmpnu = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	d1 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
@@ -2067,9 +2070,9 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
    /*to here*/
         maxt2=0.0;
         maxt1=0.0;
-  for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
+  for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju; i2++) {
+    	for (i1=il; i1<iu; i1++) {
 
            for(kss=-(dim==2); kss<=(dim==2); kss++)
            for(jss=-(dim==1); jss<=(dim==1); jss++)
@@ -2131,10 +2134,12 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
 	if (wtemp3 != NULL) free(wtemp3);
+	if (fieldd != NULL) free(fieldd);
+
 	if (tmpnu != NULL) free(tmpnu);
 	if (d3 != NULL) free(d3);
 	if (d1 != NULL) free(d1);
-	if (fieldd != NULL) free(fieldd);
+
 
 	return;
 
@@ -2145,7 +2150,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 
 
-static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
+static void hyperdifrhosource(int dim,Real dt,ConsS ***Uinit, GridS *pG)
 {
 	Real ***wtempr=NULL, ***wtempl=NULL, ***wtemp3=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
         Real maxt1,maxt2;
@@ -2163,7 +2168,241 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
         int iss,jss,kss;
 
 	int fieldi=rho;
-        Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2;
+        Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
+        /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
+
+	/* With particles, one more ghost cell must be updated in predict step */
+	#ifdef PARTICLES
+	  Real d1;
+	  il = is - 3;
+	  iu = ie + 3;
+	  jl = js - 3;
+	  ju = je + 3;
+	  kl = ks - 3;
+	  ku = ke + 3;
+	#else
+	  il = is - 2;
+	  iu = ie + 2;
+	  jl = js - 2;
+	  ju = je + 2;
+	  kl = ks - 2;
+	  ku = ke + 2;
+	#endif
+
+        kl=0;
+        ku=0;
+
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
+
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
+
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+switch(dim)
+{
+case 1:
+	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtempr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtempl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+break;
+case 2:
+	fieldd = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtempr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtempl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmp2 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+break;
+case 3:
+	fieldd = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtempr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtempl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmp2 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+break;
+
+}
+
+
+
+     //CALL setnu(w,rho_,idim,ixOmin1,ixOmin2,ixOmax1,ixOmax2,nuR,nuL)
+
+
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].d;
+					}
+				}
+			}
+
+//need gradient for different dimensions
+     //CALL gradient1L(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
+
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1l(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i1=il; i1<=iu; i1++) {
+			gradient1l(fieldd[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+				}
+			}
+break;
+
+case 3:
+ for (i1=il; i1<=iu; i1++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1l(fieldd[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+				}
+			}
+break;
+
+}
+      
+     
+
+/*nur=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];
+nul=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];*/
+
+     /*tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
+        ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
+        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2) */ 
+
+for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(pG->Hv[i3][i2][i1].hdnul[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+					}
+				}
+			}
+
+        //need gradient for different dimensions
+     //CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
+ 
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1r(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i1=il; i1<=iu; i1++) {
+			gradient1r(fieldd[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+				}
+			}
+break;
+
+case 3:
+ for (i1=il; i1<=iu; i1++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1r(fieldd[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+				}
+			}
+break;
+
+}
+
+
+
+
+
+
+
+     /*tmpR(ixImin1:ixImax1,ixImin2:ixImax2)=(nuR(ixImin1:ixImax1,&
+        ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
+        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*/
+for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]  =(pG->Hv[i3][i2][i1].hdnur[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+					}
+				}
+			}
+
+
+
+     /*wnew(ixImin1:ixImax1,ixImin2:ixImax2,rho_)=wnew(ixImin1:ixImax1,&
+        ixImin2:ixImax2,rho_)+(tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
+        -tmpL(ixImin1:ixImax1,ixImin2:ixImax2))/dx(ixImin1:ixImax1,&
+        ixImin2:ixImax2,idim)*qdt*/
+for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+     pG->U[i3][i2][i1].d  +=  (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+                   }
+	}
+	}
+
+
+	if (wtempr != NULL) free(wtempr);
+	if (wtempl != NULL) free(wtempl);
+	if (wtemp3 != NULL) free(wtemp3);
+	if (tmp != NULL) free(tmp);
+	if (tmp2 != NULL) free(tmp2);
+	if (fieldd != NULL) free(fieldd);
+
+
+
+	return;
+}
+
+
+static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
+{
+	Real ***wtempr=NULL, ***wtempl=NULL, ***wtemp3=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
+        Real maxt1,maxt2;
+	Real nur,nul;
+
+	int n1z,n2z,n3z;
+        int i,j,k;
+
+	int il,iu; 
+	int jl,ju; 
+	int kl,ku; 
+
+	int is,ie,js,je,ks,ke;
+
+        int i1,i2,i3;
+        int iss,jss,kss;
+
+	int fieldi=energy;
+        Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
+
+	is = pG->is, 
+	ie = pG->ie;
+	js = pG->js, 
+	je = pG->je;
+	ks = pG->ks, 
+	ke = pG->ke;
+
+
         /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
 
 	/* With particles, one more ghost cell must be updated in predict step */
@@ -2202,12 +2441,37 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 	else
 		n3z = 1;
 
+
+switch(dim)
+{
+case 1:
 	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtempr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtempl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	wtemp3 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+break;
+case 2:
+	fieldd = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtempr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtempl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmp2 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+break;
+case 3:
+	fieldd = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtempr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtempl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	wtemp3 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmp2 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+break;
+
+}
+
+
 
 
 
@@ -2217,65 +2481,149 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG)
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].d;
+			fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].E;
 					}
 				}
 			}
 
-     //CALL gradient1L(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
+
+
+    // tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,ixImin2:ixImax2,&
+   //     e_)-half*((w(ixImin1:ixImax1,ixImin2:ixImax2,b1_)**2&
+   //     +w(ixImin1:ixImax1,ixImin2:ixImax2,b2_)**2)+(w(ixImin1:ixImax1,&
+   //     ixImin2:ixImax2,m1_)**2+w(ixImin1:ixImax1,ixImin2:ixImax2,m2_)**2)&
+   //     /(w(ixImin1:ixImax1,ixImin2:ixImax2,rho_)+w(ixImin1:ixImax1,&
+   //     ixImin2:ixImax2,rhob_)))
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1l(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]= fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)] -((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)/2)+((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+  Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2 +  Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3 )/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db) ;
+
+
+
+					}
 				}
 			}
+
+
+     //   CALL gradient1L(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
+//need gradient for different dimensions
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1l(tmp[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i1=il; i1<=iu; i1++) {
+			gradient1l(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+				}
+			}
+break;
+
+case 3:
+ for (i1=il; i1<=iu; i1++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1l(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+				}
+			}
+break;
+
+}
+
+
+
+
       
-     
+ 
+  //   tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
+  //      ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
+  //      *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)
+for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(pG->Hv[i3][i2][i1].hdnul[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+					}
+				}
+			}        
+
+
+
+    //CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
+//need gradient for different dimensions
+
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1r(tmp[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i1=il; i1<=iu; i1++) {
+			gradient1r(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+				}
+			}
+break;
+
+case 3:
+ for (i1=il; i1<=iu; i1++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1r(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+				}
+			}
+break;
+
+}
+
+
+
+
+
+
+    // tmpR(ixImin1:ixImax1,ixImin2:ixImax2)=(nuR(ixImin1:ixImax1,&
+    //    ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
+    //    *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)
+for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(pG->Hv[i3][i2][i1].hdnur[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+					}
+				}
+			} 
+
+
+
+
+
+
+
 
 /*nur=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];
 nul=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];*/
 
-     /*tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
-        ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
-        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2) */ 
-
+    // wnew(ixImin1:ixImax1,ixImin2:ixImax2,e_)=wnew(ixImin1:ixImax1,&
+    //    ixImin2:ixImax2,e_)+(tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
+    //    -tmpL(ixImin1:ixImax1,ixImin2:ixImax2))/dx(ixImin1:ixImax1,&
+    //    ixImin2:ixImax2,idim)*qdt
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			wtempl[i3][i2][i1]=(pG->Hv[i3][i2][i1].hdnul[dim][fieldi])*tmp2[i3][i2][i1];
-					}
-				}
-			}
-
-        
-     //CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-			gradient1r(fieldd[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
-				}
-			}
-
-
-
-
-     /*tmpR(ixImin1:ixImax1,ixImin2:ixImax2)=(nuR(ixImin1:ixImax1,&
-        ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
-        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*/
-for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			wtempr[i3][i2][i1]  =(pG->Hv[i3][i2][i1].hdnur[dim][fieldi])*tmp2[i3][i2][i1];
-					}
-				}
-			}
-
-
-
-     /*wnew(ixImin1:ixImax1,ixImin2:ixImax2,rho_)=wnew(ixImin1:ixImax1,&
-        ixImin2:ixImax2,rho_)+(tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
-        -tmpL(ixImin1:ixImax1,ixImin2:ixImax2))/dx(ixImin1:ixImax1,&
-        ixImin2:ixImax2,idim)*qdt*/
-
-     pG->U[ks][j][i].d  += dtodx1*(wtempr-wtempl);
+     pG->U[k][j][i].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+	}
+	}
+	}
 
 
 	if (wtempr != NULL) free(wtempr);
@@ -2288,22 +2636,17 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 	return;
+
 }
 
-/*
-static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
-{
-
-	return;
-}
-
- 
+/* 
 static void hyperdifmomsource(int field,int dim,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG)
 {
 
 	return;
 }
-
+*/
+/*
 
 static void hyperdifmomsourcene(int field,int dim,int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
 {
