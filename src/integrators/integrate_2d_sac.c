@@ -2659,7 +2659,7 @@ int dim=ii;
 int fieldi=ii0;
 
 
-	Real ***wtmprhor=NULL, ***wtmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
+	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
         Real maxt1,maxt2;
 	Real nur,nul;
 
@@ -2729,17 +2729,17 @@ int fieldi=ii0;
 		n3z = 1;
 
 
-	Real ***wtmprhor=NULL, ***wtmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
+	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
 
 
 switch(dim)
 {
 case 1:
 	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
@@ -2747,10 +2747,10 @@ case 1:
 break;
 case 2:
 	fieldd = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
@@ -2758,10 +2758,10 @@ case 2:
 break;
 case 3:
 	fieldd = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
@@ -2815,7 +2815,7 @@ break;
     for (i2=(jl+(dim==2)); i2<=ju; i2++) {
     	for (i1=(il+(dim==1)); i1<=iu; i1++) {
 
-			wtmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].d+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].db)
+			tmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].d+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].db)
 					}
 				}
 			}
@@ -2827,7 +2827,7 @@ break;
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
-			wtmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].d+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].db)
+			tmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].d+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].db)
 					}
 				}
 			}
@@ -2910,7 +2910,7 @@ break;
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			wtmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
 
 					}
 				}
@@ -2957,7 +2957,7 @@ break;
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			wtmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
+			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
 
 					}
 				}
@@ -2972,7 +2972,7 @@ for (i3=kl; i3<=ku; i3++) {
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*wtmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*wtmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
+			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
 
 					}
 				}
@@ -3021,7 +3021,7 @@ break;
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*wtmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*wtmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
+			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
 
 					}
 				}
@@ -3046,8 +3046,8 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 
-	if (wtmprhor != NULL) free(wtmprhor);
-	if (wtmprhol != NULL) free(wtmprhol);
+	if (tmprhor != NULL) free(tmprhor);
+	if (tmprhol != NULL) free(tmprhol);
 	if (tmpvr != NULL) free(tmpvr);
 	if (tmpvl != NULL) free(tmpvl);
 	if (tmpr != NULL) free(tmpr);
@@ -3078,7 +3078,7 @@ int dim=ii;
 int fieldi=ii0;
 
 
-	Real ***wtmprhor=NULL, ***wtmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
+	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
         Real maxt1,maxt2;
 	Real nur,nul;
 
@@ -3148,17 +3148,18 @@ int fieldi=ii0;
 		n3z = 1;
 
 
-	Real ***wtmprhor=NULL, ***wtmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
+	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmpc=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
 
 
 switch(dim)
 {
 case 1:
 	fieldd = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmpc = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
@@ -3166,10 +3167,11 @@ case 1:
 break;
 case 2:
 	fieldd = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmpc = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
@@ -3177,10 +3179,11 @@ case 2:
 break;
 case 3:
 	fieldd = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	wtmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmpc = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	tmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpvr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpvl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
@@ -3241,12 +3244,26 @@ break;
 
  /* tmprhoC(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,ixImin2:ixImax2,&
      rho_)+w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_)*/
+for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
+    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
+    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
+			tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+					}
+				}
+			}
 
        /* tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,&
            ixImin2:ixImax2,m0_+l)/(w(ixImin1:ixImax1,ixImin2:ixImax2,rho_)&
            +w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_))*/
+for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
+    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
+    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
+			tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+					}
+				}
+			}
 
 
             /*  tmpVL(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,&
@@ -3298,12 +3315,13 @@ break;
                  ixImin2:ixImax2,e_)+tmpC(ixImin1:ixImax1,ixImin2:ixImax2)*qdt*/
 
 
-	if (wtmprhor != NULL) free(wtmprhor);
-	if (wtmprhol != NULL) free(wtmprhol);
+	if (tmprhor != NULL) free(tmprhor);
+	if (tmprhol != NULL) free(tmprhol);
 	if (tmpvr != NULL) free(tmpvr);
 	if (tmpvl != NULL) free(tmpvl);
 	if (tmpr != NULL) free(tmpr);
 	if (tmpl != NULL) free(tmpl);
+	if (tmpc != NULL) free(tmpc);
 	if (tmp != NULL) free(tmp);
 	if (tmp2 != NULL) free(tmp2);
 	if (fieldd != NULL) free(fieldd);
