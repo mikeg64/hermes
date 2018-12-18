@@ -145,24 +145,6 @@ enum {
 #ifndef MAX
 #define MAX(a,b) ( ((a) > (b)) ? (a) : (b) )
 #endif
-
-
-/* macros used to set indices for 3D arrays used for gradient computations
-   in the SAC hyperdiffusion source terms  */
-#ifndef AIN3
- #define AIN3(i1,i2,i3,dim) (i3*(dim==1 || dim==2)+i1*(dim==3))
-#endif
-
-#ifndef AIN2
- #define AIN2(i1,i2,i3,dim) (i2*(dim==1  || dim==3)+i1*(dim==2))
-#endif
-
-#ifndef AIN1
- #define AIN1(i1,i2,i3,dim) (i1*(dim==1)+i2*(dim==2)+i3*(dim==3))
-#endif
-
-
-
 #define SIGN(a) ( ((a) < 0.) ? -1. : 1. )
 #define SQR(x) ( (x)*(x) )
 #define STR(x) #x
