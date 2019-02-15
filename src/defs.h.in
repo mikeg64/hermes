@@ -157,6 +157,23 @@ enum {
 #define TINY_NUMBER 1.0e-20
 #define HUGE_NUMBER 1.0e+20
 
+
+
+/* macros used to set indices for 3D arrays used for gradient computations
+   in the SAC hyperdiffusion source terms  */
+#ifndef AIN3
+ #define AIN3(i1,i2,i3,dim) (i3*(dim==1 || dim==2)+i1*(dim==3))
+#endif
+
+#ifndef AIN2
+ #define AIN2(i1,i2,i3,dim) (i2*(dim==1  || dim==3)+i1*(dim==2))
+#endif
+
+#ifndef AIN1
+ #define AIN1(i1,i2,i3,dim) (i1*(dim==1)+i2*(dim==2)+i3*(dim==3))
+#endif
+
+
 /*----------------------------------------------------------------------------*/
 /* computed macros based on above choices (never modified) */
 
