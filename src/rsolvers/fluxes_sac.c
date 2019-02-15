@@ -5,7 +5,7 @@
  *
  *
  *
- * CONTAINS PUBLIC FUNCTIONS: 
+ * CONTAINS PUBLIC FUNCTIONS:
  * - fluxes() - all Riemann solvers in Athena must have this function name and
  *              use the same argument list as defined in rsolvers/prototypes.h
  */
@@ -62,12 +62,12 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 //#ifdef BKG
   W = Cons1D_to_Prim1D(&Ul,&Bxi, &Bxib);
 //#else
-//  pbl = Cons1D_to_Prim1D(&Ul,&Wl,&Bxi);
+//  pbl = Cons1D_to_Prim1D(&Ul,&Wl,&Bxi); //pbl is background energy
 //#endif
 
 
 /*--- Step 2. ------------------------------------------------------------------
- * Compute L fluxes 
+ * Compute L fluxes
  */
 
 
@@ -80,8 +80,10 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
   Fc.Mx += (Wl.d+Wl.db)*Iso_csound2;
 #else
   Fc.Mx += Wl.P;
-  Fc.E  = (Ul.E + Ul.Eb+ Wl.P)*Wl.Vx;
+  //Fc.E  = (Ul.E + Ul.Eb+ Wl.P)*Wl.Vx;
+  Fc.E  = (Ul.Eb+ Wl.P)*Wl.Vx;
 #endif /* ISOTHERMAL */
+
 
 #ifdef MHD
   //Fc.Mx += 0.5*(Bxi*Bxi + SQR(Wl.By) + SQR(Wl.Bz))+(Bxi*Bxib+Wl.By*Wl.Byb+Wl.Bz*Wl.Bzb);/*thermal pressure plus mag pressure time*/
@@ -93,7 +95,7 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
   Fc.My -= (Wl.By*Bxib+Bxi*Wl.Byb+Wl.By*Bxi);
 
   //Fc.Mz -= (Wl.Bz*Bxib+Wl.Bz*Wl.Byb+Bxi*Wl.Bzb+Wl.By*Wl.Bzb )-(Wl.Bz*Bxi+Wl.Bz*Wl.By);
-  Fc.Mz -= (Wl.Bz*Bxib+Bxi*Wl.Byb+Wl.By*Bxi );
+  Fc.Mz -= (Wl.Bz*Bxib+Bxi*Wl.Bzb+Wl.Bz*Bxi );
 
 
 #ifndef ISOTHERMAL
@@ -101,10 +103,10 @@ void fluxes(const Cons1DS Ul, const Cons1DS Ur,
 #endif /* ISOTHERMAL */
 
   /*Fc.By = Wl.By*Wl.Vx - Bxi*Wl.Vy;
-  Fc.Bz = Wl.Bz*Wl.Vx - Bxi*Wl.Vz;*/
+  Fc.Bx = Wl.Bxib*Wl.Vx - Bxi*Wl.Vx;*/
 
-  Fc.By = Wl.Vx*(Wl.By+Wl.Byb)-Wl.Vy*(Bxi+Bxib)+Wl.Vx*Wl.Byb;
-  Fc.Bz = Wl.Vx*(Wl.Bz+Wl.Bzb)-Wl.Vz*(Bxi+Bxib)+Wl.Vx*Wl.Bzb;
+  Fc.By = Wl.Vx*(Wl.Byb)-Wl.Vy*(Bxi+Bxib);
+  Fc.Bz = Wl.Vx*(Wl.Bzb)-Wl.Vz*(Bxi+Bxib);
 
 
 #endif /* MHD */

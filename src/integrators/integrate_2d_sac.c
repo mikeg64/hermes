@@ -1,7 +1,7 @@
 #include "../copyright.h"
 /*============================================================================*/
 /*! \file integrate_2d_sac.c
- *  \Compute fluxes using sac . 
+ *  \Compute fluxes using sac .
  *
  * PURPOSE: Integrate MHD equations using 3D version of the directionally
  *   .  The variables updated are:
@@ -10,16 +10,16 @@
  *   Also adds gravitational source terms.
  *   - For adb hydro, requires (9*ConsS +  3*Real) = 48 3D arrays
  *   - For adb mhd, requires   (9*ConsS + 10*Real) = 73 3D arrays
- *   
+ *
  *  Source terms added are hyperdiffusion terms
  *
  * REFERENCES:
  * - Magnetohydrodynamic code for gravitationally-stratified media : SAC
- *   Shelyag et al 
+ *   Shelyag et al
  *   http://adsabs.harvard.edu/abs/2008A%26A...486..655S
  *
  *
- * CONTAINS PUBLIC FUNCTIONS: 
+ * CONTAINS PUBLIC FUNCTIONS:
  * - integrate_2d_sac()
  * - integrate_init_2d()
  * - integrate_destruct_2d() */
@@ -101,7 +101,7 @@ static Real **geom_src=NULL;
 /*following not needed for sac*/
 
 /*==============================================================================
- * PRIVATE FUNCTION PROTOTYPES: 
+ * PRIVATE FUNCTION PROTOTYPES:
  *   integrate_emf1_corner() - the upwind CT method in GS05, for emf1
  *   integrate_emf2_corner() - the upwind CT method in GS05, for emf2
  *   integrate_emf3_corner() - the upwind CT method in GS05, for emf3
@@ -113,7 +113,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uint, GridS *pG);
 static void hyperdifviscl(int fieldi,int dim,ConsS ***Uint, GridS *pG);
 
 static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG);
-static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG); 
+static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsource(int k,int l, int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsourcene(int k,int l, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
@@ -139,7 +139,7 @@ static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real dt, ConsS ***Uint
 
 void integrate_2d_sac(DomainS *pD)
 {
-  
+
   GridS *pG=(pD->Grid);
   Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2;
   Real hdtodx1 = 0.5*dtodx1, hdtodx2 = 0.5*dtodx2;
@@ -250,7 +250,7 @@ size2=1+je+2*nghost-js;
 
 
     int k=0;
-  
+
     for (j=jl; j<=ju; j++) {
       for (i=il; i<=iu; i++) {
 
@@ -273,13 +273,13 @@ size2=1+je+2*nghost-js;
 
 #ifdef SAC_INTEGRATOR
         Uinit[k][j][i].db  = pG->U[k][j][i].db;
-        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;
         Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
         Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
 #endif
 #ifdef SMAUG_INTEGRATOR
         Uinit[k][j][i].db  = pG->U[k][j][i].db;
-        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;        
+        Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;
         Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
         Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
 #endif
@@ -318,9 +318,9 @@ size2=1+je+2*nghost-js;
       U1d[i].Bz = pG->U[ks][j][i].B3c;
 
       Bxc[i] = pG->U[ks][j][i].B1c;
-      Bxb[i] = pG->U[ks][j][i].B1cb;
-      
-      //B1_x1[j][i] = pG->B1i[ks][j][i]; 
+      //Bxb[i] = pG->U[ks][j][i].B1cb;
+
+      //B1_x1[j][i] = pG->B1i[ks][j][i];
 #endif /* MHD */
 
 
@@ -370,7 +370,7 @@ size2=1+je+2*nghost-js;
       /* Calculate the cell-centered geometric source vector now using U^{n}
       * This will be used at the end of the integration step as a source term
       * for the cell-centered conserved variables (steps 6D,8B) */
-#ifdef CYLINDRICAL 
+#ifdef CYLINDRICAL
       geom_src[j][i]  = (W[i].d+W[i].db)*SQR(W[i].Vy);   /*to here add background terms for B fields*/
 #ifdef MHD
       geom_src[j][i] += 0.5*(SQR(Bxc[i]+Bxb[i]) - SQR(W[i].By+W[i].Byb) + SQR(W[i].Bz+W[i].Bzb));
@@ -563,7 +563,7 @@ size2=1+je+2*nghost-js;
 #endif
 
 /*--- Step 1c (cont) -----------------------------------------------------------
- * Add source terms for Rotating Frame (Coriolis forces + Centrifugal force from 
+ * Add source terms for Rotating Frame (Coriolis forces + Centrifugal force from
  * Center of Mass) for 0.5*dt to L/R states
  *    Vx source term = (dt/2)*( 2 Omega_0 Vy)
  *    Vy source term = (dt/2)*(-2 Omega_0 Vx)
@@ -747,7 +747,7 @@ size2=1+je+2*nghost-js;
           //phifc = (*StaticGravPot)(x1,(x2-0.5*pG->dx2),x3);
 
           W[j].Vx -= dtodx2*(phicr - phicl);
-          
+
         }
       }
 
@@ -819,7 +819,7 @@ size2=1+je+2*nghost-js;
 
     for (j=jl+1; j<=ju; j++) {
       Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],&Bxc[j],&Bxb[j]);
-      
+
 /*#ifdef MHD
       Bx = B2_x2[j][i];
       Bxb=0.0;//?????????????????????????
@@ -850,7 +850,7 @@ size2=1+je+2*nghost-js;
 
 /*--- Step 5a ------------------------------------------------------------------
  * Correct x1-interface states using x2-fluxes computed in Step 2d.
- * Since the fluxes come from an x2-sweep, (x,y,z) on RHS -> (z,x,y) on LHS 
+ * Since the fluxes come from an x2-sweep, (x,y,z) on RHS -> (z,x,y) on LHS
  */
 
 
@@ -959,7 +959,7 @@ size2=1+je+2*nghost-js;
 
 /*--- Step 6b ------------------------------------------------------------------
  * Correct x2-interface states using x3-fluxes computed in Step 3d.
- * Since the fluxes come from an x3-sweep, (x,y,z) on RHS -> (z,x,y) on LHS 
+ * Since the fluxes come from an x3-sweep, (x,y,z) on RHS -> (z,x,y) on LHS
  */
 
 
@@ -984,13 +984,13 @@ size2=1+je+2*nghost-js;
 
 /*--- Step 7a ------------------------------------------------------------------
  * Correct x3-interface states using x1-fluxes computed in Step 1d.
- * Since the fluxes come from an x1-sweep, (x,y,z) on RHS -> (z,x,y) on LHS 
+ * Since the fluxes come from an x1-sweep, (x,y,z) on RHS -> (z,x,y) on LHS
  */
 
 
 /*--- Step 7b ------------------------------------------------------------------
  * Correct x3-interface states using x2-fluxes computed in Step 2d.
- * Since the fluxes come from an x2-sweep, (x,y,z) on RHS -> (y,z,x) on LHS 
+ * Since the fluxes come from an x2-sweep, (x,y,z) on RHS -> (y,z,x) on LHS
  */
 
 
@@ -1041,7 +1041,7 @@ size2=1+je+2*nghost-js;
  * Compute 3D x3-fluxes from corrected L/R states.
  */
 
- 
+
 
 /*=== STEP 10: Update face-centered B for a full timestep ====================*/
 
@@ -1087,12 +1087,12 @@ size2=1+je+2*nghost-js;
 #endif /* MHD */
 #if (NSCALARS > 0)
       for (n=0; n<NSCALARS; n++)
-        pG->U[ks][j][i].s[n] -= dtodx1*(rsf*x1Flux[j][i+1].s[n] 
+        pG->U[ks][j][i].s[n] -= dtodx1*(rsf*x1Flux[j][i+1].s[n]
                                       - lsf*x1Flux[j][i  ].s[n]);
 #endif
     }
   }
- 
+
 //printf("step12b\n");
 /*--- Step 12b -----------------------------------------------------------------
  * Update cell-centered variables in pG using 3D x2-Fluxes
@@ -1116,7 +1116,7 @@ size2=1+je+2*nghost-js;
 #endif /* MHD */
 #if (NSCALARS > 0)
       for (n=0; n<NSCALARS; n++)
-        pG->U[ks][j][i].s[n] -= dtodx2*(x2Flux[j+1][i].s[n] 
+        pG->U[ks][j][i].s[n] -= dtodx2*(x2Flux[j+1][i].s[n]
                                          - x2Flux[j  ][i].s[n]);
 #endif
     }
@@ -1156,7 +1156,7 @@ for(dim=0; dim<2; dim++) //each direction
 {
 //hyperdifvisc1ir
 //hyperdifvisc1il
-//hyperdifesource1 
+//hyperdifesource1
 
 
 computemaxc(Uinit,pG,dim);
@@ -1179,7 +1179,7 @@ for( fieldi=0; fieldi<2; fieldi++)          //l
 //hyperdifvisc1il
 //hyperdifesource1
 hyperdifviscr(fieldi,dim,Uinit, pG);
-hyperdifviscl(fieldi,dim,Uinit, pG); 
+hyperdifviscl(fieldi,dim,Uinit, pG);
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
@@ -1209,7 +1209,7 @@ for(dim=0; dim<2; dim++) //each direction
 {
 //hyperdifvisc1ir
 //hyperdifvisc1il
- 
+
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
@@ -1254,21 +1254,21 @@ for(dim=0; dim<2; dim++) //each direction
         jce = pG->CGrid[ncg].ijke[1];
 
         for (j=jcs, jj=0; j<=jce; j++, jj++){
-          pG->CGrid[ncg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d; 
-          pG->CGrid[ncg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx; 
+          pG->CGrid[ncg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d;
+          pG->CGrid[ncg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx;
           pG->CGrid[ncg].myFlx[dim][ks][jj].M2 = x1Flux[j][i].My;
-          pG->CGrid[ncg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz; 
+          pG->CGrid[ncg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz;
 #ifndef BAROTROPIC
-          pG->CGrid[ncg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E; 
+          pG->CGrid[ncg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E;
 #endif /* BAROTROPIC */
 #ifdef MHD
           pG->CGrid[ncg].myFlx[dim][ks][jj].B1c = 0.0;
-          pG->CGrid[ncg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By; 
-          pG->CGrid[ncg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz; 
+          pG->CGrid[ncg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By;
+          pG->CGrid[ncg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz;
 #endif /* MHD */
 #if (NSCALARS > 0)
           for (n=0; n<NSCALARS; n++)
-            pG->CGrid[ncg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
+            pG->CGrid[ncg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n];
 #endif
         }
 //#ifdef MHD
@@ -1290,21 +1290,21 @@ for(dim=0; dim<2; dim++) //each direction
         if (dim==3) j = pG->CGrid[ncg].ijke[1] + 1;
 
         for (i=ics, ii=0; i<=ice; i++, ii++){
-          pG->CGrid[ncg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d; 
-          pG->CGrid[ncg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz; 
+          pG->CGrid[ncg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d;
+          pG->CGrid[ncg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz;
           pG->CGrid[ncg].myFlx[dim][ks][ii].M2 = x2Flux[j][i].Mx;
-          pG->CGrid[ncg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My; 
+          pG->CGrid[ncg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My;
 #ifndef BAROTROPIC
-          pG->CGrid[ncg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E; 
+          pG->CGrid[ncg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E;
 #endif /* BAROTROPIC */
 #ifdef MHD
-          pG->CGrid[ncg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz; 
+          pG->CGrid[ncg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz;
           pG->CGrid[ncg].myFlx[dim][ks][ii].B2c = 0.0;
-          pG->CGrid[ncg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By; 
+          pG->CGrid[ncg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By;
 #endif /* MHD */
 #if (NSCALARS > 0)
           for (n=0; n<NSCALARS; n++)
-            pG->CGrid[ncg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
+            pG->CGrid[ncg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n];
 #endif
         }
 //#ifdef MHD
@@ -1329,21 +1329,21 @@ for(dim=0; dim<2; dim++) //each direction
         jpe = pG->PGrid[npg].ijke[1];
 
         for (j=jps, jj=0; j<=jpe; j++, jj++){
-          pG->PGrid[npg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d; 
-          pG->PGrid[npg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx; 
+          pG->PGrid[npg].myFlx[dim][ks][jj].d  = x1Flux[j][i].d;
+          pG->PGrid[npg].myFlx[dim][ks][jj].M1 = x1Flux[j][i].Mx;
           pG->PGrid[npg].myFlx[dim][ks][jj].M2 = x1Flux[j][i].My;
-          pG->PGrid[npg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz; 
+          pG->PGrid[npg].myFlx[dim][ks][jj].M3 = x1Flux[j][i].Mz;
 #ifndef BAROTROPIC
-          pG->PGrid[npg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E; 
+          pG->PGrid[npg].myFlx[dim][ks][jj].E  = x1Flux[j][i].E;
 #endif /* BAROTROPIC */
 #ifdef MHD
           pG->PGrid[npg].myFlx[dim][ks][jj].B1c = 0.0;
-          pG->PGrid[npg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By; 
-          pG->PGrid[npg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz; 
+          pG->PGrid[npg].myFlx[dim][ks][jj].B2c = x1Flux[j][i].By;
+          pG->PGrid[npg].myFlx[dim][ks][jj].B3c = x1Flux[j][i].Bz;
 #endif /* MHD */
 #if (NSCALARS > 0)
           for (n=0; n<NSCALARS; n++)
-            pG->PGrid[npg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n]; 
+            pG->PGrid[npg].myFlx[dim][ks][jj].s[n]  = x1Flux[j][i].s[n];
 #endif
         }
 //#ifdef MHD
@@ -1365,21 +1365,21 @@ for(dim=0; dim<2; dim++) //each direction
         if (dim==3) j = pG->PGrid[npg].ijke[1] + 1;
 
         for (i=ips, ii=0; i<=ipe; i++, ii++){
-          pG->PGrid[npg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d; 
-          pG->PGrid[npg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz; 
+          pG->PGrid[npg].myFlx[dim][ks][ii].d  = x2Flux[j][i].d;
+          pG->PGrid[npg].myFlx[dim][ks][ii].M1 = x2Flux[j][i].Mz;
           pG->PGrid[npg].myFlx[dim][ks][ii].M2 = x2Flux[j][i].Mx;
-          pG->PGrid[npg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My; 
+          pG->PGrid[npg].myFlx[dim][ks][ii].M3 = x2Flux[j][i].My;
 #ifndef BAROTROPIC
-          pG->PGrid[npg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E; 
+          pG->PGrid[npg].myFlx[dim][ks][ii].E  = x2Flux[j][i].E;
 #endif /* BAROTROPIC */
 #ifdef MHD
-          pG->PGrid[npg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz; 
+          pG->PGrid[npg].myFlx[dim][ks][ii].B1c = x2Flux[j][i].Bz;
           pG->PGrid[npg].myFlx[dim][ks][ii].B2c = 0.0;
-          pG->PGrid[npg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By; 
+          pG->PGrid[npg].myFlx[dim][ks][ii].B3c = x2Flux[j][i].By;
 #endif /* MHD */
 #if (NSCALARS > 0)
           for (n=0; n<NSCALARS; n++)
-            pG->PGrid[npg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n]; 
+            pG->PGrid[npg].myFlx[dim][ks][ii].s[n]  = x2Flux[j][i].s[n];
 #endif
         }
 //#ifdef MHD
@@ -1415,7 +1415,7 @@ for(dim=0; dim<2; dim++) //each direction
 
 /*----------------------------------------------------------------------------*/
 /*! \fn void integrate_init_2d(MeshS *pM)
- *  \brief Allocate temporary integration arrays 
+ *  \brief Allocate temporary integration arrays
 */
 void integrate_init_2d(MeshS *pM)
 {
@@ -1437,7 +1437,7 @@ void integrate_init_2d(MeshS *pM)
 
   size1 = size1 + 2*nghost;
   size2 = size2 + 2*nghost;
- 
+
   nmax = MAX(size1,size2);
 
 /*refer to material  integrate_2d_ctu.c*/
@@ -1477,7 +1477,7 @@ void integrate_init_2d(MeshS *pM)
 
   /* data structures for cylindrical coordinates */
 #ifdef CYLINDRICAL
-  if ((geom_src = (Real**)calloc_2d_array(size2, size1, sizeof(Real))) == NULL) 
+  if ((geom_src = (Real**)calloc_2d_array(size2, size1, sizeof(Real))) == NULL)
     goto on_error;
 #endif
 
@@ -1492,7 +1492,7 @@ void integrate_init_2d(MeshS *pM)
 
 /*----------------------------------------------------------------------------*/
 /*! \fn void integrate_destruct_2d(void)
- *  \brief Free temporary integration arrays 
+ *  \brief Free temporary integration arrays
  */
 void integrate_destruct_2d(void)
 {
@@ -1554,13 +1554,13 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 
 	/* Calculate cmax_idim=cfast_i+abs(v_idim) within ix^L
 	! where cfast_i=sqrt(0.5*(cf**2+sqrt(cf**4-4*cs**2*b_i**2/rho)))
-	! and cf**2=b**2/rho+cs**2/rho is the square of the speed of the fast wave 
+	! and cf**2=b**2/rho+cs**2/rho is the square of the speed of the fast wave
 	! perpendicular to the magnetic field, and cs is the sound speed.*/
 
 	int il,iu, is = pG->is, ie = pG->ie;
 	int jl,ju, js = pG->js, je = pG->je;
 	int kl,ku, ks = pG->ks, ke = pG->ke;
- 
+
         int i1,i2,i3,n1z,n2z,n3z;
         int iss,jss,kss;
 
@@ -1608,7 +1608,7 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 
         // TODO
         //getcmax();
-	
+
 
 
 	//for(i1=0;i1<n1z;i1++)
@@ -1803,7 +1803,7 @@ printf("fields define\n");
 
 	       if(fieldi==energy)
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
-	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));       
+	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
 	       else
 	       {
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
@@ -1822,7 +1822,7 @@ printf("fields define\n");
 
 printf("temp1 tmpnu fields define\n");
 
-        // TODO boundary terms 
+        // TODO boundary terms
 
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
@@ -1905,7 +1905,7 @@ printf("temp1 tmpnu fields define\n");
 
 printf("free memory \n");
 
-        
+
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
 	if (wtemp3 != NULL) free(wtemp3);
@@ -2040,7 +2040,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 	       if(fieldi==energy)
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
-	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));       
+	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
 	       else
 	       {
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
@@ -2057,10 +2057,10 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 }
 }
 
-	  
 
 
-        // TODO boundary terms 
+
+        // TODO boundary terms
 
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
@@ -2073,7 +2073,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 
 
-      
+
 
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
@@ -2146,7 +2146,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 
 
-        
+
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
 	if (wtemp3 != NULL) free(wtemp3);
@@ -2295,15 +2295,15 @@ case 3:
 break;
 
 }
-      
-     
+
+
 
 /*nur=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];
 nul=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];*/
 
      /*tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
         ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
-        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2) */ 
+        *tmp2(ixImin1:ixImax1,ixImin2:ixImax2) */
 
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
@@ -2315,7 +2315,7 @@ for (i3=kl; i3<=ku; i3++) {
 
         //need gradient for different dimensions
      //CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,idim,tmp2)
- 
+
 switch(dim)
 {
 
@@ -2399,9 +2399,9 @@ static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int il,iu; 
-	int jl,ju; 
-	int kl,ku; 
+	int il,iu;
+	int jl,ju;
+	int kl,ku;
 
 	int is,ie,js,je,ks,ke;
 
@@ -2411,11 +2411,11 @@ static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 	int fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
-	is = pG->is, 
+	is = pG->is,
 	ie = pG->ie;
-	js = pG->js, 
+	js = pG->js,
 	je = pG->je;
-	ks = pG->ks, 
+	ks = pG->ks,
 	ke = pG->ke;
 
 
@@ -2556,8 +2556,8 @@ break;
 
 
 
-      
- 
+
+
   //   tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
   //      ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,idim))&
   //      *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)
@@ -2567,7 +2567,7 @@ for (i3=kl; i3<=ku; i3++) {
 			wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(pG->Hv[i3][i2][i1].hdnul[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
 					}
 				}
-			}        
+			}
 
 
 
@@ -2617,7 +2617,7 @@ for (i3=kl; i3<=ku; i3++) {
 			wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(pG->Hv[i3][i2][i1].hdnur[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
 					}
 				}
-			} 
+			}
 
 
 
@@ -2655,7 +2655,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 }
 
- 
+
 static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG)
 {
 
@@ -2674,9 +2674,9 @@ int fieldi=ii0;
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int il,iu; 
-	int jl,ju; 
-	int kl,ku; 
+	int il,iu;
+	int jl,ju;
+	int kl,ku;
 
 	int is,ie,js,je,ks,ke;
 
@@ -2686,11 +2686,11 @@ int fieldi=ii0;
 	//fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
-	is = pG->is, 
+	is = pG->is,
 	ie = pG->ie;
-	js = pG->js, 
+	js = pG->js,
 	je = pG->je;
-	ks = pG->ks, 
+	ks = pG->ks,
 	ke = pG->ke;
         Real dx;
 
@@ -3142,9 +3142,9 @@ int fieldi=ii0;
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int il,iu; 
-	int jl,ju; 
-	int kl,ku; 
+	int il,iu;
+	int jl,ju;
+	int kl,ku;
 
 	int is,ie,js,je,ks,ke;
 
@@ -3154,11 +3154,11 @@ int fieldi=ii0;
 	//int fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
-	is = pG->is, 
+	is = pG->is,
 	ie = pG->ie;
-	js = pG->js, 
+	js = pG->js,
 	je = pG->je;
-	ks = pG->ks, 
+	ks = pG->ks,
 	ke = pG->ke;
         Real dx;
 
@@ -3337,7 +3337,7 @@ break;
 
 
 
-   
+
 
 
  /* tmprhoC(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,ixImin2:ixImax2,&
@@ -3403,7 +3403,7 @@ for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
 
 
               /*CALL gradient1(tmp,ixmin1,ixmin2,ixmax1,ixmax2,k,tmp2)*/
- 
+
 switch(dim)
 {
 
@@ -3432,7 +3432,7 @@ case 3:
 break;
 
 }
-             
+
 
 		/*tmp2(ixImin1:ixImax1,ixImin2:ixImax2)=tmp2(ixImin1:ixImax1,&
                  ixImin2:ixImax2)*(nuL(ixImin1:ixImax1,ixImin2:ixImax2)&
@@ -3490,7 +3490,7 @@ case 3:
 break;
 
 }
-            
+
 
 		/*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
                  =wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
@@ -3530,7 +3530,7 @@ break;
                  ixImin2:ixImax2,m0_+ii0)*tmp2(ixImin1:ixImax1,&
                  ixImin2:ixImax2)*/
 
-             
+
 for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
@@ -3626,9 +3626,9 @@ int fieldi=ii0;
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int il,iu; 
-	int jl,ju; 
-	int kl,ku; 
+	int il,iu;
+	int jl,ju;
+	int kl,ku;
 
 	int is,ie,js,je,ks,ke;
 
@@ -3638,11 +3638,11 @@ int fieldi=ii0;
 	//fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
-	is = pG->is, 
+	is = pG->is,
 	ie = pG->ie;
-	js = pG->js, 
+	js = pG->js,
 	je = pG->je;
-	ks = pG->ks, 
+	ks = pG->ks,
 	ke = pG->ke;
         Real dx;
 
@@ -4103,9 +4103,9 @@ int fieldi=ii0;
 	int n1z,n2z,n3z;
         int i,j,k;
 
-	int il,iu; 
-	int jl,ju; 
-	int kl,ku; 
+	int il,iu;
+	int jl,ju;
+	int kl,ku;
 
 	int is,ie,js,je,ks,ke;
 
@@ -4115,11 +4115,11 @@ int fieldi=ii0;
 	//int fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
-	is = pG->is, 
+	is = pG->is,
 	ie = pG->ie;
-	js = pG->js, 
+	js = pG->js,
 	je = pG->je;
-	ks = pG->ks, 
+	ks = pG->ks,
 	ke = pG->ke;
         Real dx;
 
@@ -4298,7 +4298,7 @@ break;
 
 
 
-   
+
 
 
  /* tmprhoC(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,ixImin2:ixImax2,&
@@ -4364,7 +4364,7 @@ for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
 
 
               /*CALL gradient1(tmp,ixmin1,ixmin2,ixmax1,ixmax2,k,tmp2)*/
- 
+
 switch(dim)
 {
 
@@ -4393,7 +4393,7 @@ case 3:
 break;
 
 }
-             
+
 
 		/*tmp2(ixImin1:ixImax1,ixImin2:ixImax2)=tmp2(ixImin1:ixImax1,&
                  ixImin2:ixImax2)*(nuL(ixImin1:ixImax1,ixImin2:ixImax2)&
@@ -4451,7 +4451,7 @@ case 3:
 break;
 
 }
-            
+
 
 		/*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
                  =wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
@@ -4491,7 +4491,7 @@ break;
                  ixImin2:ixImax2,m0_+ii0)*tmp2(ixImin1:ixImax1,&
                  ixImin2:ixImax2)*/
 
-             
+
 for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {

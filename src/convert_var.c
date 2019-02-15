@@ -8,7 +8,7 @@
  *   are included. Also contains function to compute fast magnetosonic speed for
  *   Newtonian flows only.
  *
- * CONTAINS PUBLIC FUNCTIONS: 
+ * CONTAINS PUBLIC FUNCTIONS:
  * - Cons_to_Prim()     - converts Cons type to Prim type
  * - Cons1D_to_Prim1D() - converts 1D vector (Bx passed through arguments)
  * - Prim1D_to_Cons1D() - converts 1D vector (Bx passed through arguments)
@@ -29,8 +29,8 @@
  * HISTORY: (functions for special relativity)
  * - First version written by Kevin Tian, summer 2007.
  * - Rewritten and revised by Jonathan Fulton, Senior Thesis 2009.
- * - Rewritten to use M&McK (2007) by Kris Beckwith, Fall 2009.		      
- * - Inclusion of background variables for perturbed MHD Mike Griffiths April 2016 
+ * - Rewritten to use M&McK (2007) by Kris Beckwith, Fall 2009.
+ * - Inclusion of background variables for perturbed MHD Mike Griffiths April 2016
  * - see. Shelyag,Fedun,Erdelyi A&A 486,655-662(2008)*/
 /*============================================================================*/
 
@@ -44,22 +44,22 @@
 /* prototypes for private functions needed with SR MHD */
 Real Gamma_1overGamma;
 
-/*! \fn Prim1DS vsq1D_fix (const Cons1DS *pU, const Real *pBx) 
- *  \brief Wrapper for the fix_vsq1D function, works 
+/*! \fn Prim1DS vsq1D_fix (const Cons1DS *pU, const Real *pBx)
+ *  \brief Wrapper for the fix_vsq1D function, works
  *          only for SPECIAL_RELATIVITY && MHD only */
 Prim1DS vsq1D_fix (const Cons1DS *pU, const Real *pBx);
 
-/*! \fn Prim1DS entropy_fix1D(const Cons1DS *U, const Real *Bx, 
- *                             const Real *ent) 
+/*! \fn Prim1DS entropy_fix1D(const Cons1DS *U, const Real *Bx,
+ *                             const Real *ent)
  *  \brief entropy_fix: SPECIAL RELATIVISTIC MHD VERSION */
 Prim1DS entropy_fix1D (const Cons1DS *pU, const Real *pBx, const Real *ent);
 
-/*! \fn static Real calc_func (Real Q, Real E, Real Bsq, Real Ssq, 
+/*! \fn static Real calc_func (Real Q, Real E, Real Bsq, Real Ssq,
  *                             Real Vsq, Real pgas)
  *  \brief Evaluate equation A25 for E, rather than E' */
 static Real calc_func (Real Q, Real E, Real Bsq, Real Ssq, Real Vsq, Real pgas);
 
-/*! \fn static Real calc_dfunc(Real Q, Real Bsq, Real Msq, Real Ssq, Real d, 
+/*! \fn static Real calc_dfunc(Real Q, Real Bsq, Real Msq, Real Ssq, Real d,
  *                             Real Vsq, Real Gsq, Real Chi)
  *  \brief Evaluate A8 for E & Q, rather than E', W' */
 static Real calc_dfunc (Real Q, Real Bsq, Real Msq, Real Ssq, Real d, Real Vsq,
@@ -85,7 +85,7 @@ static Real calc_vsq (Real Bsq, Real Msq, Real Ssq, Real Q);
  *  \brief Evaluate \Chi from eqn. A11 using Q, rathher than Q'*/
 static Real calc_chi (Real d, Real Vsq, Real Gsq, Real Q);
 
-void FUNV2(const Real d, const Real v2, 
+void FUNV2(const Real d, const Real v2,
 	   const Real p, const Real Bsq, const Real Msq, const Real Ssq,
 	   Real *W, Real *f);
 
@@ -240,7 +240,7 @@ ConsS Prim_to_Cons (const PrimS *pW)
 #if (NSCALARS > 0)
   for (n=0; n<NSCALARS; n++) W.r[n] = pW->r[n];
 #endif
- 
+
 #ifdef SAC_INTEGRATOR
   U = Prim1D_to_Cons1D(&W, &Bx, &Bxb);
 #elif defined SMAUG_INTEGRATOR
@@ -290,7 +290,7 @@ ConsS Prim_to_Cons (const PrimS *pW)
 #ifdef MHD /* MHD only */
 /*----------------------------------------------------------------------------*/
 /*! \fn PrimS fix_vsq(const ConsS *pCons)
- *  \brief Wrapper for the fix_vsq1D function, works 
+ *  \brief Wrapper for the fix_vsq1D function, works
  *          only for SPECIAL_RELATIVITY && MHD only
  *
  * - conserved variables = (d,M1,M2,M3,[E],[B1c,B2c,B3c],[s(n)])
@@ -307,10 +307,10 @@ PrimS fix_vsq (const ConsS *pCons)
   Real Bx=0.0;
 
 #ifdef SAC_INTEGRATOR
-  Real Bxb=0.0;  
+  Real Bxb=0.0;
 #endif
 #ifdef SMAUG_INTEGRATOR
-  Real Bxb=0.0;  
+  Real Bxb=0.0;
 #endif
   U.d  = pCons->d;
   U.Mx = pCons->M1;
@@ -331,7 +331,7 @@ PrimS fix_vsq (const ConsS *pCons)
 
   Bxb = pCons->B1cb;
   U.Byb = pCons->B2cb;
-  U.Bzb = pCons->B3cb;  
+  U.Bzb = pCons->B3cb;
 #endif
 #ifdef SMAUG_INTEGRATOR
   U.db = pCons->db;
@@ -339,7 +339,7 @@ PrimS fix_vsq (const ConsS *pCons)
 
   Bxb = pCons->B1cb;
   U.Byb = pCons->B2cb;
-  U.Bzb = pCons->B3cb;  
+  U.Bzb = pCons->B3cb;
 #endif
 
 
@@ -392,7 +392,7 @@ PrimS fix_vsq (const ConsS *pCons)
 
 /*----------------------------------------------------------------------------*/
 /*! \fn PrimS entropy_fix(const ConsS *pCons, const Real *ent)
- *  \brief Wrapper for the entropy_fix1D function, works 
+ *  \brief Wrapper for the entropy_fix1D function, works
  *          only for SPECIAL_RELATIVITY && MHD only
  *
  * - conserved variables = (d,M1,M2,M3,[E],[B1c,B2c,B3c],[s(n)])
@@ -471,7 +471,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
 
   Prim.B1c = Bxb;
   Prim.B2c = W.Byb;
-  Prim.B3c = W.Bzb;	
+  Prim.B3c = W.Bzb;
 #endif
 #ifdef SMAUG_INTEGRATOR
   Prim.db  = W.db;
@@ -479,7 +479,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
 
   Prim.B1c = Bxb;
   Prim.B2c = W.Byb;
-  Prim.B3c = W.Bzb;	
+  Prim.B3c = W.Bzb;
 #endif
 
 #if (NSCALARS > 0)
@@ -492,7 +492,7 @@ PrimS entropy_fix (const ConsS *pCons, const Real *ent)
 
 /*----------------------------------------------------------------------------*/
 /*! \fn PrimS check_Prim(const ConsS *pCons)
- *  \brief Wrapper for the check_Prim1D function, works 
+ *  \brief Wrapper for the check_Prim1D function, works
  *          only for SPECIAL_RELATIVITY
  *
  * - conserved variables = (d,M1,M2,M3,[E],[B1c,B2c,B3c],[s(n)])
@@ -593,7 +593,7 @@ PrimS check_Prim(const ConsS *pCons)
 #ifndef SPECIAL_RELATIVITY /* Following versions for Newtonian dynamics */
 /*----------------------------------------------------------------------------*/
 /*! \fn Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
- *  \brief Cons1D_to_Prim1D: NEWTONIAN VERSION 
+ *  \brief Cons1D_to_Prim1D: NEWTONIAN VERSION
  *
  *   - conserved variables = (d,Mx,My,Mz,[E],[By,Bz],[s(n)])
  *   - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz],[r(n)])
@@ -639,13 +639,16 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
 
 #ifndef ISOTHERMAL
   Prim1D.P = pU->E - 0.5*(SQR(pU->Mx)+SQR(pU->My)+SQR(pU->Mz))*di;
-#ifdef MHD
-  Prim1D.P -= 0.5*(SQR(*pBx) + SQR(pU->By) + SQR(pU->Bz));
 
-#endif /* MHD */
 
   Prim1D.P *= Gamma_1;
   Prim1D.P = MAX(Prim1D.P,TINY_NUMBER);
+
+  #ifdef MHD
+  Prim1D.P -= 0.5*(Gamma_2)*(SQR(*pBx) + SQR(pU->By) + SQR(pU->Bz));
+
+#endif /* MHD */
+
 #endif /* ISOTHERMAL */
 
 #ifdef SAC_INTEGRATOR
@@ -727,13 +730,14 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
 #ifdef SAC_INTEGRATOR  /*SAC_INTEGRATOR field*/
   Cons1D.Eb=0;
   Cons1D.E=0;
+  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
+
 #ifdef MHD
   Cons1D.Eb = 0.5*(Gamma_1-1)*(SQR(*pBxb) + SQR(pW->Byb) + SQR(pW->Bzb));
   Cons1D.E += 0.5*(SQR(*pBx) + SQR(pW->By) + SQR(pW->Bz));
   Cons1D.E += ((*pBx)*(*pBxb) + (pW->By)*(pW->Byb) + (pW->Bz)*(pW->Bzb));
 #endif /* MHD */
 
-  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
   Cons1D.Eb += pW->Pb;
   Cons1D.Eb /= Gamma_1 ;
 
@@ -741,6 +745,8 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
 #elif defined SMAUG_INTEGRATOR
   Cons1D.Eb=0;
   Cons1D.E=0;
+  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
+
 
 #ifdef MHD
   Cons1D.Eb += 0.5*(SQR(*pBxb) + SQR(pW->Byb) + SQR(pW->Bzb));
@@ -748,8 +754,7 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *pW, const Real *pBx)
   Cons1D.E += ((*pBx)*(*pBxb) + (pW->By)*(pW->Byb) + (pW->Bz)*(pW->Bzb));
 #endif /* MHD */
 
-  Cons1D.E = pW->P/Gamma_1 + 0.5*(pW->d+pW->db)*(SQR(pW->Vx) +SQR(pW->Vy) +SQR(pW->Vz));
-  Cons1D.Eb += pW->Pb;
+   Cons1D.Eb += pW->Pb;
   Cons1D.Eb /= Gamma_1 ;
 
 
@@ -955,7 +960,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
       ix1 = 2.0*pow(sqrt(iR*iR + iT),(ONE_3RD))*cos(atan2(sqrt(-iT),iR)/3.0)
 	- i1/3.0;
     } else {
-      ix1 = pow((iR + sqrt(iT)),(ONE_3RD)) + pow((iR - sqrt(iT)),(ONE_3RD)) 
+      ix1 = pow((iR + sqrt(iT)),(ONE_3RD)) + pow((iR - sqrt(iT)),(ONE_3RD))
 	- i1/3.0;
     }
 
@@ -1015,7 +1020,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
 #if defined(SPECIAL_RELATIVITY) && defined(MHD) /* special relativity only */
 /*----------------------------------------------------------------------------*/
 /*! \fn Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
- *  \brief Cons1D_to_Prim1D: SPECIAL RELATIVISTIC MHD VERSION 
+ *  \brief Cons1D_to_Prim1D: SPECIAL RELATIVISTIC MHD VERSION
  *
  *   - conserved variables = (d,Mx,My,Mz,[E],[By,Bz])
  *   - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz])
@@ -1025,7 +1030,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
  * step, which requires an initial guess for W. This is provided by solving
  * a cubic equation for W based on passed values of U->E & U->d and assuming
  * that v^2 = 1, as in Appendix A3 of Mignone & McKinney. Note that the
- * conserved quantity is the total energy, 
+ * conserved quantity is the total energy,
  * - E = D*h*\gamma - p + 0.5*B^2 + 0.5*(v^2*B^2 - v \dot B)
  */
 
@@ -1112,7 +1117,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
     rho = d / sqrt(fabs(Gsq));
     pgas = Gamma_1*Chi/Gamma;
 
-    /* Evaluate Eqn. A24, A25 for the total energy density */ 
+    /* Evaluate Eqn. A24, A25 for the total energy density */
     fQ = calc_func (Q, E, Bsq, Ssq, Vsq, pgas);
     dfQ = calc_dfunc (Q, Bsq, Msq, Ssq, d, Vsq, Gsq, Chi);
 
@@ -1138,7 +1143,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
       fQ = calc_func (Q, E, Bsq, Ssq, Vsq, pgas);
       dfQ = calc_dfunc (Q, Bsq, Msq, Ssq, d, Vsq, Gsq, Chi);
     }
-    
+
     /* Calculate step for NR update, check that it's not a Nan, update/check Q */
     dQstep = fQ / dfQ;
     if (dQstep != dQstep){
@@ -1313,8 +1318,8 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn	Prim1DS check_Prim1D(const Cons1DS *U, const Real *Bx) 
- *  \brief check_Prim1D: SPECIAL RELATIVISTIC MHD VERSION 
+/*! \fn	Prim1DS check_Prim1D(const Cons1DS *U, const Real *Bx)
+ *  \brief check_Prim1D: SPECIAL RELATIVISTIC MHD VERSION
  *
  *   - conserved variables = (d,Mx,My,Mz,[E],[By,Bz])
  *   - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz])
@@ -1324,7 +1329,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *U, const Real *Bx)
  * step, which requires an initial guess for W. This is provided by solving
  * a cubic equation for W based on passed values of U->E & U->d and assuming
  * that v^2 = 1, as in Appendix A3 of Mignone & McKinney. Note that the
- * conserved quantity is the total energy, 
+ * conserved quantity is the total energy,
  * - E = D*h*\gamma - p + 0.5*B^2 + 0.5*(v^2*B^2 - v \dot B)
  */
 /*MKG updated to here ap2016*/
@@ -1358,7 +1363,7 @@ Prim1DS check_Prim1D (const Cons1DS *U, const Real *Bx)
   scrh2 = Msq - 2.0*E*Bsq + Bsq*Bsq;
   Q = ( - scrh1 + sqrt(fabs(scrh1*scrh1 - 12.0*scrh2)))/6.0;
 
-  nr_success = 0;	
+  nr_success = 0;
   if (Q < 0.0) {
     Q = d;
   } else if (Q != Q) {
@@ -1380,7 +1385,7 @@ Prim1DS check_Prim1D (const Cons1DS *U, const Real *Bx)
     rho = d / sqrt(fabs(Gsq));
     pgas = Gamma_1*Chi/Gamma;
 
-    /* Evaluate Eqn. A24, A25 for the total energy density */ 
+    /* Evaluate Eqn. A24, A25 for the total energy density */
     fQ = calc_func (Q, E, Bsq, Ssq, Vsq, pgas);
     dfQ = calc_dfunc (Q, Bsq, Msq, Ssq, d, Vsq, Gsq, Chi);
 
@@ -1406,11 +1411,11 @@ Prim1DS check_Prim1D (const Cons1DS *U, const Real *Bx)
       fQ = calc_func (Q, E, Bsq, Ssq, Vsq, pgas);
       dfQ = calc_dfunc (Q, Bsq, Msq, Ssq, d, Vsq, Gsq, Chi);
     }
-    
+
     /* Calculate step for NR update, check that it's not a Nan, update/check Q */
     dQstep = fQ / dfQ;
     if (dQstep != dQstep){
-      nr_success = 6;	
+      nr_success = 6;
     }
     Q -= dQstep;
     if (Q != Q){
@@ -1430,7 +1435,7 @@ Prim1DS check_Prim1D (const Cons1DS *U, const Real *Bx)
     Chi = calc_chi (d,Vsq,Gsq,Q);
     rho = d / sqrt(fabs(Gsq));
     pgas = Gamma_1*Chi/Gamma;
- 
+
     tmp1 = 1.0 / Q;
     tmp2 = 1.0 / (Q + Bsq);
     Prim1D.d = rho;
@@ -1438,21 +1443,21 @@ Prim1DS check_Prim1D (const Cons1DS *U, const Real *Bx)
     Prim1D.Vx = (U->Mx + S*(*Bx)*tmp1)*tmp2;
     Prim1D.Vy = (U->My + S*U->By*tmp1)*tmp2;
     Prim1D.Vz = (U->Mz + S*U->Bz*tmp1)*tmp2;
-	
+
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
-	  
+
   } else {
     Prim1D.d = -1.0;
     Prim1D.P = -1.0;
     Prim1D.Vx = 1.0;
     Prim1D.Vy = 1.0;
     Prim1D.Vz = 1.0;
-	  
+
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
   }
-	  
+
   return Prim1D;
 }
 #endif /* SPECIAL_RELATIVITY && MHD */
@@ -1508,9 +1513,9 @@ Cons1DS Prim1D_to_Cons1D(const Prim1DS *W, const Real *Bx)
 /*=========================== PRIVATE FUNCTIONS ==============================*/
 
 /*----------------------------------------------------------------------------*/
-/*! \fn Prim1DS entropy_fix1D(const Cons1DS *U, const Real *Bx, 
- *                             const Real *ent) 
- *  \brief entropy_fix: SPECIAL RELATIVISTIC MHD VERSION 
+/*! \fn Prim1DS entropy_fix1D(const Cons1DS *U, const Real *Bx,
+ *                             const Real *ent)
+ *  \brief entropy_fix: SPECIAL RELATIVISTIC MHD VERSION
  *
  *  - conserved variables = (d,Mx,My,Mz,[E],[By,Bz])
  *  - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz])
@@ -1575,7 +1580,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
   scrh2 = Msq - 2.0*E*Bsq + Bsq*Bsq;
   Q = ( - scrh1 + sqrt(fabs(scrh1*scrh1 - 12.0*scrh2)))/6.0;
 
-  nr_success = 0;	
+  nr_success = 0;
   if (Q < 0.0) {
     Q = d;
   } else if (Q != Q) {
@@ -1597,7 +1602,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
     rho = d / sqrt(fabs(Gsq));
     pgas = Gamma_1*Chi/Gamma;
 
-    /* Evaluate Eqn. A24, A25 for the total energy density */ 
+    /* Evaluate Eqn. A24, A25 for the total energy density */
     fQ = calc_ent_func (rho, pgas, d, Ent);
     dfQ = calc_ent_dfunc (Q, Bsq, Msq, Ssq, d, Vsq, Gsq, Chi, pgas, rho);
 
@@ -1609,7 +1614,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
     if (dfQ != dfQ) {
       nr_success = 7;
     }
-    
+
     /* Calculate step for NR update, check that it's not a Nan, update/check Q */
     dQstep = fQ / dfQ;
     if (dQstep != dQstep){
@@ -1632,7 +1637,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
     Chi = calc_chi (d,Vsq,Gsq,Q);
     rho = d / sqrt(fabs(Gsq));
     pgas = Gamma_1*Chi/Gamma;
- 
+
     tmp1 = 1.0 / Q;
     tmp2 = 1.0 / (Q + Bsq);
     Prim1D.d = rho;
@@ -1640,7 +1645,7 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
     Prim1D.Vx = (U->Mx + S*(*Bx)*tmp1)*tmp2;
     Prim1D.Vy = (U->My + S*U->By*tmp1)*tmp2;
     Prim1D.Vz = (U->Mz + S*U->Bz*tmp1)*tmp2;
-	
+
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
@@ -1658,14 +1663,14 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
     Prim1D.Byb = U->Byb;
     Prim1D.Bzb = U->Bzb;
 #endif
-	  
+
   } else {
     Prim1D.d = -1.0;
     Prim1D.P = -1.0;
     Prim1D.Vx = 1.0;
     Prim1D.Vy = 1.0;
     Prim1D.Vz = 1.0;
-	  
+
     Prim1D.By = U->By;
     Prim1D.Bz = U->Bz;
 
@@ -1685,13 +1690,13 @@ Prim1DS entropy_fix1D (const Cons1DS *U, const Real *Bx, const Real *ent)
 #endif
 
   }
-	  
+
   return Prim1D;
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn Prim1DS vsq1D_fix(const Cons1DS *U, const Real *Bx) 
- *  \brief vsq1D_fix: SPECIAL RELATIVISTIC MHD VERSION  
+/*! \fn Prim1DS vsq1D_fix(const Cons1DS *U, const Real *Bx)
+ *  \brief vsq1D_fix: SPECIAL RELATIVISTIC MHD VERSION
  *
  *  - conserved variables = (d,Mx,My,Mz,[E],[By,Bz])
  *  - primitive variables = (d,Vx,Vy,Vz,[P],[By,Bz])
@@ -1712,10 +1717,10 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
   Real Bsq = 0.0, Msq = 0.0, S = 0.0, Ssq = 0.0;
   Real v2, v2c, fc, f, W, dW, lor2, lor;
   Real fmin, fmax, v2min, v2max, p, d;
-	
+
   d = 1.0e0;/*MAX(U->d,1.0e-2);*/
   p = 1.0e-1;/*0.000255457;*/
-	
+
   /* Calculate Bsq = B^2, Msq = M^2, S = M \dot B, Ssq = S^2 */
 
 #ifdef SAC_INTEGRATOR
@@ -1734,7 +1739,7 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
 #endif /*SAC_INTEGRATOR*/
   Ssq = SQR(S);
 
-	
+
   v2max = 1.0-1.e-8;
   v2c = 0.95;
   FUNV2(d, v2c, p, Bsq, Msq, Ssq, &W, &fc);
@@ -1753,10 +1758,10 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
   if (v2 > 1.0 || k >= 100) {
     ath_error("[fix_vsq1D]: too many iter while fixing p , v^2 = %f\n", v2);
   }
-	
+
   lor2  = 1.0/(1.0 - v2);
   lor   = sqrt(lor2);
-	
+
   Con1D = *U;
   Con1D.d = d;
   Con1D.E = W - p + 0.5*(1.0 + v2)*Bsq - 0.5*Ssq/(W*W);
@@ -1768,11 +1773,11 @@ Prim1DS vsq1D_fix (const Cons1DS *U, const Real *Bx)
  Prim1D = Cons1D_to_Prim1D(&Con1D, Bx, Bxb);
 #endif
   v2 = SQR(Prim1D.Vx) + SQR(Prim1D.Vy) + SQR(Prim1D.Vz);
-	
+
   return Prim1D;
 }
 
-/*! \fn static Real calc_func (Real Q, Real E, Real Bsq, Real Ssq, 
+/*! \fn static Real calc_func (Real Q, Real E, Real Bsq, Real Ssq,
  *                             Real Vsq, Real pgas)
  *  \brief Evaluate equation A25 for E, rather than E'
  */
@@ -1793,7 +1798,7 @@ static Real calc_ent_func (Real rho, Real pgas, Real d, Real ent)
   return d*tmp1 - ent;
 }
 
-/*! \fn static Real calc_dfunc(Real Q, Real Bsq, Real Msq, Real Ssq, Real d, 
+/*! \fn static Real calc_dfunc(Real Q, Real Bsq, Real Msq, Real Ssq, Real d,
  *                             Real Vsq, Real Gsq, Real Chi)
  *  \brief Evaluate A8 for E & Q, rather than E', W' */
 static Real calc_dfunc(Real Q, Real Bsq, Real Msq, Real Ssq, Real d, Real Vsq,
@@ -1885,18 +1890,18 @@ static Real calc_chi (Real d, Real Vsq, Real Gsq, Real Q)
   return tmp2*tmp1;
 }
 
-void FUNV2(const Real d, const Real v2, 
+void FUNV2(const Real d, const Real v2,
 	   const Real p, const Real Bsq, const Real Msq, const Real Ssq,
 	   Real *W, Real *f)
 {
   Real lor2, lor, W2, pg;
-	
+
   lor2 = 1.0/(1.0 - v2);
   lor  = sqrt(lor2);
   pg   = p*lor;
   *W  = (d + pg*Gamma/(Gamma - 1.0))*lor;
   W2    = SQR(*W);
-	
+
   *f  =  Ssq*(2.0*(*W) + Bsq) + Msq*W2;
   *f /= ((*W) + Bsq)*((*W) + Bsq)*W2;
   *f -= v2;
