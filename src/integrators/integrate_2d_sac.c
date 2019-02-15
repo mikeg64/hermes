@@ -1,4 +1,5 @@
 #include "../copyright.h"
+
 /*============================================================================*/
 /*! \file integrate_2d_sac.c
  *  \Compute fluxes using sac .
@@ -121,8 +122,8 @@ static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint
 static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG);
-//static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 
@@ -238,7 +239,7 @@ void integrate_2d_sac(DomainS *pD)
 int ii1, dim, ii, ii0;
 int jj1, jj, jj0;
 int fieldi; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
-
+Real sb;
 int size1,size2;
 
 size1=1+ie+2*nghost-is;
@@ -1205,30 +1206,46 @@ hyperdifviscl(fieldi,dim,Uinit, pG);
 #ifdef MHD
 
   //b field hyperdiffusion term
+
 for(dim=0; dim<2; dim++) //each direction
+for( fieldi=0; fieldi<2; fieldi++)          //l
 {
 //hyperdifvisc1ir
 //hyperdifvisc1il
+if(fieldi != dim)
+{
+
 
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
-		                  if (ii1 == 0)
-		                  {
-				           ii=dim;
-				           ii0=fieldi;  //f is field
-		                  }
-		                  else
-		                  {
-				           ii=fieldi;
-				           ii0=dim;
-		                   }
+
+                        if (ii1 == 0)
+				          {
+						   jj=dim;
+						   mm=fieldi;
+						   sb=-1.0;
+						   ii0=dim;
+				          }
+				          else
+				          {
+						   ii0=fieldi;
+						   mm=dim;
+						   sb=1.0;
+						   jj=fieldi;
+				          }
+
+
+
+
 
 				  if(ii==dim)
-				   ;// hyperdifbsource(ii,ii0,pG->dt,pG);
+                    hyperdifbsource(fieldi,dim,jj,ii0,sb,pG->dt,Uinit, pG);
 				  else
-				   ;// hyperdifbsourcene(ii,ii0,pG->dt,pG);  //off diagonal
+                    hyperdifbsourcene(fieldi,dim,jj,ii0,sb,pG->dt,Uinit, pG);  //off diagonal
+
 		        }
+}
 
 
 }
@@ -2169,7 +2186,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 static void hyperdifrhosource(int dim,Real dt,ConsS ***Uinit, GridS *pG)
 {
 	Real ***wtempr=NULL, ***wtempl=NULL, ***wtemp3=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
-        Real maxt1,maxt2;
+    Real maxt1,maxt2;
 	Real nur,nul;
 
 	int n1z,n2z,n3z;
@@ -2254,6 +2271,11 @@ break;
 
 
      //CALL setnu(w,rho_,idim,ixOmin1,ixOmin2,ixOmax1,ixOmax2,nuR,nuL)
+
+     //    tmp(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)=w(ixImin1:ixImax1,&
+     //   ixImin2:ixImax2,ixImin3:ixImax3,rho_)
+
+
 
 
  for (i3=kl; i3<=ku; i3++) {
@@ -3607,7 +3629,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG)
+static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real sb, Real dt, ConsS ***Uint, GridS *pG)
 {
 
 
@@ -3689,7 +3711,7 @@ int fieldi=ii0;
 		n3z = 1;
 
 
-	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
+	Real  ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
 
 
 switch(dim)
@@ -3699,10 +3721,6 @@ case 1:
 	fieldf = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 break;
@@ -3711,10 +3729,6 @@ case 2:
 	fieldl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 break;
@@ -3723,10 +3737,6 @@ case 3:
 	fieldl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 break;
@@ -3734,152 +3744,137 @@ break;
 }
 
 
+          /*      tmpBL(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3)&
+                    =(w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j)&
+                    +w(hxmin1:hxmax1,hxmin2:hxmax2,hxmin3:hxmax3,b0_+j))/two
+                 tmpBR(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3)&
+                    =(w(jxmin1:jxmax1,jxmin2:jxmax2,jxmin3:jxmax3,b0_+j)&
+                    +w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j))/two    */
 
-
-
-switch(fieldi)
-{
-
-case 1:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M1;
-					}
-				}
-			}
-break;
-
-case 2:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M2;
-					}
-				}
-			}
-break;
-
-case 3:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
-					}
-				}
-			}
-break;
-
-
-}
-
-
-
-switch(lf)
-{
-
-case 1:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M1;
-					}
-				}
-			}
-break;
-
-case 2:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M2;
-					}
-				}
-			}
-break;
-
-case 3:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
-					}
-				}
-			}
-break;
-
-
-}
-
-//for(dim=0; dim<2; dim++) //each direction   //k
-//for( fieldi=0; fieldi<2; fieldi++)          //l
-
-    /*j is + h is -
-    /* tmprhoL(ixmin1:ixmax1,ixmin2:ixmax2)=((w(ixmin1:ixmax1,ixmin2:ixmax2,&
-        rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_))+(w(hxmin1:hxmax1,&
-        hxmin2:hxmax2,rho_)+w(hxmin1:hxmax1,hxmin2:hxmax2,rhob_)))/two  */
- for (i3=(kl+(dim==3)); i3<=ku; i3++) {
-    for (i2=(jl+(dim==2)); i2<=ju; i2++) {
-    	for (i1=(il+(dim==1)); i1<=iu; i1++) {
-
-			tmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].d+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].db);
-					}
-				}
-			}
-
-   /*  tmprhoR(ixmin1:ixmax1,ixmin2:ixmax2)=((w(jxmin1:jxmax1,jxmin2:jxmax2,&
-        rho_)+w(jxmin1:jxmax1,jxmin2:jxmax2,rhob_))+(w(ixmin1:ixmax1,&
-        ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_)))/two  */
- for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].d+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].db);
-					}
-				}
-			}
-
-
-       /* tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,&
-           ixImin2:ixImax2,m0_+l)/(w(ixImin1:ixImax1,ixImin2:ixImax2,rho_)&
-           +w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_))*/
- for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
-					}
-				}
-			}
-
-
-            /*  tmpVL(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,&
-                 ixmin2:ixmax2,m0_+ii0)+w(hxmin1:hxmax1,hxmin2:hxmax2,m0_&
-                 +ii0))/two   */
- for (i3=(kl+(dim==3)); i3<=(ku); i3++) {
-    for (i2=(jl+(dim==2)); i2<=(ju); i2++) {
-    	for (i1=(il+(dim==1)); i1<=(iu); i1++) {
-
-			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1-(dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN2((dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN1((dim==1),i2-(dim==2),i3-(dim==3),dim)]/2;
-					}
-				}
-			}
-
-             /* tmpVR(ixmin1:ixmax1,ixmin2:ixmax2)=(w(jxmin1:jxmax1,&
-                 jxmin2:jxmax2,m0_+ii0)+w(ixmin1:ixmax1,ixmin2:ixmax2,m0_&
-                 +ii0))/two */
- for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1+(dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN2((dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN1((dim==1),i2+(dim==2),i3+(dim==3),dim)]/2;
-					}
-				}
-			}
-
-
-           /*   CALL gradient1L(tmp,ixmin1,ixmin2,ixmax1,ixmax2,k,tmp2)*/
+    /*j is + h is -*/
 switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B1c)/2.0;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B2c)/2.0;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B3c)/2.0;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+
+    /*j is + h is -*/
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B1c)/2.0;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B2c)/2.0;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B3c)/2.0;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+          /*       tmp(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =w(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,b0_+l)   */
+
+
+ switch(fieldi)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B1c;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B2c;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B3c;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+           /*      CALL gradient1L(tmp,ixmin1,ixmin2,ixmin3,ixmax1,ixmax2,&
+                    ixmax3,k,tmp2)*/
+ switch(dim)
 {
 
 case 1:
@@ -3910,11 +3905,10 @@ break;
 
 
 
-
-           /*   tmpL(ixImin1:ixImax1,ixImin2:ixImax2)=(nuL(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,k))&
-                 *tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*/
- for (i3=kl; i3<=ku; i3++) {
+            /*     tmpL(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =(nuL(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3))&
+                    *tmp2(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)*/
+    for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
@@ -3926,9 +3920,9 @@ break;
 
 
 
-           /*   CALL gradient1R(tmp,ixmin1,ixmin2,ixmax1,ixmax2,k,tmp2)*/
-
-switch(dim)
+           /*      CALL gradient1R(tmp,ixmin1,ixmin2,ixmin3,ixmax1,ixmax2,&
+                    ixmax3,k,tmp2)*/
+  switch(dim)
 {
 
 case 1:
@@ -3958,10 +3952,12 @@ break;
 }
 
 
-           /*   tmpR(ixImin1:ixImax1,ixImin2:ixImax2)=(nuR(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)+nushk(ixImin1:ixImax1,ixImin2:ixImax2,k))&
-                 *tmp2(ixImin1:ixImax1,ixImin2:ixImax2) */
-for (i3=kl; i3<=ku; i3++) {
+
+               /*  tmpR(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =(nuR(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3))&
+                    *tmp2(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)*/
+
+    for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
@@ -3971,92 +3967,65 @@ for (i3=kl; i3<=ku; i3++) {
 			}
 
 
-            /*  tmp2(ixImin1:ixImax1,ixImin2:ixImax2)=(tmprhoR(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)*tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
-                 -tmprhoL(ixImin1:ixImax1,ixImin2:ixImax2)*tmpL&
-                 (ixImin1:ixImax1,ixImin2:ixImax2))/dx(ixImin1:ixImax1,&
-                 ixImin2:ixImax2,k)/two */
-for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmprhor[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmprhol[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
-
-					}
-				}
-			}
-
-            /*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
-                 =wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
-                 +tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*qdt */
 
 
+              /*   wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,b0_&
+                    +ii0)=wnew(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3,b0_+ii0)+sB*(tmpR(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3)-tmpL(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3))/dx(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3,k)*qdt*/
 
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
-switch(fieldi)
+switch(ii0)
 {
 case 1:
-     pG->U[i3][i2][i1].M1  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].B1c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 2:
-     pG->U[i3][i2][i1].M2  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].B2c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 3:
-     pG->U[i3][i2][i1].M3  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].B3c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 }
 
 
-	}
-	}
-	}
 
 
+               /*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,e_)&
+                    =wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,e_)&
+                    +sB*(tmpR(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)*tmpBR(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)-tmpL(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)*tmpBL(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3))/dx(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3,k)*qdt   */
 
-
-
-
-           /*   tmp2(ixImin1:ixImax1,ixImin2:ixImax2)=(tmpVR(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)*tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
-                 -tmpVL(ixImin1:ixImax1,ixImin2:ixImax2)*tmpL(ixImin1:ixImax1,&
-                 ixImin2:ixImax2))/dx(ixImin1:ixImax1,ixImin2:ixImax2,k)/two   */
-for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
-
-					}
-				}
-			}
-
-
-
-          /*    wnew(ixImin1:ixImax1,ixImin2:ixImax2,e_)=wnew(ixImin1:ixImax1,&
-                 ixImin2:ixImax2,e_)+tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*qdt  */
 
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ pG->U[i3][i2][i1].E  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*((tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])-(tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]));
 
 	}
 	}
 	}
 
+               //upto ear 15/2/2019
 
 
 
 
-	if (tmprhor != NULL) free(tmprhor);
-	if (tmprhol != NULL) free(tmprhol);
-	if (tmpvr != NULL) free(tmpvr);
-	if (tmpvl != NULL) free(tmpvl);
+
+
 	if (tmpr != NULL) free(tmpr);
 	if (tmpl != NULL) free(tmpl);
 	if (tmp != NULL) free(tmp);
@@ -4074,7 +4043,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 }
 
-//static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real dt, ConsS ***Uint, GridS *pG);
+//static void hyperdifbsourcene(int kf,int lf,int ii,int ii0,  Real sb,  Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 #ifdef MHD
@@ -4085,18 +4054,15 @@ static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real dt,ConsS ***Uin
 {
 
 
-
 //ii maps to the dimension - (k below in sac code)
 
 // ii0 maps to the field id
-
-
 
 int dim=ii;
 int fieldi=ii0;
 
 
-	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmprhoc=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***tmpc=NULL, ***fieldd=NULL, ***fieldl=NULL, ***fieldf=NULL;
+	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
         Real maxt1,maxt2;
 	Real nur,nul;
 
@@ -4112,7 +4078,7 @@ int fieldi=ii0;
         int i1,i2,i3;
         int iss,jss,kss;
 
-	//int fieldi=energy;
+	//fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
 	is = pG->is,
@@ -4166,22 +4132,16 @@ int fieldi=ii0;
 		n3z = 1;
 
 
-	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmpc=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL, ***fieldl=NULL;
+	Real  ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
 
 
 switch(dim)
 {
 case 1:
-	fieldf = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	fieldl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	fieldf = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmpc = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmprhoc = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 break;
@@ -4190,12 +4150,6 @@ case 2:
 	fieldl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmpc = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmprhoc = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 break;
@@ -4204,174 +4158,150 @@ case 3:
 	fieldl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmpc = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmprhoc = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmprhor = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmprhol = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmpvr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
-	tmpvl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 break;
 
 }
 
-switch(fieldi)
-{
 
-case 1:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M1;
-					}
-				}
-			}
-break;
+          /*      tmpBL(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3)&
+                    =(w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j)&
+                    +w(hxmin1:hxmax1,hxmin2:hxmax2,hxmin3:hxmax3,b0_+j))/two
+                 tmpBR(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3)&
+                    =(w(jxmin1:jxmax1,jxmin2:jxmax2,jxmin3:jxmax3,b0_+j)&
+                    +w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j))/two    */
 
-case 2:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M2;
-					}
-				}
-			}
-break;
-
-case 3:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
-					}
-				}
-			}
-break;
-
-
-}
-
-
-switch(lf)
-{
-
-case 1:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M1;
-					}
-				}
-			}
-break;
-
-case 2:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M2;
-					}
-				}
-			}
-break;
-
-case 3:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-    	for (i1=il; i1<=iu; i1++) {
-			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
-					}
-				}
-			}
-break;
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
- /* tmprhoC(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,ixImin2:ixImax2,&
-     rho_)+w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_)*/
-for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
-					}
-				}
-			}
-
-       /* tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,&
-           ixImin2:ixImax2,m0_+l)/(w(ixImin1:ixImax1,ixImin2:ixImax2,rho_)&
-           +w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_))*/
-for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
-					}
-				}
-			}
-
-
-
-            /*  tmpVL(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,&
-                 ixmin2:ixmax2,m0_+ii0)+w(hxmin1:hxmax1,hxmin2:hxmax2,m0_&
-                 +ii0))/two   */
- for (i3=(kl+(dim==3)); i3<=(ku); i3++) {
-    for (i2=(jl+(dim==2)); i2<=(ju); i2++) {
-    	for (i1=(il+(dim==1)); i1<=(iu); i1++) {
-
-			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1-(dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN2((dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN1((dim==1),i2-(dim==2),i3-(dim==3),dim)]/2;
-					}
-				}
-			}
-
-             /* tmpVR(ixmin1:ixmax1,ixmin2:ixmax2)=(w(jxmin1:jxmax1,&
-                 jxmin2:jxmax2,m0_+ii0)+w(ixmin1:ixmax1,ixmin2:ixmax2,m0_&
-                 +ii0))/two */
- for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1+(dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN2((dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN1((dim==1),i2+(dim==2),i3+(dim==3),dim)]/2;
-					}
-				}
-			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              /*CALL gradient1(tmp,ixmin1,ixmin2,ixmax1,ixmax2,k,tmp2)*/
-
+    /*j is + h is -*/
 switch(dim)
 {
 
 case 1:
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B1c)/2.0;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B2c)/2.0;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B3c)/2.0;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+
+    /*j is + h is -*/
+switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B1c)/2.0;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B2c)/2.0;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3-(dim==3)][i2-(dim==2)][i1-(dim==1)].B3c)/2.0;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+          /*       tmp(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =w(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,b0_+l)   */
+
+
+ switch(fieldi)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B1c;
+					}
+				}
+			}
+break;
+
+case 2:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B2c;
+					}
+				}
+			}
+break;
+
+case 3:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].B3c;
+					}
+				}
+			}
+break;
+
+
+}
+
+
+
+           /*      CALL gradient1L(tmp,ixmin1,ixmin2,ixmin3,ixmax1,ixmax2,&
+                    ixmax3,k,tmp2)*/
+ switch(dim)
+{
+
+case 1:
+ for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+			gradient1l(tmp[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
 				}
 			}
 break;
@@ -4379,7 +4309,7 @@ break;
 case 2:
  for (i3=kl; i3<=ku; i3++) {
     for (i1=il; i1<=iu; i1++) {
-			gradient1(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+			gradient1l(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
 				}
 			}
 break;
@@ -4387,7 +4317,7 @@ break;
 case 3:
  for (i1=il; i1<=iu; i1++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+			gradient1l(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
 				}
 			}
 break;
@@ -4395,41 +4325,31 @@ break;
 }
 
 
-		/*tmp2(ixImin1:ixImax1,ixImin2:ixImax2)=tmp2(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)*(nuL(ixImin1:ixImax1,ixImin2:ixImax2)&
-                 +nuR(ixImin1:ixImax1,ixImin2:ixImax2)+two*nushk&
-                 (ixImin1:ixImax1,ixImin2:ixImax2,k))/two/two  */
- for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]))/2/2;
-					}
-				}
-			}
+            /*     tmpL(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =(nuL(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3))&
+                    *tmp2(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)*/
+    for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
 
-
-             /* tmp(ixImin1:ixImax1,ixImin2:ixImax2)=tmprhoC(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)*tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*/
-for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 					}
 				}
 			}
 
 
 
-             /* CALL gradient1(tmp,ixmin1,ixmin2,ixmax1,ixmax2,i,tmpC)*/
-switch(dim)
+
+           /*      CALL gradient1R(tmp,ixmin1,ixmin2,ixmin3,ixmax1,ixmax2,&
+                    ixmax3,k,tmp2)*/
+  switch(dim)
 {
 
 case 1:
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i3][i2], n1z,pG->dx1,tmpc[i3][i2]);
+			gradient1r(tmp[i3][i2], n1z,pG->dx1,tmp2[i3][i2]);
 				}
 			}
 break;
@@ -4437,7 +4357,7 @@ break;
 case 2:
  for (i3=kl; i3<=ku; i3++) {
     for (i1=il; i1<=iu; i1++) {
-			gradient1(tmp[i3][i1], n2z,pG->dx2,tmpc[i3][i1]);
+			gradient1r(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
 				}
 			}
 break;
@@ -4445,7 +4365,7 @@ break;
 case 3:
  for (i1=il; i1<=iu; i1++) {
     for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i1][i2], n3z,pG->dx3,tmpc[i1][i2]);
+			gradient1r(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
 				}
 			}
 break;
@@ -4453,113 +4373,86 @@ break;
 }
 
 
-		/*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
-                 =wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
-                 +tmpC(ixImin1:ixImax1,ixImin2:ixImax2)*qdt*/
+
+               /*  tmpR(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)&
+                    =(nuR(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3))&
+                    *tmp2(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3)*/
+
+    for (i3=kl; i3<=ku; i3++) {
+    for (i2=jl; i2<=ju; i2++) {
+    	for (i1=il; i1<=iu; i1++) {
+			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
+
+					}
+				}
+			}
+
+
+
+
+              /*   wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,b0_&
+                    +ii0)=wnew(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3,b0_+ii0)+sB*(tmpR(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3)-tmpL(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3))/dx(ixImin1:ixImax1,&
+                    ixImin2:ixImax2,ixImin3:ixImax3,k)*qdt*/
+
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
-switch(fieldi)
+switch(ii0)
 {
 case 1:
-     pG->U[i3][i2][i1].M1  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].B1c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 2:
-     pG->U[i3][i2][i1].M2  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].B2c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 3:
-     pG->U[i3][i2][i1].M3  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
-break;
-
-}
-
-
-	}
-	}
-	}
-
-
-
-
-
-
-
-             /* tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,&
-                 ixImin2:ixImax2,m0_+ii0)*tmp2(ixImin1:ixImax1,&
-                 ixImin2:ixImax2)*/
-
-
-for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
-    for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
-    	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
-
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]));
-					}
-				}
-			}
-
-
-
-             /* CALL gradient1(tmp,ixmin1,ixmin2,ixmax1,ixmax2,i,tmpC)*/
-switch(dim)
-{
-
-case 1:
- for (i3=kl; i3<=ku; i3++) {
-    for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i3][i2], n1z,pG->dx1,tmpc[i3][i2]);
-				}
-			}
-break;
-
-case 2:
- for (i3=kl; i3<=ku; i3++) {
-    for (i1=il; i1<=iu; i1++) {
-			gradient1(tmp[i3][i1], n2z,pG->dx2,tmpc[i3][i1]);
-				}
-			}
-break;
-
-case 3:
- for (i1=il; i1<=iu; i1++) {
-    for (i2=jl; i2<=ju; i2++) {
-			gradient1(tmp[i1][i2], n3z,pG->dx3,tmpc[i1][i2]);
-				}
-			}
+     pG->U[i3][i2][i1].B3c  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 }
 
 
 
-           /*   wnew(ixImin1:ixImax1,ixImin2:ixImax2,e_)=wnew(ixImin1:ixImax1,&
-                 ixImin2:ixImax2,e_)+tmpC(ixImin1:ixImax1,ixImin2:ixImax2)*qdt*/
+
+               /*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,e_)&
+                    =wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,e_)&
+                    +sB*(tmpR(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)*tmpBR(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)-tmpL(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3)*tmpBL(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3))/dx(ixImin1:ixImax1,ixImin2:ixImax2,&
+                    ixImin3:ixImax3,k)*qdt   */
+
+
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ pG->U[i3][i2][i1].E  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*((tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])-(tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]));
 
 	}
 	}
 	}
 
-	if (tmprhoc != NULL) free(tmprhoc);
-	if (tmprhor != NULL) free(tmprhor);
-	if (tmprhol != NULL) free(tmprhol);
-	if (tmpvr != NULL) free(tmpvr);
-	if (tmpvl != NULL) free(tmpvl);
+               //upto ear 15/2/2019
+
+
+
+
+
+
 	if (tmpr != NULL) free(tmpr);
 	if (tmpl != NULL) free(tmpl);
-	if (tmpc != NULL) free(tmpc);
 	if (tmp != NULL) free(tmp);
 	if (tmp2 != NULL) free(tmp2);
 	if (fieldf != NULL) free(fieldf);
 	if (fieldl != NULL) free(fieldl);
-
 
 
 
