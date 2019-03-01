@@ -122,8 +122,8 @@ static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint
 static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
-static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 
@@ -236,7 +236,7 @@ void integrate_2d_sac(DomainS *pD)
 
 
 /*Used for hyperdiffusion computations*/
-int ii1, dim, ii, ii0;
+int ii1, dim, ii, ii0, mm;
 int jj1, jj, jj0;
 int fieldi; /*integers map to following index rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b*/
 Real sb;
@@ -1238,11 +1238,10 @@ if(fieldi != dim)
 
 
 
-
 				  if(ii==dim)
-                    hyperdifbsource(fieldi,dim,jj,ii0,sb,pG->dt,Uinit, pG);
+                    hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
 				  else
-                    hyperdifbsourcene(fieldi,dim,jj,ii0,sb,pG->dt,Uinit, pG);  //off diagonal
+                    hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
 
 		        }
 }
@@ -3629,8 +3628,10 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, Real sb, Real dt, ConsS ***Uint, GridS *pG)
+static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb, Real dt, ConsS ***Uint, GridS *pG)
 {
+
+
 
 
 //ii maps to the dimension - (k below in sac code)
@@ -3996,7 +3997,7 @@ break;
 
 }
 
-
+    	}}}
 
 
                /*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,e_)&
@@ -4041,16 +4042,16 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 
-}
+    	}
 
-//static void hyperdifbsourcene(int kf,int lf,int ii,int ii0,  Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+//static void hyperdifbsourcene(int kf,int lf,int ii,int ii0,  int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 #ifdef MHD
 
 
 
-static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
+static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, int mm, Real sb, Real dt,ConsS ***Uint, GridS *pG)
 {
 
 
@@ -4060,6 +4061,7 @@ static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, Real dt,ConsS ***Uin
 
 int dim=ii;
 int fieldi=ii0;
+int jj=ii;
 
 
 	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
@@ -4132,7 +4134,7 @@ int fieldi=ii0;
 		n3z = 1;
 
 
-	Real  ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
+	Real  ***tmpc=NULL,  ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
 
 
 switch(dim)
@@ -4322,6 +4324,8 @@ case 3:
 break;
 
 }
+
+    	}}}
 
 
 
