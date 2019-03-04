@@ -1238,7 +1238,7 @@ if(fieldi != dim)
 
 
 
-				  if(ii==dim)
+				  if(mm==dim)
                     hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
 				  else
                     hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
@@ -3627,6 +3627,7 @@ for (i3=kl; i3<=ku; i3++) {
 }
 
 
+
 #ifdef MHD
 static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb, Real dt, ConsS ***Uint, GridS *pG)
 {
@@ -3638,8 +3639,8 @@ static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb, Real 
 
 // ii0 maps to the field id
 
-int dim=ii;
-int fieldi=ii0;
+int dim=kf;
+int fieldi=ii;
 
 
 	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
@@ -3793,7 +3794,7 @@ break;
 
 
     /*j is + h is -*/
-switch(dim)
+switch(fieldi)
 {
 
 case 1:
@@ -3835,7 +3836,7 @@ break;
                     =w(ixImin1:ixImax1,ixImin2:ixImax2,ixImin3:ixImax3,b0_+l)   */
 
 
- switch(fieldi)
+ switch(lf)
 {
 
 case 1:
@@ -3912,7 +3913,7 @@ break;
     for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+			tmpl[AIN3(i1,i2,i3,kf)][AIN2(i1,i2,i3,kf)][AIN1(i1,i2,i3,kf)]=tmp2[AIN3(i1,i2,i3,kf)][AIN2(i1,i2,i3,kf)][AIN1(i1,i2,i3,kf)]*(pG->Hv[i3][i2][i1].hdnul[kf][lf]);
 
 					}
 				}
@@ -3961,7 +3962,7 @@ break;
     for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
+			tmpr[AIN3(i1,i2,i3,kf)][AIN2(i1,i2,i3,kf)][AIN1(i1,i2,i3,kf)]=tmp2[AIN3(i1,i2,i3,kf)][AIN2(i1,i2,i3,kf)][AIN1(i1,i2,i3,kf)]*(pG->Hv[i3][i2][i1].hdnur[kf][lf]);
 
 					}
 				}
