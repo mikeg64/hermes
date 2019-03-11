@@ -118,8 +118,8 @@ static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsource(int k,int l, int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsourcene(int k,int l, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
-static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
-static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
+static void hyperdifmomsource(int kf,int nf,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
+static void hyperdifmomsourcene(int kf,int nf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
 #ifdef MHD
 static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
@@ -1196,9 +1196,9 @@ hyperdifviscl(fieldi,dim,Uinit, pG);
 		                   }
 
 				  if(ii==dim)
-				    hyperdifmomsource(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);
+				    hyperdifmomsource(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);
 				  else
-				    hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
+				    hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
 		        }
 
 
@@ -2677,15 +2677,16 @@ for (i3=kl; i3<=ku; i3++) {
 }
 
 
-static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG)
+static void hyperdifmomsource(int kf,int nf,int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG)
 {
 
 //ii maps to the dimension - (k below in sac code)
 
 // ii0 maps to the field id
 
-int dim=ii;
-int fieldi=ii0;
+int dim=kf;
+int fieldi=nf;
+int lf=nf;
 
 
 	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
@@ -2844,7 +2845,7 @@ break;
 
 
 
-switch(lf)
+switch(ii0)
 {
 
 case 1:
@@ -2916,7 +2917,7 @@ break;
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
 					}
 				}
 			}
@@ -2929,7 +2930,7 @@ break;
     for (i2=(jl+(dim==2)); i2<=(ju); i2++) {
     	for (i1=(il+(dim==1)); i1<=(iu); i1++) {
 
-			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1-(dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN2((dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN1((dim==1),i2-(dim==2),i3-(dim==3),dim)]/2;
+			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldl[AIN3(i1-(dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN2((dim==1),i2-(dim==2),i3-(dim==3),dim)][AIN1((dim==1),i2-(dim==2),i3-(dim==3),dim)]/2;
 					}
 				}
 			}
@@ -2941,7 +2942,7 @@ break;
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
-			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1+(dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN2((dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN1((dim==1),i2+(dim==2),i3+(dim==3),dim)]/2;
+			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldl[AIN3(i1+(dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN2((dim==1),i2+(dim==2),i3+(dim==3),dim)][AIN1((dim==1),i2+(dim==2),i3+(dim==3),dim)]/2;
 					}
 				}
 			}
@@ -3064,7 +3065,7 @@ for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
-switch(fieldi)
+switch(ii0)
 {
 case 1:
      pG->U[i3][i2][i1].M1  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
@@ -3140,7 +3141,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 
-static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
+static void hyperdifmomsourcene(int kf,int nf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG)
 {
 
 
@@ -3152,8 +3153,8 @@ static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***
 
 
 
-int dim=ii;
-int fieldi=ii0;
+int dim=kf;
+int fieldi=nf;
 
 
 	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmprhoc=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***tmpc=NULL, ***fieldd=NULL, ***fieldl=NULL, ***fieldf=NULL;
@@ -3313,7 +3314,7 @@ break;
 }
 
 
-switch(lf)
+switch(ii0)
 {
 
 case 1:
@@ -3379,7 +3380,7 @@ for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
     for (i2=(jl); i2<=(ju-(dim==2)); i2++) {
     	for (i1=(il); i1<=(iu-(dim==1)); i1++) {
 
-			tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
 					}
 				}
 			}
