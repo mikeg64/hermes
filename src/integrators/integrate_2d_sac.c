@@ -122,8 +122,8 @@ static void hyperdifmomsource(int kf,int nf,int ii,int ii0,Real dt,ConsS ***Uint
 static void hyperdifmomsourcene(int kf,int nf, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
-static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsource(int kf,int lf,int jj,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
+static void hyperdifbsourcene(int kf,int lf,int jj,int ii0, int mm, Real sb,  Real dt, ConsS ***Uint, GridS *pG);
 #endif /* MHD */
 
 
@@ -1179,8 +1179,8 @@ for( fieldi=0; fieldi<2; fieldi++)          //l
 //hyperdifvisc1ir
 //hyperdifvisc1il
 //hyperdifesource1
-hyperdifviscr(fieldi,dim,Uinit, pG);
-hyperdifviscl(fieldi,dim,Uinit, pG);
+hyperdifviscr(mom1+fieldi,dim,Uinit, pG);
+hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
@@ -1207,11 +1207,16 @@ hyperdifviscl(fieldi,dim,Uinit, pG);
 
   //b field hyperdiffusion term
 
-for(dim=0; dim<2; dim++) //each direction
+for(dim=0; dim<2; dim++) //each direction //k
 for( fieldi=0; fieldi<2; fieldi++)          //l
 {
 //hyperdifvisc1ir
 //hyperdifvisc1il
+
+hyperdifviscr(b1+fieldi,dim,Uinit, pG);
+hyperdifviscl(b1+fieldi,dim,Uinit, pG);
+
+
 if(fieldi != dim)
 {
 
@@ -3630,7 +3635,7 @@ for (i3=kl; i3<=ku; i3++) {
 
 
 #ifdef MHD
-static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb, Real dt, ConsS ***Uint, GridS *pG)
+static void hyperdifbsource(int kf,int lf,int jj,int ii0, int mm, Real sb, Real dt, ConsS ***Uint, GridS *pG)
 {
 
 
@@ -3641,7 +3646,7 @@ static void hyperdifbsource(int kf,int lf,int ii,int ii0, int mm, Real sb, Real 
 // ii0 maps to the field id
 
 int dim=kf;
-int fieldi=ii;
+int fieldi=jj;
 
 
 	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
@@ -3714,21 +3719,21 @@ int fieldi=ii;
 		n3z = 1;
 
 
-	Real  ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
+	Real  ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldr=NULL,***fieldl=NULL;
 
 
 switch(dim)
 {
 case 1:
 	fieldl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
-	fieldf = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
+	fieldr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 	tmp2 = (Real***)calloc_3d_array(n3z, n2z, n1z, sizeof(Real));
 break;
 case 2:
-	fieldf = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
+	fieldr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	fieldl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
@@ -3736,7 +3741,7 @@ case 2:
 	tmp2 = (Real***)calloc_3d_array(n3z, n1z, n2z, sizeof(Real));
 break;
 case 3:
-	fieldf = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
+	fieldr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	fieldl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpr = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
 	tmpl = (Real***)calloc_3d_array(n1z, n2z, n3z, sizeof(Real));
@@ -3747,6 +3752,14 @@ break;
 }
 
 
+
+             //    tmp(ixImin1:ixImax1,ixImin2:ixImax2)=w(ixImin1:ixImax1,&
+             //       ixImin2:ixImax2,b0_+l)
+
+
+
+
+
           /*      tmpBL(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3)&
                     =(w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j)&
                     +w(hxmin1:hxmax1,hxmin2:hxmax2,hxmin3:hxmax3,b0_+j))/two
@@ -3755,14 +3768,14 @@ break;
                     +w(ixmin1:ixmax1,ixmin2:ixmax2,ixmin3:ixmax3,b0_+j))/two    */
 
     /*j is + h is -*/
-switch(dim)
+switch(jj)
 {
 
 case 1:
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B1c)/2.0;
+			fieldr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B1c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B1c)/2.0;
 					}
 				}
 			}
@@ -3772,7 +3785,7 @@ case 2:
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B2c)/2.0;
+			fieldr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B2c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B2c)/2.0;
 					}
 				}
 			}
@@ -3782,7 +3795,7 @@ case 3:
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-			fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B3c)/2.0;
+			fieldr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(Uinit[i3][i2][i1].B3c+Uinit[i3+(dim==3)][i2+(dim==2)][i1+(dim==1)].B3c)/2.0;
 					}
 				}
 			}
@@ -3795,7 +3808,7 @@ break;
 
 
     /*j is + h is -*/
-switch(fieldi)
+switch(jj)
 {
 
 case 1:
@@ -4016,7 +4029,7 @@ for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*((tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])-(tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]));
+ pG->U[i3][i2][i1].E  += sb*(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*((tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])-(tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*fieldr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]));
 
 	}
 	}
@@ -4033,8 +4046,8 @@ for (i3=kl; i3<=ku; i3++) {
 	if (tmpl != NULL) free(tmpl);
 	if (tmp != NULL) free(tmp);
 	if (tmp2 != NULL) free(tmp2);
-	if (fieldf != NULL) free(fieldf);
 	if (fieldl != NULL) free(fieldl);
+	if (fieldr != NULL) free(fieldr);
 
 
 
@@ -4061,8 +4074,8 @@ static void hyperdifbsourcene(int kf,int lf,int ii,int ii0, int mm, Real sb, Rea
 
 // ii0 maps to the field id
 
-int dim=ii;
-int fieldi=ii0;
+int dim=kf;
+int fieldi=lf;
 int jj=ii;
 
 
@@ -4136,7 +4149,7 @@ int jj=ii;
 		n3z = 1;
 
 
-	Real  ***tmpc=NULL,  ***tmp=NULL, ***tmp2=NULL, ***fieldf=NULL,***fieldl=NULL;
+	Real  ***tmpc=NULL,  ***tmp=NULL, ***tmp2=NULL, ***fieldr=NULL,***fieldl=NULL;
 
 
 switch(dim)
@@ -4384,7 +4397,7 @@ break;
 
 
               /*   CALL gradient1(tmp2,ixmin1,ixmin2,ixmax1,ixmax2,m,tmpC)*/
-switch(dim)
+switch(mm)
 {
 
 case 1:
