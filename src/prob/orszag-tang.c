@@ -47,6 +47,33 @@ void problem(DomainS *pDomain)
   v0 = 1.0;
   p0 = 5.0/(12*PI);
 
+
+#ifdef SAC_INTEGRATOR
+/* Build a 3D array of type HyperviscS */
+  //    pG->Hv = (HyperviscS***)calloc_3d_array(n3z, n2z, n1z, sizeof(HyperviscS));
+  //    if (pG->Hv == NULL) goto on_error1;
+
+for(int i=0; i<8; i++)
+		pG->chyp[i]=0.4;
+
+chyp[b1]=0.02;  //bfield
+chyp[b2]=0.02;
+chyp[b3]=0.02;
+
+chyp[energy]=0.02;  //energy
+
+chyp[rho]=0.02;  //density
+
+
+
+
+
+
+#endif
+
+
+
+
 /* Initialize vector potential */
 
   for (j=js; j<=je+1; j++) {
@@ -71,6 +98,18 @@ void problem(DomainS *pDomain)
       pGrid->U[ks][j][i].M3 = 0.0;
       pGrid->B1i[ks][j][i] = (az[j+1][i] - az[j][i])/pGrid->dx2;
       pGrid->B2i[ks][j][i] =-(az[j][i+1] - az[j][i])/pGrid->dx1;
+
+
+#ifdef SAC_INTEGRATOR
+      pGrid->U[ks][j][i].Eb = 0;
+      pGrid->U[ks][j][i].db = 0;
+      pGrid->U[ks][j][i].B2cb = 0;
+      pGrid->U[ks][j][i].B3cb =0;
+
+#endif
+
+
+
     }
   }
 /* boundary conditions on interface B */
@@ -97,6 +136,9 @@ void problem(DomainS *pDomain)
         + 0.5*(SQR(pGrid->U[ks][j][i].M1) + SQR(pGrid->U[ks][j][i].M2)
               + SQR(pGrid->U[ks][j][i].M3))/pGrid->U[ks][j][i].d;
 #endif
+
+
+
   }}
 
   return;
