@@ -54,15 +54,15 @@ void problem(DomainS *pDomain)
   //    if (pG->Hv == NULL) goto on_error1;
 
 for(int i=0; i<8; i++)
-		pG->chyp[i]=0.4;
+		pGrid->chyp[i]=0.4;
 
-chyp[b1]=0.02;  //bfield
-chyp[b2]=0.02;
-chyp[b3]=0.02;
+pGrid->chyp[b1]=0.02;  //bfield
+pGrid->chyp[b2]=0.02;
+pGrid->chyp[b3]=0.02;
 
-chyp[energy]=0.02;  //energy
+pGrid->chyp[energy]=0.02;  //energy
 
-chyp[rho]=0.02;  //density
+pGrid->chyp[rho]=0.02;  //density
 
 
 
