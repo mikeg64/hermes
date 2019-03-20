@@ -1648,16 +1648,26 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
     	for (i1=il; i1<=iu; i1++) {
 
 		rhotot=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
-		rhototsq*=rhotot*rhotot;
+		rhototsq=rhotot*rhotot;
 		pthermal=Uinit[i3][i2][i1].E -((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/rhotot)  ;
+
+
+
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
-		pthermal*=(Gamma_1-1);
-		cs2=Gamma_1*pthermal+(Gamma_1-1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  )));
+		pthermal*=(Gamma_1);
+                //printf("cdens, cmax=%f %f %f %f\n",rhototsq, pthermal,cs2,Gamma_1);
+
+
+
+		cs2=Gamma_1*pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  )));
 		cs2/=rhototsq;
 
+
+
+
 		pG->Hv[i3][i2][i1].csound=sqrt(cs2);
-                //cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound)
+                cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound);
 
 		cfast2=cs2+((Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)*(Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)+
                         (Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)*(Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)+
@@ -1667,7 +1677,7 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 
 
 		pG->Hv[i3][i2][i1].cfast=sqrt(cfast2);
-		//cmax=MAX(cmax,pG->Hv[i3][i2][i1].cfast)
+		cmax=MAX(cmax,pG->Hv[i3][i2][i1].cfast);
 
 		switch(dim)
 		{
@@ -1690,13 +1700,22 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
                 pG->Hv[i3][i2][i1].cmaxd=sqrt(cfasttemp/2)+(momfield/rhotot);
 		cmax=MAX(cmax,cfasttemp);
 
+
+
 				}
 
 
         		}
+
+                //printf("cdens, cmax=%f %f %f %f %f\n",rhotot, cmax, cfasttemp, cfast2, cs2);
+
+
+
 		}
 
 	pG->cmax=cmax;
+
+        printf("cmax=%f %f %f %f\n",cmax, cfasttemp, cfast2, cs2);
 
 }
 
