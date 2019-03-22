@@ -53,7 +53,7 @@ void problem(DomainS *pDomain)
   //    pG->Hv = (HyperviscS***)calloc_3d_array(n3z, n2z, n1z, sizeof(HyperviscS));
   //    if (pG->Hv == NULL) goto on_error1;
 
-for(int i=0; i<8; i++)
+for(i=0; i<8; i++)
 		pGrid->chyp[i]=0.4;
 
 pGrid->chyp[b1]=0.02;  //bfield

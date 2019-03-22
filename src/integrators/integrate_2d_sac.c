@@ -274,15 +274,22 @@ size2=1+je+2*nghost-js;
 
 #ifdef SAC_INTEGRATOR
         Uinit[k][j][i].db  = pG->U[k][j][i].db;
+#ifdef MHD
         Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;
         Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
         Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
 #endif
+
+#endif
 #ifdef SMAUG_INTEGRATOR
         Uinit[k][j][i].db  = pG->U[k][j][i].db;
+
+#ifdef MHD
         Uinit[k][j][i].B1cb = pG->U[k][j][i].B1cb;
         Uinit[k][j][i].B2cb = pG->U[k][j][i].B2cb;
         Uinit[k][j][i].B3cb = pG->U[k][j][i].B3cb;
+#endif
+
 #endif
 
 
@@ -1467,9 +1474,12 @@ void integrate_init_2d(MeshS *pM)
   nmax = MAX(size1,size2);
 
 /*refer to material  integrate_2d_ctu.c*/
+
+#ifdef MHD
   if ((Bxc = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   //if ((Bxi = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((Bxb = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
+#endif
   if ((temp = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
   if ((grad = (Real*)malloc(nmax*sizeof(Real))) == NULL) goto on_error;
 
@@ -1530,9 +1540,12 @@ void integrate_destruct_2d(void)
   if (eta1 != NULL) free_2d_array(eta1);
   if (eta2 != NULL) free_2d_array(eta2);
 #endif *//* H_CORRECTION */
+
+#ifdef MHD
   if (Bxc != NULL) free(Bxc);
   //if (Bxi != NULL) free(Bxi);
   if (Bxb != NULL) free(Bxb);
+#endif
   if (temp != NULL) free(temp);
   if (grad != NULL) free(grad);
 /*#ifdef MHD
@@ -1652,15 +1665,19 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 		pthermal=Uinit[i3][i2][i1].E -((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/rhotot)  ;
 
 
-
+#ifdef MHD
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
 		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
+#endif
 		pthermal*=(Gamma_1);
                 //printf("cdens, cmax=%f %f %f %f\n",rhototsq, pthermal,cs2,Gamma_1);
 
 
-
+#ifdef MHD
 		cs2=Gamma_1*pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  )));
+#else
+		cs2=Gamma_1*pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb);
+#endif
 		cs2/=rhototsq;
 
 
@@ -1669,6 +1686,7 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 		pG->Hv[i3][i2][i1].csound=sqrt(cs2);
                 cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound);
 
+#ifdef MHD
 		cfast2=cs2+((Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)*(Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)+
                         (Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)*(Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)+
 			(Uinit[i3][i2][i1].B3c+Uinit[i3][i2][i1].B3cb)*(Uinit[i3][i2][i1].B3c+Uinit[i3][i2][i1].B3cb))/(rhotot);
@@ -1699,6 +1717,7 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 		cfasttemp=cfast2+sqrt(cfast2*cfast2-4*cs2*bfield*bfield/rhotot);
                 pG->Hv[i3][i2][i1].cmaxd=sqrt(cfasttemp/2)+(momfield/rhotot);
 		cmax=MAX(cmax,cfasttemp);
+#endif
 
 
 
@@ -1820,6 +1839,8 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		case energy:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].E;
 		break;
+
+#ifdef MHD
 		case b1:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B1c;
 		break;
@@ -1829,6 +1850,7 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		case b3:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B3c;
 		break;
+#endif
 		}
         }
 }
@@ -1847,8 +1869,14 @@ printf("fields define\n");
 		pG->Hv[i3][i2][i1].hdnur[dim][fieldi]=0.0;
 
 	       if(fieldi==energy)
+#ifdef MHD
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
 	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
+#else
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
+
+
+#endif
 	       else
 	       {
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
@@ -2057,6 +2085,8 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		case energy:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].E;
 		break;
+
+#ifdef MHD
 		case b1:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B1c;
 		break;
@@ -2066,6 +2096,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		case b3:
 			fieldd[i3][i2][i1]=Uinit[i3][i2][i1].B3c;
 		break;
+#endif
 		}
         }
 }
@@ -2084,8 +2115,14 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		pG->Hv[i3][i2][i1].hdnul[dim][fieldi]=0.0;
 
 	       if(fieldi==energy)
+
+#ifdef MHD
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)
 	+(Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
+#else
+
+		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1]-0.5*((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db ));
+#endif
 	       else
 	       {
 		wtemp1[i3][i2][i1]=fieldd[i3][i2][i1];
@@ -2569,7 +2606,13 @@ break;
  for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
+
+#ifdef MHD
 			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]= fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)] -((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c)/2)+((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+  Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2 +  Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3 ))/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db) ;
+#else
+
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]= fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)] +((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+  Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2 +  Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3 ))/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db) ;
+#endif
 
 
 

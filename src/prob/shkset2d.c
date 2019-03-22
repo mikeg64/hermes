@@ -85,6 +85,9 @@ void problem(DomainS *pDomain)
   Cons1DS Ul, Ur;
   ConsS ql, qr;
   Real Bxl=0.0,Bxr=0.0;
+#ifdef SAC_INTEGRATOR
+  Real Bxbl=0.0,Bxbr=0.0;
+#endif
   div_t id;   /* structure containing remainder and quotient */
 
 /* Following are used to compute volume of cell crossed by initial interface
@@ -162,6 +165,12 @@ void problem(DomainS *pDomain)
     cos_a3 = cos(ang_3);
   }
 
+
+for(i=0; i<8; i++)
+		pGrid->chyp[i]=0.4;
+
+
+
 /* Parse left state read from input file: dl,pl,ul,vl,wl,bxl,byl,bzl */
 
   Wl.d = par_getd("problem","dl");
@@ -193,8 +202,14 @@ void problem(DomainS *pDomain)
   if (Bxr != Bxl) ath_error(0,"[shkset2d] L/R values of Bx not the same\n");
 #endif
 
+
+#ifdef SAC_INTEGRATOR
+  Ul = Prim1D_to_Cons1D(&Wl, &Bxl, &Bxbl);
+  Ur = Prim1D_to_Cons1D(&Wr, &Bxr, &Bxbr);
+#else
   Ul = Prim1D_to_Cons1D(&Wl, &Bxl);
   Ur = Prim1D_to_Cons1D(&Wr, &Bxr);
+#endif
 
 /* Initialize ql rotated to the (x1,x2,x3) coordinate system */
   ql.d   = Ul.d;
