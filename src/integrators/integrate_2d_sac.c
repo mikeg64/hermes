@@ -245,7 +245,7 @@ int size1,size2;
 size1=1+ie+2*nghost-is;
 size2=1+je+2*nghost-js;
 
-//printf("step1\n");
+printf("step1\n");
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
 
@@ -305,7 +305,7 @@ size2=1+je+2*nghost-js;
 
 
 
-//printf("step1a\n");
+printf("step1a\n");
 
 /*--- Step 1a ------------------------------------------------------------------
  * Load 1D vector of conserved variables;
@@ -355,9 +355,12 @@ size2=1+je+2*nghost-js;
 
 #endif
 
+//printf("here\n");
+#ifdef MHD
  Bxb[i] =0.0; //temporary debug seg fault
+#endif
 
-
+//printf("after\n");
 
 
 
@@ -425,7 +428,7 @@ size2=1+je+2*nghost-js;
 
 
 
-//printf("step1c\n");
+printf("step1c\n");
 
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
@@ -653,7 +656,7 @@ size2=1+je+2*nghost-js;
 #endif /* CYLINDRICAL */
 
 
-//printf("step1d\n");
+printf("step1d\n");
 
 /*--- Step 1d ------------------------------------------------------------------
  * Compute 1D fluxes in x1-direction, storing into 3D array
@@ -661,7 +664,12 @@ size2=1+je+2*nghost-js;
     for (i=il+1; i<=iu; i++) {
       //printf("step1d part2a %d %d %d %d\n",i,il,iu,j);
       //printf("step1d part2a %g %g \n",Bxc[i],Bxb[i]);
+
+#ifdef MHD
       Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
+#else
+      Uc_x1[j][i] = Prim1D_to_Cons1D(&W[i],NULL,NULL);
+#endif
       //Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
       //printf("step1d part2\n");
 /*not needed used for computing field on face*/
@@ -669,9 +677,15 @@ size2=1+je+2*nghost-js;
       Bx = B1_x1[j][i];
       Bxb=0.0;//?????????????????????????
 #endif*/
+
+#ifdef  MHD
       fluxes(Uc_x1[j][i],Uc_x1[j][i],W[i],W[i],Bxc[i],Bxb[i],&x1Flux[j][i]);
+#else
+      fluxes(Uc_x1[j][i],Uc_x1[j][i],W[i],W[i],0,0,&x1Flux[j][i]);
+#endif
     }
   }
+      printf("here\n");
 
 /*=== STEP 2: Compute L/R x2-interface states and 1D x2-Fluxes ===============*/
 
@@ -819,20 +833,23 @@ size2=1+je+2*nghost-js;
 
 
 
-//printf("step2d\n");
+printf("step2d\n");
 
 /*--- Step 2d ------------------------------------------------------------------
  * Compute 1D fluxes in x2-direction, storing into 3D array
  */
 
     for (j=jl+1; j<=ju; j++) {
-      Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],&Bxc[j],&Bxb[j]);
 
-/*#ifdef MHD
-      Bx = B2_x2[j][i];
-      Bxb=0.0;//?????????????????????????
-#endif*/
+#ifdef MHD
+      Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],&Bxc[j],&Bxb[j]);
+      //Bx = B2_x2[j][i];
+      //Bxb=0.0;//?????????????????????????
       fluxes(Uc_x2[j][i],Uc_x2[j][i],W[j],W[j],Bxc[j],Bxb[j],&x2Flux[j][i]);
+#else
+      Uc_x2[j][i] = Prim1D_to_Cons1D(&W[j],NULL,NULL);
+      fluxes(Uc_x2[j][i],Uc_x2[j][i],W[j],W[j],0,0,&x2Flux[j][i]);
+#endif
     }
   }
 
@@ -1101,7 +1118,7 @@ size2=1+je+2*nghost-js;
     }
   }
 
-//printf("step12b\n");
+printf("step12b\n");
 /*--- Step 12b -----------------------------------------------------------------
  * Update cell-centered variables in pG using 3D x2-Fluxes
  */
