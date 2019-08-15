@@ -105,6 +105,7 @@ pGrid->chyp[rho]=0.02;  //density
       pGrid->U[ks][j][i].db = 0;
       pGrid->U[ks][j][i].B2cb = 0;
       pGrid->U[ks][j][i].B3cb =0;
+      pGrid->U[ks][j][i].B1cb =0;
 
 #endif
 

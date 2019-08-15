@@ -654,7 +654,7 @@ Prim1DS Cons1D_to_Prim1D(const Cons1DS *pU, const Real *pBx)
 #ifdef SAC_INTEGRATOR
 
 #ifdef MHD
-Prim1D.P -= (Gamma_1)*((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
+Prim1D.P -= (Gamma_2)*((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
 Prim1D.Pb = (Gamma_1*(pU->Eb))-0.5*(Gamma_1-1)*((*pBxb)*(*pBxb) + (pU->Byb)*(pU->Byb) + (pU->Bzb)*(pU->Bzb));
 #else
 //Prim1D.P -= (Gamma_1)*((*pBx)*(*pBxb) + (pU->By)*(pU->Byb) + (pU->Bz)*(pU->Bzb));
