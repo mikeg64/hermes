@@ -1683,17 +1683,17 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 
 
 #ifdef MHD
-		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
-		pthermal+=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
+		pthermal-=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
+		pthermal-=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
 #endif
 		pthermal*=(Gamma_1);
                 //printf("cdens, cmax=%f %f %f %f\n",rhototsq, pthermal,cs2,Gamma_1);
 
 
 #ifdef MHD
-		cs2=Gamma_1*pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  )));
+		cs2=Gamma*(pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  ))));
 #else
-		cs2=Gamma_1*pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb);
+		cs2=Gamma*(pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb));
 #endif
 		cs2/=rhototsq;
 
