@@ -428,7 +428,7 @@ printf("step1a\n");
 
 
 
-printf("step1c\n");
+//printf("step1c\n");
 
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
@@ -656,7 +656,7 @@ printf("step1c\n");
 #endif /* CYLINDRICAL */
 
 
-printf("step1d\n");
+//printf("step1d\n");
 
 /*--- Step 1d ------------------------------------------------------------------
  * Compute 1D fluxes in x1-direction, storing into 3D array
@@ -685,7 +685,7 @@ printf("step1d\n");
 #endif
     }
   }
-      printf("here\n");
+   //   printf("here\n");
 
 /*=== STEP 2: Compute L/R x2-interface states and 1D x2-Fluxes ===============*/
 
@@ -833,7 +833,7 @@ printf("step1d\n");
 
 
 
-printf("step2d\n");
+//printf("step2d\n");
 
 /*--- Step 2d ------------------------------------------------------------------
  * Compute 1D fluxes in x2-direction, storing into 3D array
@@ -1173,7 +1173,7 @@ hyperdifviscl(rho,dim,Uinit, pG);
 //hyperdifvisc1il
 //int dim,Real dt,ConsS ***Uint, GridS *pG
 printf("step12c rhosource\n");
-hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
+//hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
 }
 
 printf("hd energy\n");
@@ -1192,7 +1192,7 @@ hyperdifviscr(energy,dim,Uinit, pG);
 hyperdifviscl(energy,dim,Uinit, pG);
 
 printf("hdesource\n");
-hyperdifesource(dim,pG->dt,Uinit, pG) ;
+//hyperdifesource(dim,pG->dt,Uinit, pG) ;
 
 }
 
@@ -1273,9 +1273,9 @@ if(fieldi != dim)
 
 
 				  if(mm==dim)
-                    hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
+                    ;//hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
 				  else
-                    hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
+                    ;//hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
 
 		        }
 }
@@ -1903,7 +1903,7 @@ printf("fields define\n");
 		}
 
 		//comment removed below to test mpi 29/10/2013
-		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+		tmpnu[i3][i2][i1]=wtemp1[i3][i2][i1];
 
 
 	}
@@ -1927,7 +1927,7 @@ printf("temp1 tmpnu fields define\n");
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
-		   d1[i3+1][i2+1][i1+1]=fabs((tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1] - tmpnu[i3+1][i2+1][i1+1] ));
+		   d1[i3][i2][i1]=fabs((tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ));
 }
 }
 }
@@ -2149,7 +2149,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		}
 
 		//comment removed below to test mpi 29/10/2013
-		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+		tmpnu[i3][i2][i1]=wtemp1[i3][i2][i1];
 
 
 	}
@@ -2177,7 +2177,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
-		   d1[i3+1][i2+1][i1+1]=fabs(( tmpnu[i3+1][i2+1][i1+1] -   tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1]  ));
+		   d1[i3][i2][i1]=fabs(( tmpnu[i3][i2][i1] -   tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ));
 }
 }
 }
@@ -2478,15 +2478,24 @@ printf("here in hdrho 4\n");
         ixImin2:ixImax2,rho_)+(tmpR(ixImin1:ixImax1,ixImin2:ixImax2)&
         -tmpL(ixImin1:ixImax1,ixImin2:ixImax2))/dx(ixImin1:ixImax1,&
         ixImin2:ixImax2,idim)*qdt*/
+    
+    float testval;
+    float testvaltot=0;
+    int ncount=0;
+    
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-     pG->U[i3][i2][i1].d  +=  (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+       testval=(dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+            
+            pG->U[i3][i2][i1].d  += testval;
+            testvaltot+=testval;
+            ncount++;
                    }
 	}
 	}
 
-
+    printf("hyprho %f %d\n", testvaltot/ncount,ncount);
 	if (wtempr != NULL) free(wtempr);
 	if (wtempl != NULL) free(wtempl);
 	if (wtemp3 != NULL) free(wtemp3);
@@ -3201,16 +3210,25 @@ for (i3=kl; i3<=ku; i3++) {
           /*    wnew(ixImin1:ixImax1,ixImin2:ixImax2,e_)=wnew(ixImin1:ixImax1,&
                  ixImin2:ixImax2,e_)+tmp2(ixImin1:ixImax1,ixImin2:ixImax2)*qdt  */
 
+    
+        float testval;
+    float testvaltot=0;
+    int ncount=0;
+    
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+  testval=(dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+            pG->U[i3][i2][i1].E  += testval;
+            testvaltot+=testval;
+            ncount++;
 
 	}
 	}
 	}
 
+    printf("hypmom %f %d \n",testvaltot/ncount,ncount);
 
 	if (tmprhor != NULL) free(tmprhor);
 	if (tmprhol != NULL) free(tmprhol);
@@ -3595,6 +3613,12 @@ break;
 }
 
 
+    
+            float testval;
+    float testvaltot=0;
+    int ncount=0;
+    
+    
 		/*  wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
                  =wnew(ixImin1:ixImax1,ixImin2:ixImax2,m0_+ii0)&
                  +tmpC(ixImin1:ixImax1,ixImin2:ixImax2)*qdt*/
@@ -3605,19 +3629,33 @@ for (i3=kl; i3<=ku; i3++) {
 switch(fieldi+1)
 {
 case 1:
-     pG->U[i3][i2][i1].M1  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     
+        testval=(dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+        pG->U[i3][i2][i1].M1  += testval;
+        
 break;
 
 case 2:
-     pG->U[i3][i2][i1].M2  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     testval  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+        
+                pG->U[i3][i2][i1].M2  += testval;
+
 break;
 
 case 3:
-     pG->U[i3][i2][i1].M3  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     testval= (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+        
+                pG->U[i3][i2][i1].M3  += testval;
+
+        
 break;
 
 }
 
+            
+                    testvaltot+=testval;
+        ncount++;
+
 
 	}
 	}
@@ -3625,7 +3663,7 @@ break;
 
 
 
-
+printf("hypmomene %f %d\n", testvaltot/ncount,ncount);
 
 
 

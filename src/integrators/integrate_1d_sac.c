@@ -1395,7 +1395,7 @@ printf("fields define\n");
 		}
 
 		//comment removed below to test mpi 29/10/2013
-		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+		tmpnu[i3][i2][i1]=wtemp1[i3][i2][i1];
 
 
 	}
@@ -1419,7 +1419,7 @@ printf("temp1 tmpnu fields define\n");
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
-		   d1[i3+1][i2+1][i1+1]=fabs((tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1] - tmpnu[i3+1][i2+1][i1+1] ));
+		   d1[i3][i2][i1]=fabs((tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ));
 }
 }
 }
@@ -1640,7 +1640,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		}
 
 		//comment removed below to test mpi 29/10/2013
-		tmpnu[i3+1][i2+1][i1+1]=wtemp1[i3][i2][i1];
+		tmpnu[i3][i2][i1]=wtemp1[i3][i2][i1];
 
 
 	}
@@ -1668,7 +1668,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
   for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
-		   d1[i3+1][i2+1][i1+1]=fabs(( tmpnu[i3+1][i2+1][i1+1] -   tmpnu[i3+(dim==2)+1][i2+(dim==1)+1][i1+(dim==0)+1]  ));
+		   d1[i3][i2][i1]=fabs(( tmpnu[i3][i2][i1] -   tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ));
 }
 }
 }
