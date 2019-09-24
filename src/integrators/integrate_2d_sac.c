@@ -1173,7 +1173,7 @@ hyperdifviscl(rho,dim,Uinit, pG);
 //hyperdifvisc1il
 //int dim,Real dt,ConsS ***Uint, GridS *pG
 printf("step12c rhosource\n");
-//hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
+hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
 }
 
 printf("hd energy\n");
@@ -1192,7 +1192,7 @@ hyperdifviscr(energy,dim,Uinit, pG);
 hyperdifviscl(energy,dim,Uinit, pG);
 
 printf("hdesource\n");
-//hyperdifesource(dim,pG->dt,Uinit, pG) ;
+hyperdifesource(dim,pG->dt,Uinit, pG) ;
 
 }
 
@@ -1205,8 +1205,8 @@ for( fieldi=0; fieldi<2; fieldi++)          //l
 //hyperdifvisc1ir
 //hyperdifvisc1il
 //hyperdifesource1
-hyperdifviscr(fieldi,dim,Uinit, pG);
-hyperdifviscl(fieldi,dim,Uinit, pG);
+hyperdifviscr(mom1+fieldi,dim,Uinit, pG);
+hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
 
 		         for(ii1=0;ii1<=1;ii1++)
 		         {
@@ -1243,6 +1243,11 @@ for( fieldi=0; fieldi<2; fieldi++)          //l
 //printf("hdb loop\n");
 //hyperdifvisc1ir
 //hyperdifvisc1il
+    
+hyperdifviscr(b1+fieldi,dim,Uinit, pG);
+hyperdifviscl(b1+fieldi,dim,Uinit, pG);
+    
+    
 if(fieldi != dim)
 {
 
@@ -1273,9 +1278,9 @@ if(fieldi != dim)
 
 
 				  if(mm==dim)
-                    ;//hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
+                    hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
 				  else
-                    ;//hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
+                    hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
 
 		        }
 }
@@ -1834,8 +1839,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	//i3=ks;
         //i2=js;
 	//for (i1=il; i1<=iu; i1++)
+    i3=0;
         printf("viscr after maxc\n");
-  for (i3=kl; i3<ku; i3++) {
+  //for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 
@@ -1871,12 +1877,12 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		}
         }
 }
-}
+//}
 
 printf("fields define\n");
 
 
-  for (i3=kl; i3<ku; i3++) {
+//  for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 		wtemp1[i3][i2][i1]=0.0;
@@ -1908,54 +1914,55 @@ printf("fields define\n");
 
 	}
 }
-}
+//}
 
 printf("temp1 tmpnu fields define\n");
 
         // TODO boundary terms
 
-  for (i3=kl; i3<ku; i3++) {
+//  for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 
 		   d3[i3][i2][i1]=fabs(3.0*(tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ) - (tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)] - tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)]   ));
 }
 }
-}
+//}
 
 
-  for (i3=kl; i3<ku; i3++) {
+//  for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 		   d1[i3][i2][i1]=fabs((tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)] - tmpnu[i3][i2][i1] ));
 }
 }
-}
+//}
 
    /*to here*/
         maxt2=0.0;
         maxt1=0.0;
-  for (i3=kl; i3<ku; i3++) {
-    for (i2=jl; i2<ju; i2++) {
-    	for (i1=il; i1<iu; i1++) {
+    kss=-1;
+  //for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju-2; i2++) {
+    	for (i1=il; i1<iu-2; i1++) {
 
-           for(kss=-(dim==2); kss<=(dim==2); kss++)
+           //for(kss=-(dim==2); kss<=(dim==2); kss++)
            for(jss=-(dim==1); jss<=(dim==1); jss++)
            for(iss=-(dim==0); iss<=(dim==0); iss++)
-           {
+           //{
 {
 {
                    if(d3[i3+1+kss][i2+1+jss][i1+1+iss]>maxt1)
                          maxt1=d3[i3+1+kss][i2+1+jss][i1+1+iss];
 }
 }
-}
+//}
 
            wtemp2[i3][i2][i1]=maxt1;
-           for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
+           //for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
            for(jss=-2*(dim==1); jss<=2*(dim==1); jss++)
            for(iss=-2*(dim==0); iss<=2*(dim==0); iss++)
-{
+//{
 {
 {
                                      if(d1[i3+1+kss][i2+1+jss][i1+1+iss]>maxt2)
@@ -1963,16 +1970,16 @@ printf("temp1 tmpnu fields define\n");
 
 }
 }
-}
+//}
 
 
             wtemp3[i3][i2][i1]=maxt2;
         }
         }
-}
+//}
 
 
-  for (i3=kl; i3<ku; i3++) {
+  //for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
            if(wtemp3[i3][i2][i1]>0)
@@ -1991,10 +1998,11 @@ printf("temp1 tmpnu fields define\n");
          //}
          }
 }
-}
+//}
 
 printf("free memory \n");
 
+    //printf("maxt2 %f %f %f %d %d\n",maxt2,maxt1,pG->Hv[0][91][91].hdnur[dim][fieldi],dim,fieldi);
 
 	if (wtemp1 != NULL) free(wtemp1);
 	if (wtemp2 != NULL) free(wtemp2);
@@ -2081,7 +2089,8 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 	//i3=ks;
         //i2=js;
 	//for (i1=il; i1<=iu; i1++)
-  for (i3=kl; i3<ku; i3++) {
+    i3=0;
+  //for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 
@@ -2117,12 +2126,12 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 		}
         }
 }
-}
+//}
 
 
 
 
-  for (i3=kl; i3<ku; i3++) {
+ // for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 		wtemp1[i3][i2][i1]=0.0;
@@ -2154,58 +2163,59 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 	}
 }
-}
+//}
 
 
 
 
         // TODO boundary terms
 
-  for (i3=kl; i3<ku; i3++) {
+ // for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 
 		   d3[i3][i2][i1]=fabs(3.0*( tmpnu[i3][i2][i1] -  tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ) - ( tmpnu[i3-(dim==2)][i2-(dim==1)][i1-(dim==0)] - tmpnu[i3+2*(dim==2)][i2+2*(dim==1)][i1+2*(dim==0)]    ));
 }
 }
-}
+//}
 
 
 
 
 
-  for (i3=kl; i3<ku; i3++) {
-    for (i2=jl; i2<ju; i2++) {
-    	for (i1=il; i1<iu; i1++) {
+  //for (i3=kl; i3<ku; i3++) {
+    for (i2=jl; i2<ju-2; i2++) {
+    	for (i1=il; i1<iu-2; i1++) {
 		   d1[i3][i2][i1]=fabs(( tmpnu[i3][i2][i1] -   tmpnu[i3+(dim==2)][i2+(dim==1)][i1+(dim==0)]  ));
 }
 }
-}
-
+//}
+printf("here 1 hdnul\n");
    /*to here*/
+        kss=-1;
         maxt2=0.0;
         maxt1=0.0;
-  for (i3=kl; i3<ku; i3++) {
+  //for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
 
-           for(kss=-(dim==2); kss<=(dim==2); kss++)
+           //for(kss=-(dim==2); kss<=(dim==2); kss++)
            for(jss=-(dim==1); jss<=(dim==1); jss++)
            for(iss=-(dim==0); iss<=(dim==0); iss++)
-           {
+           //{
 {
 {
                    if(d3[i3+1+kss][i2+1+jss][i1+1+iss]>maxt1)
                          maxt1=d3[i3+1+kss][i2+1+jss][i1+1+iss];
 }
 }
-}
+//}
 
            wtemp2[i3][i2][i1]=maxt1;
-           for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
+           //for(kss=-2*(dim==2); kss<=2*(dim==2); kss++)
            for(jss=-2*(dim==1); jss<=2*(dim==1); jss++)
            for(iss=-2*(dim==0); iss<=2*(dim==0); iss++)
-{
+//{
 {
 {
                                      if(d1[i3+1+kss][i2+1+jss][i1+1+iss]>maxt2)
@@ -2213,16 +2223,16 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
 
 }
 }
-}
+//}
 
 
             wtemp3[i3][i2][i1]=maxt2;
         }
         }
-}
+//}
 
 
-  for (i3=kl; i3<ku; i3++) {
+  //for (i3=kl; i3<ku; i3++) {
     for (i2=jl; i2<ju; i2++) {
     	for (i1=il; i1<iu; i1++) {
            if(wtemp3[i3][i2][i1]>0)
@@ -2241,8 +2251,11 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
          //}
          }
 }
-}
+//}
 
+printf("free memory \n");
+
+    printf("maxt2 %f %f %f %d %d\n",maxt2,maxt1,pG->Hv[0][91][91].hdnul[dim][fieldi],dim,fieldi);
 
 
 
