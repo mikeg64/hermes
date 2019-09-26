@@ -2379,6 +2379,7 @@ printf("here in hdrho %d %d %d %d  %d %d %d\n",dim, AIN3(i1,i2,i3,dim), AIN2(i1,
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 			fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].d;
+            //printf(" %f %f %d %d %d\n",fieldd[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)],Uinit[i3][i2][i1].d,AIN3(i1,i2,i3,dim),AIN1(i1,i2,i3,dim),AIN1(i1,i2,i3,dim));
 					}
 				}
 			}
@@ -2480,6 +2481,9 @@ for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 			wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]  =(pG->Hv[i3][i2][i1].hdnur[dim][fieldi])*tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+            
+            //printf("wtempr, tmp2 %g %g\n",wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)] , tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]  );
+          
 					}
 				}
 			}
@@ -2503,6 +2507,7 @@ for (i3=kl; i3<=ku; i3++) {
             
             pG->U[i3][i2][i1].d  += testval;
             testvaltot+=testval;
+            //printf("here rho5  %f\n",testval);
             ncount++;
                    }
 	}
