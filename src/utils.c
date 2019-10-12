@@ -158,7 +158,7 @@ void gradient1(Real *data, int nx1, Real dx, Real *grad)
 
   for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
 	if(nx1>1)  
-		for (ip=1; ip<(nx1-1); ip++) {
+		for (ip=2; ip<(nx1-1); ip++) {
       			grad[ip]=2*(data[ip+1]  - data[ip-1] )/dx;
   		}
 
@@ -205,11 +205,32 @@ void gradient1l(Real *data, int nx1, Real dx, Real *grad)
   hxmax2=ixmax2-kr(idim,2);
   gradq(ixmin1:ixmax1,ixmin2:ixmax2)=(q(ixmin1:ixmax1,ixmin2:ixmax2)&
      -q(hxmin1:hxmax1,hxmin2:hxmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)*/
-
+  //printf("nx1 dx %d %f\n",nx1,dx);
   for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
   if(nx1>1)
   for (ip=1; ip<(nx1); ip++) {
     grad[ip]=(data[ip]  - data[ip-1] )/dx;
+      //printf("grad %f %f %f\n",grad[ip],data[ip],data[ip-1]);
+
+  }
+  
+}
+
+//this version used for debugging
+void gradient1ld(Real *data, int nx1, Real dx, Real *grad)
+{
+  int ip;
+
+  /*hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2);hxmax1=ixmax1-kr(idim,1)
+  hxmax2=ixmax2-kr(idim,2);
+  gradq(ixmin1:ixmax1,ixmin2:ixmax2)=(q(ixmin1:ixmax1,ixmin2:ixmax2)&
+     -q(hxmin1:hxmax1,hxmin2:hxmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)*/
+  //printf("nx1 dx %d %f\n",nx1,dx);
+  for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+  if(nx1>1)
+  for (ip=0; ip<(nx1-1); ip++) {
+    grad[ip]=(data[ip]  - data[ip-1] )/dx;
+      printf("grad %f %f %f\n",grad[ip],data[ip],data[ip-1]);
 
   }
   
@@ -234,8 +255,9 @@ void gradient1r(Real *data, int nx1, Real dx, Real *grad)
 
 
   for (ip=0; ip<nx1; ip++) grad[ip]=0.0;
+   ;// printf("nx1 %d\n",nx1);
   if(nx1>1)
-  for (ip=0; ip<(nx1-1); ip++) {
+  for (ip=0; ip<(nx1-2); ip++) {
     grad[ip]=(data[ip+1]  - data[ip] )/dx;
 
   }
