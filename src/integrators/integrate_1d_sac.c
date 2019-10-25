@@ -1966,7 +1966,7 @@ for (i3=kl; i3<=ku; i3++) {
 for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
-     pG->U[i3][i2][i1].d  +=  (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].d  +=  dt*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
                    }
 	}
 	}
@@ -2650,15 +2650,15 @@ for (i3=kl; i3<=ku; i3++) {
 switch(ii0)
 {
 case 1:
-     pG->U[i3][i2][i1].M1  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M1  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 2:
-     pG->U[i3][i2][i1].M2  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M2  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 3:
-     pG->U[i3][i2][i1].M3  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M3  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 }
@@ -2695,7 +2695,7 @@ for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ pG->U[i3][i2][i1].E  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 
 	}
 	}
@@ -3106,15 +3106,15 @@ for (i3=kl; i3<=ku; i3++) {
 switch(fieldi)
 {
 case 1:
-     pG->U[i3][i2][i1].M1  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M1  += dt*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 2:
-     pG->U[i3][i2][i1].M2  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M2  += dt*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 case 3:
-     pG->U[i3][i2][i1].M3  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[i3][i2][i1].M3  += dt*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 break;
 
 }
@@ -3184,7 +3184,7 @@ for (i3=kl; i3<=ku; i3++) {
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
- pG->U[i3][i2][i1].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ pG->U[i3][i2][i1].E  += dt*(tmpc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 
 	}
 	}
