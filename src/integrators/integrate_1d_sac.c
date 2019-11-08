@@ -67,6 +67,8 @@ static Real *dhalf = NULL, *phalf = NULL;
 static Real *geom_src=NULL;
 #endif
 
+
+
 static void computemaxc(ConsS ***Uint, GridS *pG, int dim);
 
 
@@ -74,6 +76,9 @@ static void hyperdifviscr(int fieldi,int dim,ConsS ***Uint, GridS *pG);
 static void hyperdifviscl(int fieldi,int dim,ConsS ***Uint, GridS *pG);
 
 static void hyperdifrhosource(int dim,Real dt,ConsS ***Uint, GridS *pG);
+
+
+
 static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsource(int k,int l, int ii,int ii0,Real dt,ConsS ***Uint, GridS *pG);
 //static void hyperdifmomsourcene(int k,int l, int ii,int ii0, Real dt,ConsS ***Uint, GridS *pG);
@@ -163,7 +168,9 @@ size1=1+ie+2*nghost-is;
 
 
 /*=== STEP 1: Compute L/R x1-interface states and 1D x1-Fluxes ===============*/
-
+printf("step1 \n");
+ks=0;
+js=0;
 
 /*Store the initial variables for use in hyperdiffusion computations*/
       for (i=il; i<=iu; i++) {
@@ -216,7 +223,7 @@ size1=1+ie+2*nghost-is;
 
 
 
-
+printf("step1a\n");
 
 /*--- Step 1a ------------------------------------------------------------------
  * Load 1D vector of conserved variables;
@@ -256,6 +263,12 @@ size1=1+ie+2*nghost-is;
         Bxb[i] = pG->U[ks][js][i].B1cb;
 #endif /* MHD */
 
+
+//printf("here\n");
+#ifdef MHD
+ Bxb[i] =0.0; //temporary debug seg fault
+#endif
+
 #endif
 #if (NSCALARS > 0)
     for (n=0; n<NSCALARS; n++) U1d[i].s[n] = pG->U[ks][js][i].s[n];
@@ -291,7 +304,7 @@ size1=1+ie+2*nghost-is;
 
 
  
-
+printf("step1c\n");
 /*--- Step 1c ------------------------------------------------------------------
  * Add source terms from static gravitational potential for 0.5*dt to L/R states
  */
@@ -455,24 +468,30 @@ size1=1+ie+2*nghost-is;
 
 
 
+#ifdef MHD
+ Bxb[i] =0.0; //temporary debug seg fault
+#endif
 
 
-
-
-
+printf("step 1d \n");
 
 /*--- Step 1d ------------------------------------------------------------------
  * Compute 1D fluxes in x1-direction, storing into 3D array
  */
     for (i=il+1; i<=iu; i++) {
+
+#ifdef MHD
       Uc_x1[i] = Prim1D_to_Cons1D(&W[i],&Bxc[i],&Bxb[i]);
-      
+      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],Bxc[i],Bxb[i],&x1Flux[i]);
+#else
+      Uc_x1[i] = Prim1D_to_Cons1D(&W[i],NULL,NULL);
+      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],0,0,&x1Flux[i]);
+#endif
 
-
-      fluxes(Uc_x1[i],Uc_x1[i],W[i],W[i],*Bxc,*Bxb,&x1Flux[i]);
     }
   
 
+printf("step 8\n");
 /*checked for sac to here*/
 /*=== STEP 8: Compute cell-centered values at n+1/2 ==========================*/
 
@@ -688,6 +707,7 @@ size1=1+ie+2*nghost-is;
   }
 #endif /* BAROTROPIC */
 
+printf("step11\n");
 /*--- Step 11d -----------------------------------------------------------------
  * Add source terms for particle feedback
  */
@@ -706,6 +726,140 @@ size1=1+ie+2*nghost-is;
 
 
 
+printf("start hyperdiffusion\n");
+/* compute hyperdiffusion source terms  */
+
+//hyperdifvisc1r
+
+//hyperdifvisc1l
+
+//computec
+//computemaxc(Uinit,pG);
+
+//density contribution
+for(dim=0; dim<2; dim++) //each direction
+{
+
+printf("step12c maxc\n");
+;//computemaxc(Uinit,pG,dim);
+printf("step12c viscr\n");
+;//hyperdifviscr(rho,dim,Uinit, pG);
+printf("step12c viscl\n");
+;//hyperdifviscl(rho,dim,Uinit, pG);
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//int dim,Real dt,ConsS ***Uint, GridS *pG
+printf("step12c rhosource\n");
+;//hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
+}
+
+//energy hyperdiffusion term
+for(dim=0; dim<2; dim++) //each direction
+{
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//hyperdifesource1
+
+
+;//computemaxc(Uinit,pG,dim);
+
+;//hyperdifviscr(energy,dim,Uinit, pG);
+
+;//hyperdifviscl(energy,dim,Uinit, pG);
+
+;//hyperdifesource(dim,pG->dt,Uinit, pG) ;
+
+}
+
+
+
+       //momentum hyperdiffusion term
+for(dim=0; dim<2; dim++) //each direction   //k
+for( fieldi=0; fieldi<2; fieldi++)          //l
+{
+//hyperdifvisc1ir
+//hyperdifvisc1il
+//hyperdifesource1
+;//hyperdifviscr(mom1+fieldi,dim,Uinit, pG);
+;//hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
+
+		         for(ii1=0;ii1<=1;ii1++)
+		         {
+		                  if (ii1 == 0)
+		                  {
+				           ii=dim;
+				           ii0=fieldi;  //f is field
+		                  }
+		                  else
+		                  {
+				           ii=fieldi;
+				           ii0=dim;
+		                   }
+
+				  if(ii==dim)
+				    ;//hyperdifmomsource(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);
+				  else
+				    ;//hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
+		        }
+
+
+}
+#ifdef MHD
+
+  //b field hyperdiffusion term
+
+for(dim=0; dim<1; dim++) //each direction //k
+for( fieldi=0; fieldi<2; fieldi++)          //l
+{
+//hyperdifvisc1ir
+//hyperdifvisc1il
+
+;//hyperdifviscr(b1+fieldi,dim,Uinit, pG);
+;//hyperdifviscl(b1+fieldi,dim,Uinit, pG);
+
+
+if(fieldi != dim)
+{
+
+
+
+		         for(ii1=0;ii1<=1;ii1++)
+		         {
+
+                        if (ii1 == 0)
+				          {
+						   jj=dim;
+						   mm=fieldi;
+						   sb=-1.0;
+						   ii0=dim;
+				          }
+				          else
+				          {
+						   ii0=fieldi;
+						   mm=dim;
+						   sb=1.0;
+						   jj=fieldi;
+				          }
+
+
+
+
+				  if(mm==dim)
+                    ;//hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
+				  else
+                    ;//hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
+
+		        }
+}
+
+
+}
+
+#endif  /*hyperdiffusion source term for bfield*/
+
+
+
+
 
 
 /*--- Step 12c -----------------------------------------------------------------
@@ -716,7 +870,7 @@ size1=1+ie+2*nghost-is;
  * Update cell-centered variables in pG using 1D x1-fluxes
  */
 
-
+printf("flux divergence \n");
 
 /*for (i=is; i<=ie; i++) {*/
 /*
@@ -747,8 +901,11 @@ for (i=is+2; i<=ie-2; i++) {
 #ifndef BAROTROPIC
     pG->U[ks][js][i].E  -= dtodx1*(lsf*x1Flux[i-2].E+8*rsf*x1Flux[i+1].E  - 8*lsf*x1Flux[i-1].E -rsf*x1Flux[i+2].E)/12;
     pG->U[ks][js][i].E  -= dtodx1*grad[i]*W[i].Pb;//(pG->dt)*grad[i]*W[i].Pb;
+
+#ifdef MHD
     pG->U[ks][js][i].E  += dtodx1*grad[i]*Bxb[i]*Bxb[i]; //(pG->dt)*grad[i]*Bxb[i]*Bxb[i];
   /*remember energy contribution from background b-field*/
+#endif
 
 
 
@@ -780,135 +937,6 @@ for (i=is+2; i<=ie-2; i++) {
 /*--- Step 12d: Not needed in 1D ---*/
 
 
-/* compute hyperdiffusion source terms  */
-
-//hyperdifvisc1r
-
-//hyperdifvisc1l
-
-//computec
-//computemaxc(Uinit,pG);
-
-//density contribution
-for(dim=0; dim<2; dim++) //each direction
-{
-
-printf("step12c maxc\n");
-computemaxc(Uinit,pG,dim);
-printf("step12c viscr\n");
-hyperdifviscr(rho,dim,Uinit, pG);
-printf("step12c viscl\n");
-hyperdifviscl(rho,dim,Uinit, pG);
-//hyperdifvisc1ir
-//hyperdifvisc1il
-//int dim,Real dt,ConsS ***Uint, GridS *pG
-printf("step12c rhosource\n");
-hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
-}
-
-//energy hyperdiffusion term
-for(dim=0; dim<2; dim++) //each direction
-{
-//hyperdifvisc1ir
-//hyperdifvisc1il
-//hyperdifesource1
-
-
-computemaxc(Uinit,pG,dim);
-
-hyperdifviscr(energy,dim,Uinit, pG);
-
-hyperdifviscl(energy,dim,Uinit, pG);
-
-hyperdifesource(dim,pG->dt,Uinit, pG) ;
-
-}
-
-
-
-       //momentum hyperdiffusion term
-for(dim=0; dim<2; dim++) //each direction   //k
-for( fieldi=0; fieldi<2; fieldi++)          //l
-{
-//hyperdifvisc1ir
-//hyperdifvisc1il
-//hyperdifesource1
-hyperdifviscr(mom1+fieldi,dim,Uinit, pG);
-hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
-
-		         for(ii1=0;ii1<=1;ii1++)
-		         {
-		                  if (ii1 == 0)
-		                  {
-				           ii=dim;
-				           ii0=fieldi;  //f is field
-		                  }
-		                  else
-		                  {
-				           ii=fieldi;
-				           ii0=dim;
-		                   }
-
-				  if(ii==dim)
-				    hyperdifmomsource(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);
-				  else
-				    hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
-		        }
-
-
-}
-#ifdef MHD
-
-  //b field hyperdiffusion term
-
-for(dim=0; dim<1; dim++) //each direction //k
-for( fieldi=0; fieldi<2; fieldi++)          //l
-{
-//hyperdifvisc1ir
-//hyperdifvisc1il
-
-hyperdifviscr(b1+fieldi,dim,Uinit, pG);
-hyperdifviscl(b1+fieldi,dim,Uinit, pG);
-
-
-if(fieldi != dim)
-{
-
-
-
-		         for(ii1=0;ii1<=1;ii1++)
-		         {
-
-                        if (ii1 == 0)
-				          {
-						   jj=dim;
-						   mm=fieldi;
-						   sb=-1.0;
-						   ii0=dim;
-				          }
-				          else
-				          {
-						   ii0=fieldi;
-						   mm=dim;
-						   sb=1.0;
-						   jj=fieldi;
-				          }
-
-
-
-
-				  if(mm==dim)
-                    hyperdifbsource(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);
-				  else
-                    hyperdifbsourcene(fieldi,dim,jj,ii0,mm,sb,pG->dt,Uinit, pG);  //off diagonal
-
-		        }
-}
-
-
-}
-
-#endif  /*hyperdiffusion source term for bfield*/
 
 
 
@@ -1150,6 +1178,8 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
 	#endif
         kl=0;
         ku=0;
+        jl=0;
+        ju=0;
 
 
 	if (pG->Nx[0] > 1)
@@ -1183,37 +1213,45 @@ static void computemaxc(ConsS ***Uint, GridS *pG, int dim)
     for (i2=jl; i2<=ju; i2++) {
     	for (i1=il; i1<=iu; i1++) {
 
+
+
 		rhotot=(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
-		rhototsq*=rhotot*rhotot;
+		rhototsq=rhotot*rhotot;
 		pthermal=Uinit[i3][i2][i1].E -((Uinit[i3][i2][i1].M1*Uinit[i3][i2][i1].M1+Uinit[i3][i2][i1].M2*Uinit[i3][i2][i1].M2+Uinit[i3][i2][i1].M3*Uinit[i3][i2][i1].M3)/rhotot)  ;
+
 
 #ifdef MHD
 		pthermal-=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3c));
 		pthermal-=0.5*((Uinit[i3][i2][i1].B1c*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2c*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3c*Uinit[i3][i2][i1].B3cb));
 #endif
-		pthermal*=(Gamma_1-1);
+		pthermal*=(Gamma_1);
+                //printf("cdens, cmax=%f %f %f %f\n",rhototsq, pthermal,cs2,Gamma_1);
+
 
 #ifdef MHD
-		cs2=Gamma*(pthermal+(Gamma_1-1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  ))));
+		cs2=Gamma*(pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb-0.5*(    ((Uinit[i3][i2][i1].B1cb*Uinit[i3][i2][i1].B1cb+Uinit[i3][i2][i1].B2cb*Uinit[i3][i2][i1].B2cb+Uinit[i3][i2][i1].B3cb*Uinit[i3][i2][i1].B3cb)  ))));
 #else
-		cs2=Gamma*(pthermal+(Gamma_1-1)*(Uinit[i3][i2][i1].Eb));
-
+		cs2=Gamma*(pthermal+(Gamma_1)*(Uinit[i3][i2][i1].Eb));
 #endif
 		cs2/=rhototsq;
 
+
+
+
 		pG->Hv[i3][i2][i1].csound=sqrt(cs2);
-                //cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound)
+                cmax=MAX(cmax,pG->Hv[i3][i2][i1].csound);
 
 #ifdef MHD
 		cfast2=cs2+((Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)*(Uinit[i3][i2][i1].B1c+Uinit[i3][i2][i1].B1cb)+
                         (Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)*(Uinit[i3][i2][i1].B2c+Uinit[i3][i2][i1].B2cb)+
 			(Uinit[i3][i2][i1].B3c+Uinit[i3][i2][i1].B3cb)*(Uinit[i3][i2][i1].B3c+Uinit[i3][i2][i1].B3cb))/(rhotot);
 
-#endif
 
-#ifdef MHD
+
+
 		pG->Hv[i3][i2][i1].cfast=sqrt(cfast2);
-		//cmax=MAX(cmax,pG->Hv[i3][i2][i1].cfast)
+		cmax=MAX(cmax,pG->Hv[i3][i2][i1].cfast);
+
 
 
 		switch(dim)
