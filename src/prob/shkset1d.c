@@ -183,6 +183,16 @@ printf("here4\n");
           pGrid->U[k][j][i].B2c = U1d.By;
           pGrid->U[k][j][i].B3c = U1d.Bz;
 #endif
+
+#ifdef SAC_INTEGRATOR
+      pGrid->U[k][j][i].Eb = 0;
+      pGrid->U[k][j][i].db = 0;
+      pGrid->U[k][j][i].B2cb = 0;
+      pGrid->U[k][j][i].B3cb =0;
+      pGrid->U[k][j][i].B1cb =0;
+
+#endif
+
 #ifdef ADIABATIC
           pGrid->U[k][j][i].E = U1d.E;
 #endif
@@ -445,6 +455,33 @@ printf("here4\n");
     }}
 
   } /* end calculation of analytic (root) solution */
+
+
+
+#ifdef SAC_INTEGRATOR
+/* Build a 3D array of type HyperviscS */
+  //    pG->Hv = (HyperviscS***)calloc_3d_array(n3z, n2z, n1z, sizeof(HyperviscS));
+  //    if (pG->Hv == NULL) goto on_error1;
+
+for(i=0; i<8; i++)
+		pGrid->chyp[i]=0.4;
+
+pGrid->chyp[b1]=0.02;  //bfield
+pGrid->chyp[b2]=0.02;
+pGrid->chyp[b3]=0.02;
+
+pGrid->chyp[energy]=0.02;  //energy
+
+pGrid->chyp[rho]=0.02;  //density
+
+
+
+
+
+
+#endif
+
+
 
   return;
 }
