@@ -109,6 +109,7 @@ void integrate_1d_sac(DomainS *pD)
   int i,il,iu, is = pG->is, ie = pG->ie;
   int js = pG->js;
   int ks = pG->ks;
+  int j,k,n1z,n2z,n3z,ib;
   Real x1,x2,x3,phicl,phicr,phifc,phil,phir,phic,M1h,M2h,M3h;
 #ifndef BAROTROPIC
   Real coolfl,coolfr,coolfc,coolf,Eh=0.0;
@@ -724,9 +725,29 @@ printf("step11\n");
   }
 #endif
 
+    
+//Apply boundary conditions to Uinit
+	if (pG->Nx[0] > 1)
+		n1z = pG->Nx[0] + 2*nghost;
+	else
+		n1z = 1;
 
+	if (pG->Nx[1] > 1)
+		n2z = pG->Nx[1] + 2*nghost;
+	else
+		n2z = 1;
 
-printf("start hyperdiffusion\n");
+	if (pG->Nx[2] > 1)
+		n3z = pG->Nx[2] + 2*nghost;
+	else
+		n3z = 1;
+    
+#include "bound1_flowout.c"
+    
+
+printf("start 1 hyperdiffusion\n");
+    
+
 /* compute hyperdiffusion source terms  */
 
 //hyperdifvisc1r
@@ -737,7 +758,7 @@ printf("start hyperdiffusion\n");
 //computemaxc(Uinit,pG);
 
 //density contribution
-for(dim=0; dim<2; dim++) //each direction
+for(dim=0; dim<1; dim++) //each direction
 {
 
 printf("step12c maxc\n");
@@ -754,7 +775,7 @@ hyperdifrhosource(dim,pG->dt,Uinit, pG) ;
 }
 
 //energy hyperdiffusion term
-for(dim=0; dim<2; dim++) //each direction
+for(dim=0; dim<1; dim++) //each direction
 {
 //hyperdifvisc1ir
 //hyperdifvisc1il
@@ -802,7 +823,7 @@ hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
                       hyperdifmomsource(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);
 				    //hyperdifmomsource(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);
 				  else
-				    ;//hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
+				    //hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
                     hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
 		        }
 
@@ -3273,6 +3294,7 @@ break;
 }
 
             float testval=0;
+    float testdebug;
     float testvaltot=0;
     int ncount=0;
     
@@ -3287,23 +3309,28 @@ break;
 switch(fieldi+1)
 {
 case 1:
-     
+        //testdebug=tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
         testval=dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
-        ;//pG->U[i3][i2][i1].M1  += testval;
+        pG->U[i3][i2][i1].M1  += testval;
+        
+        //printf("M1 %d %d %g\n",i1,i2,testdebug);
         
 break;
 
 case 2:
      testval  = dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+        //testdebug=tmprhoc[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
         
-               ;// pG->U[i3][i2][i1].M2  += testval;
+               pG->U[i3][i2][i1].M2  += testval;
+        
+              //printf("M2 %d %d %g\n",i1,i2,testdebug);
 
 break;
 
 case 3:
      testval= dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
         
-                ;//pG->U[i3][i2][i1].M3  += testval;
+                pG->U[i3][i2][i1].M3  += testval;
 
         
 break;
@@ -3378,7 +3405,7 @@ break;
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
 
- ;//pG->U[i3][i2][i1].E  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ pG->U[i3][i2][i1].E  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 
 	}
 	}
