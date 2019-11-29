@@ -206,7 +206,7 @@ void integrate_2d_sac(DomainS *pD)
   Real g,gl,gr;
   Real lsf=1.0, rsf=1.0;
 
- int ib,i1,i2; 
+ int ib,i1,i2,i3; 
   int n1z,n2z,n3z;    
     
     
@@ -1116,12 +1116,36 @@ printf("step1a\n");
     
     
 //put bound.c code here    
-#include "bound.c"    
+#include "bound2_periodic.c"    
     
     
     
-    
-    
+   
+/*    i3=0;
+        i2=96;
+        
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    printf("dens1 %d %d %g\n",i1,i2,Uinit[i3][i2][i1].d);
+        }
+    //}
+//}
+
+
+     i3=0;
+        i1=96;
+        
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    	for (i2=0; i2<n2z; i2++) {
+ 
+                    printf("dens2 %d %d %g\n",i1,i2,Uinit[i3][i2][i1].d);
+        }
+    //}
+//}     
+*/    
 
 pG->maxviscoef=0;
 
@@ -1166,7 +1190,7 @@ hyperdifviscr(energy,dim,Uinit, pG);
 hyperdifviscl(energy,dim,Uinit, pG);
 
 printf("hdesource\n");
-;//hyperdifesource(dim,pG->dt,Uinit, pG) ;
+hyperdifesource(dim,pG->dt,Uinit, pG) ;
 
 }
 
@@ -1200,9 +1224,9 @@ hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
 
 
 				  if(ii==dim)
-				    ;//hyperdifmomsource(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);
+				   ;//hyperdifmomsource(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);
 				  else
-				    ;//hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
+				   ;//hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
 		        }
 
 
@@ -2196,6 +2220,28 @@ printf("temp1 tmpnu fields define\n");
          }
 }
 //}
+    
+    
+/*
+//i2=0;
+    i3=0;
+    float testdebug;
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    i2=96;
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    //testdebug=tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+                    testdebug=wtemp2[i3][i2][i1];
+                    printf("tmp2  %d %d %d  %g %g %g\n",fieldi,dim,i1,testdebug,pG->Hv[i3][i2][i1].hdnur[dim][fieldi],pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+        }
+   //}
+//}
+*/
+   
+    
+    
+    
 
 printf("free memory \n");
 printf("maxt2-r %f %f %f  %d %d\n",maxt2,maxt1,pG->Hv[0][91][91].hdnur[dim][fieldi],dim,fieldi);
@@ -2470,7 +2516,7 @@ static void hyperdifviscl(int fieldi,int dim,ConsS ***Uinit, GridS *pG)
                     //{
                             //for(i3=0;i1<n3z;i3++)
                             //{
-                                tmpnu[i3][0][i1]=tmpnu[i3][5][i1];                                
+                               tmpnu[i3][0][i1]=tmpnu[i3][5][i1];                                
                                 
                                 
                             //}
@@ -2582,6 +2628,29 @@ printf("here 1 hdnul\n");
          }
 }
 //}
+    
+    
+    
+ /*
+//i2=0;
+    i3=0;
+    float testdebug;
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    i2=96;
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    //testdebug=tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+                    testdebug=wtemp2[i3][i2][i1];
+                    printf("tmp2  %d %d %d  %g %g %g\n",fieldi,dim,i1,testdebug,pG->Hv[i3][i2][i1].hdnur[dim][fieldi],pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+        }
+   //}
+//}
+  */
+    
+    
+    
+    
 
 printf("free memory \n");
 
@@ -2629,7 +2698,7 @@ static void hyperdifrhosource(int dim,Real dt,ConsS ***Uinit, GridS *pG)
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
         /*rho, mom1, mom2, mom3, energy, b1, b2, b3*/
 
-
+    Real dx= (pG->dx1)*(dim==0)+(pG->dx2)*(dim==1);
 	/* With particles, one more ghost cell must be updated in predict step */
 	#ifdef PARTICLES
 	  Real d1;
@@ -2833,6 +2902,24 @@ printf("here in hdrho 3\n");
 //			}
 
 printf("here in hdrho 4\n");
+    
+    
+/*       
+    i3=0;
+    i2=96;
+    
+        float testdebug;
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    testdebug=wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+                    printf("tmp2 rho  %d %d %d %g %g %g\n",dim,i1,i2,testdebug,pG->Hv[i3][i2][i1].hdnur[dim][0],pG->Hv[i3][i2][i1].hdnul[dim][0]);
+        }
+    //}
+//}
+
+*/    
 
 
      /*wnew(ixImin1:ixImax1,ixImin2:ixImax2,rho_)=wnew(ixImin1:ixImax1,&
@@ -2847,7 +2934,7 @@ printf("here in hdrho 4\n");
 //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-       testval=dt*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+       testval=dt*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/dx;
             
             pG->U[i3][i2][i1].d  += testval;
             testvaltot+=testval;
@@ -2891,7 +2978,7 @@ static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 
 	int fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
-
+      Real dtodx=dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2);
 	is = pG->is,
 	ie = pG->ie;
 	js = pG->js,
@@ -3127,12 +3214,38 @@ nul=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];*/
 //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-     pG->U[k][j][i].E  += (dtodx1*(dim==1)+dtodx2*(dim==2)+dtodx3*(dim==3))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[k][j][i].E  += dtodx*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 	}
 	}
 //	}
 
 
+    
+    
+   /*     
+    i3=0;
+    i2=96;
+    
+        float testdebug;
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    testdebug=dtodx*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+                    printf("tmp2 rho  %d %d %d %g %g %g\n",dim,i1,i2,testdebug,pG->Hv[i3][i2][i1].hdnur[dim][0],pG->Hv[i3][i2][i1].hdnul[dim][0]);
+        }
+    //}
+//}
+
+  */   
+    
+    
+    
+    
+    
+    
+    
+    
 	if (wtempr != NULL) free(wtempr);
 	if (wtempl != NULL) free(wtempl);
 	if (wtemp3 != NULL) free(wtemp3);
@@ -3175,7 +3288,8 @@ int fieldi=ii0;
         int iss,jss,kss;
 
 	//fieldi=energy;
-        Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
+    Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
+    Real dtodx=dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx2*(dim==2);
 
 	is = pG->is,
 	ie = pG->ie;
@@ -3359,7 +3473,7 @@ case 3:
  //for (i3=0; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-			;//fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
+			fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=Uinit[i3][i2][i1].M3;
 					}
 				}
 //			}
@@ -3450,15 +3564,15 @@ break;
 case 2:
  //for (i3=kl; i3<=ku; i3++) {
     for (i1=0; i1<n1z; i1++) {
-			gradient1l(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
+			;//gradient1l(tmp[i3][i1], n2z,pG->dx2,tmp2[i3][i1]);
 				}
 //			}
 break;
 
 case 3:
- for (i1=il; i1<=iu; i1++) {
-    for (i2=jl; i2<=ju; i2++) {
-			gradient1l(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
+ for (i1=0; i1<n1z; i1++) {
+    for (i2=0; i2<n2z; i2++) {
+			;//gradient1l(tmp[i1][i2], n3z,pG->dx3,tmp2[i1][i2]);
 				}
 			}
 break;
@@ -3474,7 +3588,7 @@ break;
  //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+			tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnul[dim][mom1+fieldi]);
 
 					}
 				}
@@ -3521,7 +3635,7 @@ break;
 //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][fieldi]);
+			tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*(pG->Hv[i3][i2][i1].hdnur[dim][mom1+fieldi]);
 
 					}
 				}
@@ -3585,7 +3699,7 @@ break;
 //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/2;
+			tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]*tmpl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)])/dx/2;
 
 					}
 				}
@@ -4039,7 +4153,7 @@ break;
 
 
     
-            float testval;
+            float testval=0;
     float testvaltot=0;
     int ncount=0;
     
@@ -4056,21 +4170,21 @@ switch(fieldi+1)
 case 1:
      
         testval=dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
-        pG->U[i3][i2][i1].M1  += testval;
+        ;//pG->U[i3][i2][i1].M1  += testval;
         
 break;
 
 case 2:
-     testval  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     testval  = dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
         
-                pG->U[i3][i2][i1].M2  += testval;
+               ;// pG->U[i3][i2][i1].M2  += testval;
 
 break;
 
 case 3:
      testval= dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
         
-                pG->U[i3][i2][i1].M3  += testval;
+                ;//pG->U[i3][i2][i1].M3  += testval;
 
         
 break;
@@ -4146,7 +4260,7 @@ break;
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
 
- pG->U[i3][i2][i1].E  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+ ;//pG->U[i3][i2][i1].E  += dt*(tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 
 	}
 	}

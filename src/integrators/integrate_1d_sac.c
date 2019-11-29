@@ -2443,6 +2443,7 @@ static void hyperdifesource(int dim,Real dt,ConsS ***Uint, GridS *pG)
 	int fieldi=energy;
         Real dtodx1 = pG->dt/pG->dx1, dtodx2 = pG->dt/pG->dx2, dtodx3 = pG->dt/pG->dx3;
 
+     Real dtodx=dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2);
 	is = pG->is,
 	ie = pG->ie;
 	js = pG->js,
@@ -2699,7 +2700,7 @@ nul=pG->Hv[i3][i2][i1].hdnur[dim][fieldi];*/
 //for (i3=kl; i3<=ku; i3++) {
     for (i2=0; i2<n2z; i2++) {
     	for (i1=0; i1<n1z; i1++) {
-     pG->U[k][j][i].E  += (dtodx1*(dim==0)+dtodx2*(dim==1)+dtodx3*(dim==2))*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
+     pG->U[k][j][i].E  += dtodx*(wtempr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]-wtempl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]);
 	}
 	}
 ;//	}
