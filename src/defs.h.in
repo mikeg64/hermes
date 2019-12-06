@@ -161,17 +161,20 @@ enum {
 
 /* macros used to set indices for 3D arrays used for gradient computations
    in the SAC hyperdiffusion source terms  */
+   
 #ifndef AIN3
- #define AIN3(i1,i2,i3,dim) (i3*(dim==0 || dim==1)+i1*(dim==2))
+ #define AIN3(i1,i2,i3,dim) ((i3)*((dim)==0 || (dim)==1)+(i1)*((dim)==2))
 #endif
 
 #ifndef AIN2
- #define AIN2(i1,i2,i3,dim) (i2*(dim==0  || dim==2)+i1*(dim==1))
+ #define AIN2(i1,i2,i3,dim) ((i2)*((dim)==0  || (dim)==2)+(i1)*((dim)==1))
 #endif
 
 #ifndef AIN1
- #define AIN1(i1,i2,i3,dim) (i1*(dim==0)+i2*(dim==1)+i3*(dim==2))
+ #define AIN1(i1,i2,i3,dim) ((i1)*((dim)==0)+(i2)*((dim)==1)+(i3)*((dim)==2))
 #endif
+  
+   
 
 
 /*----------------------------------------------------------------------------*/
