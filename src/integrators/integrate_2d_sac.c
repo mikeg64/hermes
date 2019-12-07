@@ -3267,9 +3267,10 @@ static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint
 
 // ii0 maps to the field id
 
-int dim=ii;
-int fieldi=ii0;
 
+  int dim=kf;
+int fieldi=lf;  
+    int fieldii0=ii0;
 
 	//Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***fieldd=NULL;
         Real maxt1,maxt2;
@@ -3409,7 +3410,7 @@ tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=0;
     
     
 
-switch(fieldi+1)
+switch(fieldii0+1)
 {
 
 case 1:
@@ -3446,7 +3447,7 @@ break;
 }
 
 
-switch(lf+1)
+switch(fieldi+1)
 {
 
 case 1:
@@ -3530,7 +3531,7 @@ break;
  //for (i3=(kl+(dim==2)); i3<(ku); i3++) {
     for (i2=(1+(dim==1)); i2<n2z; i2++) {
     	for (i1=(1+(dim==0)); i1<n1z; i1++) {
-			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)-(dim==1)][AIN1(i1,i2,i3,dim)-(dim==0)])/2;
+			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1-(dim==0),i2-(dim==1),i3,dim)][AIN2(i1-(dim==0),i2-(dim==1),i3,dim)][AIN1(i1-(dim==0),i2-(dim==1),i3,dim)])/2;
 					}
 				}
 	//		}
@@ -3542,7 +3543,7 @@ break;
     for (i2=0; i2<(n2z-(dim==1)-1); i2++) {
     	for (i1=0; i1<(n1z-(dim==0)-1); i1++) {
 
-			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)+(dim==1)][AIN1(i1,i2,i3,dim)+(dim==0)])/2;
+			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1+(dim==0),i2+(dim==1),i3,dim)][AIN2(i1+(dim==0),i2+(dim==1),i3,dim)][AIN1(i1+(dim==0),i2+(dim==1),i3,dim)])/2;
 					}
 				}
 //			}

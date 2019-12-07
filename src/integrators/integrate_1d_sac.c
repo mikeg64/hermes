@@ -824,7 +824,7 @@ hyperdifviscl(mom1+fieldi,dim,Uinit, pG);
 				    //hyperdifmomsource(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);
 				  else
 				    //hyperdifmomsourcene(dim,fieldi,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
-                   ;// hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
+                   ;//hyperdifmomsourcene(fieldi,dim,ii,ii0,pG->dt,Uinit, pG);  //off diagonal
 		        }
 
 
@@ -2757,8 +2757,9 @@ static void hyperdifmomsource(int kf,int lf,int ii,int ii0,Real dt,ConsS ***Uint
 //int lf=nf;
 
     
-  int dim=ii;
-int fieldi=ii0;  
+  int dim=kf;
+int fieldi=lf;  
+    int fieldii0=ii0;
     //dim=0;
     printf("momsource dim %d field %d %d %d \n",ii,ii0,kf,lf);
 
@@ -2906,7 +2907,7 @@ tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=0;
     
 
 
-switch(fieldi+1)
+switch(fieldii0+1)
 {
 
 case 1:
@@ -2944,7 +2945,7 @@ break;
 
 
 
-switch(lf+1)
+switch(fieldi+1)
 {
 
 case 1:
@@ -3019,14 +3020,18 @@ break;
            +w(ixImin1:ixImax1,ixImin2:ixImax2,rhob_))*/
  ;//for (i3=(kl); i3<=(ku-(dim==3)); i3++) {
  //   for (i2=0; i2<(n2z-(dim==1)); i2++) {
-    	for (i1=0; i1<(n1z-(dim==0)); i1++) {
+    	for (i1=0; i1<(n1z); i1++) {
 
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
 					}
 //				}
 ;//			}
 
 
+
+
+    
+    
             /*  tmpVL(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,&
                  ixmin2:ixmax2,m0_+ii0)+w(hxmin1:hxmax1,hxmin2:hxmax2,m0_&
                  +ii0))/two   */
@@ -3035,7 +3040,9 @@ break;
     	for (i1=(1+(dim==0)); i1<(n1z); i1++) {
 
             
-		tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)-(dim==0)])/2;            
+		tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1-(dim==0),i2,i3,dim)][AIN2(i1-(dim==0),i2,i3,dim)][AIN1(i1-(dim==0),i2,i3,dim)])/2;            
+            //tmpvl[i3][i2][i1]=(fieldf[i3][i2][i1]+fieldf[i3][i2][i1-(dim==0)])/2;
+            //printf("%d %d %d %d %d %d %d\n",dim,i1,i2,i3,AIN1(i1-(dim==0),i2,i3,dim),AIN2(i1,i2,i3,dim),AIN3(i1,i2,i3,dim));
             
 					}
 //				}
@@ -3048,8 +3055,9 @@ break;
   //  for (i2=0; i2<(n2z-(dim==1)-1); i2++) {
     	for (i1=0; i1<(n1z-(dim==0)-1); i1++) {
 
-  			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)+(dim==0)])/2;          
-            
+  			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1+(dim==0),i2,i3,dim)][AIN2(i1+(dim==0),i2,i3,dim)][AIN1(i1+(dim==0),i2,i3,dim)])/2;          
+                //tmpvr[i3][i2][i1]=(fieldf[i3][i2][i1]+fieldf[i3][i2][i1+(dim==0)])/2;  
+        
 
 					}
 //				}
@@ -3213,7 +3221,7 @@ break;
     //}
 //}
    
-    */
+   */ 
     
     
     
@@ -3248,7 +3256,23 @@ break;
 ;//	}
 
 
-
+    
+  /*  
+            i3=0;
+    //i2=0;
+   
+        float testdebug;
+    //for (i3=kl; i3<=ku; i3++) {
+    //for (i2=0; i2<n2z; i2++) {
+    	for (i1=0; i1<n1z; i1++) {
+ 
+                    testdebug=tmp2[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)];
+                    printf("tmp2 mom  %g %d %d %d %g %g %g \n",dt,dim,i1,fieldi,testdebug,pG->Hv[i3][i2][i1].hdnur[dim][fieldi],pG->Hv[i3][i2][i1].hdnul[dim][fieldi]);
+        }
+    //}
+//}
+   
+    */
 
 
 	if (tmprhor != NULL) free(tmprhor);
@@ -3279,10 +3303,13 @@ static void hyperdifmomsourcene(int kf,int lf, int ii,int ii0, Real dt,ConsS ***
 
 // ii0 maps to the field id
 
-int dim=ii;
-int fieldi=ii0;
+//int dim=ii;
+//int fieldi=ii0;
 
-
+int dim=kf;
+int fieldi=lf;
+    
+ii0=dim;
 
 	Real ***tmprhor=NULL, ***tmprhol=NULL, ***tmprhoc=NULL, ***tmpvr=NULL, ***tmpvl=NULL, ***tmpr=NULL, ***tmpl=NULL, ***tmp=NULL, ***tmp2=NULL, ***tmpc=NULL, ***fieldd=NULL, ***fieldl=NULL, ***fieldf=NULL;
         Real maxt1,maxt2;
@@ -3472,7 +3499,7 @@ break;
     
     
     
-switch(lf+1)
+switch(ii0+1)
 {
 
 case 1:
@@ -3541,7 +3568,7 @@ break;
  //   for (i2=(0); i2<(n2z); i2++) {
     	for (i1=(0); i1<(n1z); i1++) {
 
-			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
+			tmp[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]/(Uinit[i3][i2][i1].d+Uinit[i3][i2][i1].db);
 					}
 //				}
 //			}
@@ -3554,7 +3581,7 @@ break;
    // for (i2=(1+(dim==1)); i2<(n2z); i2++) {
     	for (i1=(1+(dim==0)); i1<(n1z); i1++) {
             //printf("dim %d ain2 %d ain1 %d \n",dim,AIN2(i1,i2,i3,dim)-(dim==1),AIN1(i1,i2,i3,dim)-(dim==0));
-			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+  fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)-(dim==1)][AIN1(i1,i2,i3,dim)-(dim==0)] )/2;
+			tmpvl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+  fieldl[AIN3(i1-(dim==0),i2,i3,dim)][AIN2(i1-(dim==0),i2,i3,dim)][AIN1(i1-(dim==0),i2,i3,dim)] )/2;
 					}
 	//			}
 //			}
@@ -3566,7 +3593,7 @@ break;
   //  for (i2=(0); i2<(n2z-1-(dim==1)); i2++) {
     	for (i1=(0); i1<(n1z-1-(dim==0)); i1++) {
             //printf("%d %d dim %d ain2 %d ain1 %d \n",i1,i2,dim,AIN2(i1,i2,i3,dim)+(dim==1),AIN1(i1,i2,i3,dim)+(dim==0));
-			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldf[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)+(dim==1)][AIN1(i1,i2,i3,dim)+(dim==0)])/2;
+			tmpvr[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]=(fieldl[AIN3(i1,i2,i3,dim)][AIN2(i1,i2,i3,dim)][AIN1(i1,i2,i3,dim)]+fieldl[AIN3(i1+(dim==0),i2,i3,dim)][AIN2(i1+(dim==0),i2,i3,dim)][AIN1(i1+(dim==0),i2,i3,dim)])/2;
                 
               
 					}
