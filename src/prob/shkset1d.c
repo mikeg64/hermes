@@ -464,15 +464,16 @@ printf("here4\n");
   //    if (pG->Hv == NULL) goto on_error1;
 
 for(i=0; i<8; i++)
-		pGrid->chyp[i]=0.4;
+		pGrid->chyp[i]=0.04;  //0.04
 
 pGrid->chyp[b1]=0.02;  //bfield
 pGrid->chyp[b2]=0.02;
 pGrid->chyp[b3]=0.02;
 
-pGrid->chyp[energy]=0.02;  //energy
+pGrid->chyp[energy]=0.4;  //energy 0.8
 
-pGrid->chyp[rho]=0.02;  //density
+    
+pGrid->chyp[rho]=0.02;  //density  0.6
 
 
 

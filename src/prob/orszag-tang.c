@@ -43,6 +43,9 @@ void problem(DomainS *pDomain)
     ath_error("[orszag-tang]: Error allocating memory for vector pot\n");
   }
   B0 = 1.0/sqrt(4.0*PI);
+  
+  //FIXME
+  B0 = 0.0; // for testing hyperdiffusion 
   d0 = 25.0/(36.0*PI);
   v0 = 1.0;
   p0 = 5.0/(12*PI);
@@ -59,6 +62,8 @@ for(i=0; i<8; i++)
 pGrid->chyp[b1]=0.02;  //bfield
 pGrid->chyp[b2]=0.02;
 pGrid->chyp[b3]=0.02;
+    
+    
 
 pGrid->chyp[energy]=0.02;  //energy
 
@@ -106,7 +111,6 @@ pGrid->chyp[rho]=0.02;  //density
       pGrid->U[ks][j][i].B2cb = 0;
       pGrid->U[ks][j][i].B3cb =0;
       pGrid->U[ks][j][i].B1cb =0;
-
 #endif
 
 
