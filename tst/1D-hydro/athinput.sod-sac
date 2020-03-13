@@ -23,12 +23,14 @@ dt      = 0.001              # time increment between outputs
 cour_no         = 0.8       # The Courant, Friedrichs, & Lewy (CFL) Number
 nlim            = -1        # cycle limit
 tlim            = 0.00001      # time limit was 0.01
+timestep        = 0.0000001   # time step
+tfixed          = 1            # keep timestep fixed
 
 <domain1>
 level           = 0         # refinement level this Domain (root=0)
 Nx1             = 800      # Number of zones in X1-direction
 x1min           = -0.31375      # minimum value of X1  was -0.5
-x1max           = 0.685       # maximum value of X1  was 0.5
+x1max           = 0.68625       # maximum value of X1  was 0.5,0.685
 bc_ix1          = 2         # boundary condition flag for inner-I (X1)
 bc_ox1          = 2         # boundary condition flag for outer-I (X1)
 

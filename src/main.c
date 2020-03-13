@@ -97,6 +97,8 @@ int main(int argc, char *argv[])
   int nflag=0;            /* set to 1 if -n argument is given on command line */
   int i,nlim;             /* cycle index and limit */
   Real tlim;              /* time limit (in code units) */
+  int  tfixed=0;          /* time step fixed*/
+  Real timestep=0.00000001; /*time step only used for fixed case*/
 
   int out_level, err_level, lazy; /* diagnostic output & error log levels */
   int iflush, nflush;             /* flush buffers every iflush cycles */
@@ -349,6 +351,8 @@ int main(int argc, char *argv[])
   CourNo = par_getd("time","cour_no");
   nlim = par_geti_def("time","nlim",-1);
   tlim = par_getd("time","tlim");
+  timestep=par_getd("time","timestep");
+  tfixed = par_geti_def("time","tfixed",0);
 
 #ifdef ISOTHERMAL
   Iso_csound = par_getd("problem","iso_csound");
@@ -425,7 +429,18 @@ int main(int argc, char *argv[])
 
 /* For new runs, set initial timestep */
 
-  if(ires == 0) new_dt(&Mesh);
+  if(ires == 0 && tfixed==0 ) new_dt(&Mesh);
+  if(tfixed==1)
+  {
+      Mesh.dt=timestep;
+    for (nl=0; nl<(Mesh.NLevels); nl++){
+      for (nd=0; nd<(Mesh.DomainsPerLevel[nl]); nd++){
+        if (Mesh.Domain[nl][nd].Grid != NULL){
+          Mesh.Domain[nl][nd].Grid->dt = Mesh.dt;
+        }
+      }
+    }
+  }//end tfixed check
 
 /*--- Step 7. ----------------------------------------------------------------*/
 /* Set function pointers for integrator; self-gravity (based on dimensions)
@@ -491,7 +506,7 @@ int main(int argc, char *argv[])
 
 /*--- Step 9a. ---------------------------------------------------------------*/
 /* Only write output's with t_out>t (last argument of data_output = 0) */
-
+//Mesh.dt=0.0000001;
     data_output(&Mesh, 0);
 
 /*--- Step 9b. ---------------------------------------------------------------*/
@@ -513,7 +528,7 @@ int main(int argc, char *argv[])
       for (nl=0; nl<(Mesh.NLevels); nl++){ 
         for (nd=0; nd<(Mesh.DomainsPerLevel[nl]); nd++){  
           if (Mesh.Domain[nl][nd].Grid != NULL){
-            bvals_mhd(&(Mesh.Domain[nl][nd]));
+           ;// bvals_mhd(&(Mesh.Domain[nl][nd]));
           }
       }}
 #ifdef STATIC_MESH_REFINEMENT
@@ -571,6 +586,7 @@ int main(int argc, char *argv[])
 
 /*--- Step 9g. ---------------------------------------------------------------*/
 /* Update Mesh time, and time in all Grid's. */
+ //   Mesh.dt=0.0000001;
 
     Mesh.nstep++;
     Mesh.time += Mesh.dt;
@@ -591,7 +607,7 @@ int main(int argc, char *argv[])
     for (nl=0; nl<(Mesh.NLevels); nl++){ 
       for (nd=0; nd<(Mesh.DomainsPerLevel[nl]); nd++){  
         if (Mesh.Domain[nl][nd].Grid != NULL){
-          bvals_mhd(&(Mesh.Domain[nl][nd]));
+;//          bvals_mhd(&(Mesh.Domain[nl][nd]));
 #ifdef PARTICLES
           bvals_particle(&(Mesh.Domain[nl][nd]));
 #endif
@@ -607,7 +623,16 @@ int main(int argc, char *argv[])
 /* Compute new dt. With resistivity, the diffusion coeffieicnts are evaluated
  * within new_dt(), which requires that boundary values are already updated.  */
 
-    new_dt(&Mesh);
+  if(tfixed==0)
+       new_dt(&Mesh);
+      
+      
+      //FIXME
+      
+      
+      printf("new dt  %f dt %f\n",Mesh.dt,dt_done);
+      //Mesh.dt=0.0000001;
+      //Mesh.dt=0.000000493;
 
 /*--- Step 9j. ---------------------------------------------------------------*/
 /* Force quit if wall time limit reached.  Check signals from system */
