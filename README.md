@@ -52,19 +52,22 @@ http://www.astro.princeton.edu/~jstone/Athena/doxygen/html.with_source/annotated
 
 
 Configuring and setting up Athena
-https://trac.princeton.edu/Athena/wiki/AthenaDocsUGConfigure
+https://princetonuniversity.github.io/Athena-Cversion/AthenaDocsUGConfigure
+
 
 Configuring Integrators
-https://trac.princeton.edu/Athena/wiki/AthenaDocsUGInt
+https://princetonuniversity.github.io/Athena-Cversion/AthenaDocsUGInt
 
 Quickstart
-https://trac.princeton.edu/Athena/wiki/AthenaDocsTutQuickStart
+https://princetonuniversity.github.io/Athena-Cversion/AthenaDocsTutQuickStart.html
+
 
 1D Sod Shock tube test (HD)
-https://trac.princeton.edu/Athena/wiki/AthenaDocsTutSod
+https://princetonuniversity.github.io/Athena-Cversion/AthenaDocsTutSod
+
 
 2D Orszag-Tang Test (MHD)
-https://trac.princeton.edu/Athena/wiki/AthenaDocsTutOT1
+https://princetonuniversity.github.io/Athena-Cversion/AthenaDocsTutOT1
 
 
 
