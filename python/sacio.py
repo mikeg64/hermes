@@ -7,8 +7,7 @@ import numpy as np
 def read_step_sac_ascii(filename,step):
     file = open(filename,'rb')
 
-    
-        #read 5 sac file header lines
+    #read 5 sac file header lines
     
     #1 opozmf_mhd22    #name line 
     header=file.readline()                                                              
@@ -43,22 +42,21 @@ def read_step_sac_ascii(filename,step):
     nfields=int(head1col[4])
     
     
-    #3 252 252
-    
+    #3 252 252    
     if ndim==2:
-    	dim=[0,0]
-    	dim[0]=int(head2col[0])
-    	dim[1]=int(head2col[1])
-        ntot=dim[0]*dim[1]
-    
+        odim=[0,0]
+        odim[0]=int(head2col[0])
+        odim[1]=int(head2col[1])
+    if ndim==2:       
+        ntot=odim[0]*odim[1]    
     if ndim==3:
-        dim=[0,0,0]
-        dim[0]=int(head2col[0])
-        dim[1]=int(head2col[1])
-        dim[2]=int(head2col[2])
-        ntot=dim[0]*dim[1]*dim[2]
+        odim=[0,0,0]
+        odim[0]=int(head2col[0])
+        odim[1]=int(head2col[1])
+        odim[2]=int(head2col[2])
+        ntot=odim[0]*odim[1]*odim[2]
     
-    modelinfo=(header,nits, time, ndim, nvar, nfields,dim,head3,head4)
+    modelinfo=(header,nits, time, ndim, nvar, nfields,odim,head3,head4)
     #extract useful information from header lines
 
     
@@ -74,9 +72,9 @@ def read_step_sac_ascii(filename,step):
 
     
     if ndim==2:
-        alldat=np.zeros((dim[0]*dim[1],ndim+nfields))
+        alldat=np.zeros((odim[0]*odim[1],ndim+nfields))
     elif ndim==3:
-        alldat=np.zeros((dim[0]*dim[1]*dim[2],ndim+nfields))   
+        alldat=np.zeros((odim[0]*odim[1]*odim[2],ndim+nfields))   
     
     #extract components from each line
     count=0
@@ -91,9 +89,9 @@ def read_step_sac_ascii(filename,step):
     #using fortran ordering
     #original sac is fortran and same ordering has been adopted
     if ndim==3:
-        alldat=np.reshape(alldat,(dim[0],dim[1],dim[2],nfields+ndim),order='F')
+        alldat=np.reshape(alldat,(odim[0],odim[1],odim[2],nfields+ndim),order='F')
     elif ndim==2:
-        alldat=np.reshape(alldat,(dim[0],dim[1],nfields+ndim),order='F')
+        alldat=np.reshape(alldat,(odim[0],odim[1],nfields+ndim),order='F')
         
     
     	
@@ -151,28 +149,29 @@ def read_sac_ascii(filename):
     nfields=int(head1col[4])
     
     
-    #3 252 252
-    
+    #3 252 252    
     if ndim==2:
-    	dim=[0,0]
-    	dim[0]=int(head2col[0])
-    	dim[1]=int(head2col[1])
-        ntot=dim[0]*dim[1]
+    	odim=[0,0]
+    	odim[0]=int(head2col[0])
+    	odim[1]=int(head2col[1])
+    ntot=odim[0]*odim[1]
     
     if ndim==3:
-        dim=[0,0,0]
-        dim[0]=int(head2col[0])
-        dim[1]=int(head2col[1])
-        dim[2]=int(head2col[2])
-        ntot=dim[0]*dim[1]*dim[2]
+        odim=[0,0,0]
+        odim[0]=int(head2col[0])
+        odim[1]=int(head2col[1])
+        odim[2]=int(head2col[2])
+        ntot=odim[0]*odim[1]*odim[2]
     
-    modelinfo=(header,nits, time, ndim, nvar, nfields,dim,head3,head4)
+    modelinfo=(header,nits, time, ndim, nvar, nfields,odim,head3,head4)
     #extract useful information from header lines
-    
+    #print("here")
+    #print(odim)
+    alldat=np.zeros((odim[0]*odim[1],ndim+nfields))
     if ndim==2:
-        alldat=np.zeros((dim[0]*dim[1],ndim+nfields))
+        alldat=np.zeros((odim[0]*odim[1],ndim+nfields))
     elif ndim==3:
-        alldat=np.zeros((dim[0]*dim[1]*dim[2],ndim+nfields))   
+        alldat=np.zeros((odim[0]*odim[1]*odim[2],ndim+nfields))   
     
     #extract components from each line
     count=0
@@ -187,12 +186,10 @@ def read_sac_ascii(filename):
     #using fortran ordering
     #original sac is fortran and same ordering has been adopted
     if ndim==3:
-        alldat=np.reshape(alldat,(dim[0],dim[1],dim[2],nfields+ndim),order='F')
+        alldat=np.reshape(alldat,(odim[0],odim[1],odim[2],nfields+ndim),order='F')
     elif ndim==2:
-        alldat=np.reshape(alldat,(dim[0],dim[1],nfields+ndim),order='F')
+        alldat=np.reshape(alldat,(odim[0],odim[1],nfields+ndim),order='F')
         
-    
-    	
     file.close()
     
     return alldat,modelinfo
