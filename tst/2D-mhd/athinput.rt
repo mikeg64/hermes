@@ -34,6 +34,7 @@ palette = rainbow
 cour_no         = 0.8       # The Courant, Friedrichs, & Lewy (CFL) Number
 nlim            = 100000    # cycle limit
 tlim            = 6.0       # time limit
+timestep        = 0.000001
 
 <domain1>
 level           = 0         # refinement level this Domain (root=0)

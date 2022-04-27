@@ -78,7 +78,10 @@ void problem(DomainS *pDomain)
 /*read VALIIc data*/
 /*see initialisation_user.h.spicule1_mpi in smaug_pmode/models*/
     
-    FILE *fid=fopen("../tst/2D-mhd/VALMc_rho_132_test_sac_all.dat","r");
+
+    FILE *fid=fopen("test.dat","r");
+
+    //FILE *fid=fopen("VALMc_rho_132_test_sac_all.dat","r");
     printf("%d %d %d %d %d %d\n",is,js,ks,ie,je,ke);
     for(i=0; i<132; i++)
                {
@@ -116,58 +119,57 @@ void problem(DomainS *pDomain)
 
 
 
+/* Initialize the grid.  Note the center is always assumed to have coordinates
+ * x1=0, x2=0; the grid range in the input file must be consistent with this */
 
+  is = pGrid->is;  ie = pGrid->ie;
+  js = pGrid->js;  je = pGrid->je;
+  ks = pGrid->ks;  ke = pGrid->ke;
 
-
-
-/* 2D PROBLEM --------------------------------------------------------------- */
-/* Initialize two fluids with interface at y=0.0.  Pressure scaled to give a
- * sound speed of 1 at the interface in the light (lower, d=1) fluid 
- * Perturb V2 using single (iprob=1) or multiple (iprob=2) mode 
- */
-
-  if (pGrid->Nx[2] == 1) {
   for (k=ks; k<=ke; k++) {
     for (j=js; j<=je; j++) {
       for (i=is; i<=ie; i++) {
+
+
         cc_pos(pGrid,i,j,k,&x1,&x2,&x3);
         rho=val3c[j-js][2];
+        //en=val3c[j-js][4];
         pres=val3c[j-js][3];
-	pGrid->U[k][j][i].d = rho;
+        pGrid->U[k][j][i].d = rho;
         pGrid->U[k][j][i].E = (pres)/Gamma_1;
-	pGrid->U[k][j][i].M1 = 0.0;
+        //pGrid->U[k][j][i].E = en;
+
+        //pGrid->U[k][j][i].d = 1.0;
+        pGrid->U[k][j][i].M1 = 0.0;
         pGrid->U[k][j][i].M2 = 0.0;
         pGrid->U[k][j][i].M3 = 0.0;
-        
-	pGrid->U[k][j][i].E+=0.5*SQR(pGrid->U[k][j][i].M2)/pGrid->U[k][j][i].d;
-
-        a=2.0e6;
-        w=1.0e6;
-        fac=exp(-(x2-a)*(x2-a)/(w*w));
-        v1=(x2<(2.0e6))*fac-(x2>=(2.0e6))*fac;
-        //pGrid->U[k][j][i].M1 = 1000*v1*rho;
-	pGrid->U[k][j][i].M1 = 0;
-          pGrid->U[k][j][i].M2 = (100*rho/4.0)*
-            (sin(PI*x1/lx))*(sin(PI*x2/ly));
-	pGrid->U[k][j][i].M2 = 0;
-
-       
-        //if(i==63)
-        //   printf("i j v1=%d %d %f %f %f %f %f\n",i,j,x1,x2,lx,ly,(pGrid->U[k][j][i].M2)/rho);
+        pGrid->B1i[k][j][i] = bx0;
+        pGrid->B2i[k][j][i] = 0.0;
+        pGrid->U[k][j][i].B1c = bx0;
+        pGrid->U[k][j][i].B2c = 0.0;
+        pGrid->U[k][j][i].B3c = 0.0;
 
 
-#ifdef MHD
-	pGrid->B1i[k][j][i] = b0;
-	pGrid->U[k][j][i].B1c = b0;
-        pGrid->U[k][j][i].E += 0.5*b0*b0;
-#endif
+
+
+
+
+
       }
-#ifdef MHD
-    pGrid->B1i[k][j][ie+1] = b0;
-#endif
     }
   }
-}
+
+  for (k=ks; k<=ke; k++) {
+    for (j=js; j<=je; j++) {
+      pGrid->B1i[k][j][ie+1] = bx0;
+    }
+  }
+
+
+
+
+
+
 
 //bvals_mhd_fun(pDomain, right_x2, ry_bc);
 
@@ -243,14 +245,14 @@ int i, is=pGrid->is, ie = pGrid->ie;
   n2=2;
 
 
-  s_period=180.0; //Driver period
+  s_period=30.0; //Driver period
   AA=350.0;       //Driver amplitude
-  //AA=1;
+  //AA=0.0;
   xcz=0.5e6;
   xcx=2.0e6;
-  delta_z=0.016e6;
-  delta_x=0.016e6;
-  delta_y=0.016e6;
+  delta_z=0.064e6;
+  delta_x=0.064e6;
+  delta_y=0.064e6;
 
 
 
@@ -296,9 +298,9 @@ int i, is=pGrid->is, ie = pGrid->ie;
 		exp_z=exp(-r2/(delta_z*delta_z));
                 exp_x=exp(-r1/(delta_y*delta_y));
 
-		exp_xyz=sin(PI*xp*(n1+1)/xxmax)*exp_z;
+		//exp_xyz=sin(PI*xp*(n1+1)/xxmax)*exp_z;
 		//exp_xyz=exp_y*exp_z;
-                //exp_xyz=exp_x*exp_z;
+                exp_xyz=exp_x*exp_z;
 
 		vvz=AA*exp_xyz*tdep;
                 //vvz=0;
@@ -309,8 +311,8 @@ int i, is=pGrid->is, ie = pGrid->ie;
 //if(i>is && i<ie)
 //{
 
-                if(j>8 && j<16 && qt<2)
-                    printf("%d %d %d %g %g %g %g  \n",i,j,k,vvz,exp_x,exp_z,(pGrid->dt)*vvz*(pGrid->U[k][j][i].d));
+                //(j>8 && j<16 && qt<2)
+                //    printf("%d %d %d %g %g %g %g  \n",i,j,k,vvz,exp_x,exp_z,(pGrid->dt)*vvz*(pGrid->U[k][j][i].d));
 
 
 		pGrid->U[k][j][i].M2 += (pGrid->dt)*vvz*(pGrid->U[k][j][i].d);
@@ -386,6 +388,7 @@ static Real grav_pot2(const Real x1, const Real x2, const Real x3)
 {
   return 287*x2;
   //return 0;
+  //return x2;
 }
 /*! \fn static Real grav_pot3(const Real x1, const Real x2, const Real x3)
  *  \brief Gravitational potential; g = 0.1

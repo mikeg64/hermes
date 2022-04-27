@@ -667,12 +667,12 @@ static void reflect_ox3(GridS *pGrid)
 
 static Real grav_pot2(const Real x1, const Real x2, const Real x3)
 {
-  return -274*x2;
+  return 0.1*x2;
 }
 /*! \fn static Real grav_pot3(const Real x1, const Real x2, const Real x3)
  *  \brief Gravitational potential; g = 0.1
  */
 static Real grav_pot3(const Real x1, const Real x2, const Real x3)
 {
-  return -274*x3;
+  return 0.1*x3;
 }

@@ -34,6 +34,7 @@ palette = rainbow
 cour_no         = 0.1       # The Courant, Friedrichs, & Lewy (CFL) Number
 nlim            = 3000000    # cycle limit
 tlim            = 300.0       # time limit
+timestep      = 0.01
 
 <domain1>
 level           = 0         # refinement level this Domain (root=0)
@@ -72,3 +73,4 @@ iprob = 1                   # iprob=4 or 5: rotated B
 angle = 90.0                # only needed for MHD sims
 rhoh  = 3.0                 # density of heavy material
 L_rot = 0.02                # width of rotation region (iprob=5)
+wave_flag = 0
