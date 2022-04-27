@@ -44,6 +44,22 @@ all of the above problems will define USE_SAC  3D problems must include --enable
 
 ./configure --with-problem=orszag-tang --with-order=3 --enable-bkg --with-integrator=smaug --with-flux=smaug --enable-smaug
 
+
+edit the problem file solp.c
+./configure --with-problem=solp --with-order=3p  --with-integrator=vl --enable-fofc --with-flux=hlld
+
+an input file is generated using the matlab file
+https://github.com/mikeg64/hermes/blob/smaug_jet/matlab/createconfig/pressurebalance1.m
+
+This uses a table of VALIIIc data in file
+https://github.com/mikeg64/hermes/blob/smaug_jet/matlab/createconfig/VALMc_rho_132_test_sac_all.dat
+to generate a configuration in hydrostatic equlibrium
+
+the simulation is run using a command as follows
+
+../../../bin/athena -i ../athinput.solp time/tlim=600000.0 time/timestep=0.0009 >& err.out &
+
+
 Helpful Links with Athena
 =========================
 
