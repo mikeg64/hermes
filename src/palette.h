@@ -1,24 +1,21 @@
-/*============================================================================*/
-/*! \file palette.h
- *  \brief Look-up tables (palettes) for inclusion in ppm images written by
- *   output_ppm(). 
+/*==============================================================================
+ * FILE: palette.h
  *
  * PURPOSE: Look-up tables (palettes) for inclusion in ppm images written by
  *   output_ppm().  Images of the 7 tables included here can be found in the
  *   documentation; they are named:
- *   - rainbow   - red-blue-black.
- *   - jh_colors - John Hawley's "famous" color table.  Red-gray-blue.
- *   - idl1      - red-blue-black
- *   - idl2      - black-blue-red-black
- *   - step8     - rainbow in 8 steps
- *   - step32    - rainbow in 32 steps
- *   - heat      - white to black through shades of red
+ *     rainbow   - red-blue-black.
+ *     jh_colors - John Hawley's "famous" color table.  Red-gray-blue.
+ *     idl1      - red-blue-black
+ *     idl2      - black-blue-red-black
+ *     step8     - rainbow in 8 steps
+ *     step32    - rainbow in 32 steps
+ *     heat      - white to black through shades of red
  *   The tables are stored in a structure RGB, and accessed by the above names
- *   No grayscale color table is provided; use pgm format for grayscale!      */
-/*============================================================================*/
+ *   No grayscale color table is provided; use pgm format for grayscale!
+ *============================================================================*/
 
-/*! \var  static float jh_colors[256*3]
- *  \brief Color table due to John Hawley, added manually -- TAG -- 2/17/2005 */
+/* Color table due to John Hawley, added manually -- TAG -- 2/17/2005 */
 static float jh_colors[256*3] = {
    0.000000e+00 , 0.000000e+00 , 5.000000e-01 ,
    0.000000e+00 , 0.000000e+00 , 5.156863e-01 ,
@@ -277,9 +274,7 @@ static float jh_colors[256*3] = {
    5.156863e-01 , 0.000000e+00 , 0.000000e+00 ,
    5.000000e-01 , 0.000000e+00 , 0.000000e+00 
 };
-/*! \var static float step8[256*3]
- *  \brief Rainbow in 8 steps.
- *  Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float step8[256*3] = { 
    0.00000 , 0.00000 , 0.00000 ,
    0.19608 , 0.19608 , 0.19608 ,
@@ -538,9 +533,7 @@ static float step8[256*3] = {
    1.00000 , 0.00000 , 0.00000 ,
    1.00000 , 0.00000 , 0.00000 ,
 };
-/*! \var static float heat[256*3]
- *  \brief White to black through shades of red.
- *   Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float heat[256*3] = { 
    0.00000 , 0.00000 , 0.00000 ,
    0.01176 , 0.00392 , 0.00000 ,
@@ -799,9 +792,7 @@ static float heat[256*3] = {
    1.00000 , 0.99608 , 1.00000 ,
    1.00000 , 1.00000 , 1.00000 ,
 };
-/*! \var static float idl1[256*3] 
- *  \brief Red-Blue-Black
- *   Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float idl1[256*3] = { 
    0.00000 , 0.00000 , 0.00000 ,
    0.00000 , 0.00392 , 0.00392 ,
@@ -1060,9 +1051,7 @@ static float idl1[256*3] = {
    1.00000 , 0.00000 , 0.00000 ,
    1.00000 , 0.00000 , 0.00000 ,
 };
-/*! \var static float idl2[256*3]
- *  \brief Black-Blue-Red-Black
- *  Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float idl2[256*3] = { 
    0.00000 , 0.00000 , 0.00000 ,
    0.01176 , 0.00000 , 0.00000 ,
@@ -1321,9 +1310,7 @@ static float idl2[256*3] = {
    0.00000 , 0.00000 , 0.01961 ,
    0.00000 , 0.00000 , 0.00000 ,
 };
-/*! \var static float rainbow[256*3] 
- *  \brief Red-Blue-Black
- *   Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float rainbow[256*3] = { 
    0.00000 , 0.00000 , 0.16471 ,
    0.02745 , 0.00000 , 0.18431 ,
@@ -1582,9 +1569,7 @@ static float rainbow[256*3] = {
    0.74118 , 0.00000 , 0.00000 ,
    0.73333 , 0.00000 , 0.00000 ,
 };
-/*! \var static float step32[256*3]
- *  \brief Rainbow in 32 steps
- *   Automatically generated from NEMO's lut2c script - do not edit */
+/* automatically generated from NEMO's lut2c script - do not edit */
 static float step32[256*3] = { 
    0.00000 , 0.00000 , 0.16471 ,
    0.00000 , 0.00000 , 0.16471 ,
@@ -1844,14 +1829,10 @@ static float step32[256*3] = {
    0.78824 , 0.00000 , 0.00000 ,
 };
 
-/*! \struct RGB 
- *  \brief Structure typedef containing RGB color tables. */
 typedef struct RGB_s {
    char *name;
    float *rgb;
 } RGB;
-/*! \var static RGB rgb[]
- *  \brief RGB color tables */
 static RGB rgb[] = {
     {"rainbow", rainbow},
     {"jh_colors", jh_colors},

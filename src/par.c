@@ -1,79 +1,63 @@
-#include "copyright.h"
-/*============================================================================*/
-/*! \file par.c
- *  \brief Set of routines to provide simple access to a R/O parameter file
+/* DONE - OK */
+
+// #include "copyright.h"
+/*==============================================================================
+ * FILE: par.c
  *
  * PURPOSE:  set of routines to provide simple access to a R/O parameter file
  *   slightly modeled after FORTRAN namelist.  Parameters can also be read
  *   directly from the commandline in the same format.
  *
  * EXAMPLE of input file in 'par' format:
- * -     <blockname1>      # block name; should be on a line by itself
- * -     name1 = value1    # whitespace around the = is optional
- * -                       # blank lines between blocks are OK
- * -     <blockname2>      # start new block
- * -     name1 = value1    # note that name1 can appear in different blocks
- * -     name2 = value2    #
- * -
- * -     <blockname1>      # same blockname can re-appear, though is a bit odd
- * -     name3 = value3    # this would be the 3rd name in this block
+ *       <blockname1>      # block name; should be on a line by itself
+ *       name1 = value1    # whitespace around the = is optional
+ *                         # blank lines between blocks are OK
+ *       <blockname2>      # start new block
+ *       name1 = value1    # note that name1 can appear in different blocks
+ *       name2 = value2    #
+ *
+ *       <blockname1>      # same blockname can re-appear, though is a bit odd
+ *       name3 = value3    # this would be the 3rd name in this block
  *
  * LIMITATIONS:
  *   - MAXLEN means static strings; could make fancier dynamic string reader
  *   - blocknames and parameters (key=val#comment) are all single-line based
  *
  * HISTORY:
- * - 15-nov-2002  Created for the Athena/Cambridge release 1.0 -- Peter Teuben
- * - 18-nov-2002  added par_cmdline()                               -- PJT
- * - 6-jan-2003   made the public par_getX() routines               -- PJT
- * - 6-jan-2003   Implemented par_setX() routines -- Thomas A. Gardiner
- * - 7-jan-2003   add_block() find or add a named block             -- TAG
- * - 7-jan-2003   add_par() split into add_par() and add_par_line() -- TAG
- * - 7-jan-2003   mode = 0, par_dump() outputs the comment field    -- TAG
- * - 9-jan-2003   add_par() only overwrites a comment field in an 
+ *   15-nov-2002  Created for the Athena/Cambridge release 1.0 -- Peter Teuben
+ *   18-nov-2002  added par_cmdline()                               -- PJT
+ *   6-jan-2003   made the public par_getX() routines               -- PJT
+ *   6-jan-2003   Implemented par_setX() routines -- Thomas A. Gardiner
+ *   7-jan-2003   add_block() find or add a named block             -- TAG
+ *   7-jan-2003   add_par() split into add_par() and add_par_line() -- TAG
+ *   7-jan-2003   mode = 0, par_dump() outputs the comment field    -- TAG
+ *   9-jan-2003   add_par() only overwrites a comment field in an 
  *                    existing par if the input comment is != NULL. -- TAG
- * - 9-jan-2003   Column aligned format added to mode=0, par_dump() -- TAG
- * - 1-mar-2004   Moved error out to utils.c as ath_error()         -- PJT
- * - 2-apr-2004   Added the get_par_def routines                    -- PJT
+ *   9-jan-2003   Column aligned format added to mode=0, par_dump() -- TAG
+ *   1-mar-2004   Moved error out to utils.c as ath_error()         -- PJT
+ *   2-apr-2004   Added the get_par_def routines                    -- PJT
  *
  * CONTAINS PUBLIC FUNCTIONS:
- * - int par_open()        - open and read a parameter file for R/O access
- * - void par_cmdline()    - parse a commandline, extract parameters
- * - int par_exist()       - returns 0 if block/name exists
- * - char *par_gets()      - returns a string from input field
- * - int par_geti()        - returns an integer from the input field
- * - double par_getd()     - returns a Real from the input field
- * - char *par_gets_def()  - set string to input value, or default
- * - int par_geti_def()    - set int to input value, or default
- * - double par_getd_def() - set double to input value, or default
- * - void par_sets()       - sets/adds a string
- * - void par_seti()       - sets/adds an integer
- * - void par_setd()       - sets/adds a Real
- * - void par_dump()       - print out all Blocks/Pars for debugging
- * - void par_close()      - free memory
- * - void par_dist_mpi()   - broadcast Blocks and Pars to children in MPI 
+ *   int par_open()        - open and read a parameter file for R/O access
+ *   void par_cmdline()    - parse a commandline, extract parameters
+ *   int par_exist()       - returns 0 if block/name exists
+ *   char *par_gets()      - returns a string from input field
+ *   int par_geti()        - returns an integer from the input field
+ *   double par_getd()     - returns a Real from the input field
+ *   char *par_gets_def()  - set string to input value, or default
+ *   int par_geti_def()    - set int to input value, or default
+ *   double par_getd_def() - set double to input value, or default
+ *   void par_sets()       - sets/adds a string
+ *   void par_seti()       - sets/adds an integer
+ *   void par_setd()       - sets/adds a Real
+ *   void par_dump()       - print out all Blocks/Pars for debugging
+ *   void par_close()      - free memory
+ *   void par_dist_mpi()   - broadcast Blocks and Pars to children in MPI 
  *
  * VARIABLE TYPE AND STRUCTURE DEFINITIONS:
- * - Par_s   - linked list of parameters
- * - Block_s - linked list of Pars					      
- *
- * PRIVATE FUNCTION PROTOTYPES: 
- * - allocate()       - wrapper for calloc which terminates code on failure
- * - my_strdup()      - wrapper for strdup which terminates code on failure
- * - skipwhite()      - returns pointer to next non-whitespace
- * - str_term()       - remove whitespace at end of string
- * - line_block_name()- extract block name
- * - add_par()        - add "name = value # comment" to Par list
- * - add_par_line()   - parse line and add it to a block
- * - add_block()      - find or add a new named block
- * - find_block()     - check if a Block name already exists
- * - find_par()       - check if a Block contains a Par with certain name
- * - free_all         - free all Blocks/Pars
- * - par_getsl        - return string, for use of local functions only
- * - par_debug()      - sets debug level in test program
- * - main()           - test program for par package
- *									      */
-/*============================================================================*/
+ *   Par_s   - linked list of parameters
+ *   Block_s - linked list of Pars
+ *============================================================================*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,8 +70,7 @@
 static int  now_open = 0;         /* keep track of status of the par routines */
 static char *now_filename = NULL; /* keep pointer to last open filename */
 
-/*! \struct Par
- *  \brief Holds a single name=value#comment tuple as a linked list */
+/* Par_s: holds a single name=value#comment tuple as a linked list */
 typedef struct Par_s {   
   char *name;                 /* name of the parameter */
   char *value;                /* (string) value of the parameter */
@@ -95,8 +78,7 @@ typedef struct Par_s {
   struct Par_s *next;         /* pointer to the next parameter */
 } Par;
 
-/*! \struct Block
- *  \brief  Linked list of Pars that belong together */
+/* linked list of Pars that belong together */
 typedef struct Block_s { 
   char *name;                 /* name of this block */
   Par  *p;                    /* first member of list in this block */
@@ -105,8 +87,6 @@ typedef struct Block_s {
   struct Block_s *next;       /* pointer to next block */
 } Block;
 
-/*! \typedef void (*proc)(void)
- *  \brief function pointer type */
 typedef void (*proc)(void);        /* function pointer type */
 static Block *base_block = NULL;   /* base of all Block's that contain Par's  */
 static int debug = 0;              /* debug level, set to 1 for debug output  */
@@ -145,10 +125,7 @@ void par_debug(int level);
 
 /*=========================== PUBLIC FUNCTIONS ===============================*/
 /*----------------------------------------------------------------------------*/
-/*! \fn  void par_open(char *filename)
- *  \brief Open a parameter file for R/O access.  
- *
- *  Lines read from the file
+/* par_open:  open a parameter file for R/O access.  Lines read from the file
  *   are locally patched; all names, values and comments are allocated and put
  *   into a linked list of Block's and Par's.
  */
@@ -187,8 +164,7 @@ void par_open(char *filename)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_cmdline(int argc, char *argv[]) 
- *  \brief Parse a commandline, very forgiving (no warnings) when not in
+/* par_cmdline: parse a commandline, very forgiving (no warnings) when not in
  *   the right block/name=value format */
 
 void par_cmdline(int argc, char *argv[])
@@ -233,8 +209,7 @@ void par_cmdline(int argc, char *argv[])
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn int par_exist(char *block, char *name) 
- *  \brief Return 0 or 1 if a block/name exists */
+/* par_exist: return 0 or 1 if a block/name exists */
 
 int par_exist(char *block, char *name)
 {
@@ -251,18 +226,16 @@ int par_exist(char *block, char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn  char  *par_gets(char *block, char *name)
- *  \brief Return a string */
+/* par_gets:  return a string */
 
-char  *par_gets(char *block, char *name)
+char* par_gets(char *block, char *name)
 {
   char *pp = par_getsl(block,name);
   return my_strdup(pp);
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn  int    par_geti(char *block, char *name)
- *  \brief Return an integer */
+/* par_geti:  return an integer */
 
 int    par_geti(char *block, char *name)
 {
@@ -271,8 +244,7 @@ int    par_geti(char *block, char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn double par_getd(char *block, char *name)
- *  \brief Return a Real value */
+/* par_getd:  return a Real value */
 
 double par_getd(char *block, char *name)
 {
@@ -281,8 +253,7 @@ double par_getd(char *block, char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn  char  *par_gets_def(char *block, char *name, char *def)
- *  \brief Return string *name in *block if it exists, else use
+/* par_gets_def:  return string *name in *block if it exists, else use
  *   the string *def as a default value */
 
 char  *par_gets_def(char *block, char *name, char *def)
@@ -297,8 +268,7 @@ char  *par_gets_def(char *block, char *name, char *def)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn int  par_geti_def(char *block, char *name, int def)
- *  \brief Return integer *name in *block if it exists, else use
+/* par_geti_def:  return integer *name in *block if it exists, else use
  *   the integer def as a default value */
 
 int  par_geti_def(char *block, char *name, int def)
@@ -313,8 +283,7 @@ int  par_geti_def(char *block, char *name, int def)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn double par_getd_def(char *block, char *name, double def) 
- *  \brief Return double *name in *block if it exists, else use
+/* par_getd_def:  return double *name in *block if it exists, else use
  *   the double def as a default value  */
 
 double par_getd_def(char *block, char *name, double def)
@@ -329,8 +298,7 @@ double par_getd_def(char *block, char *name, double def)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_sets(char *block, char *name, char *sval, char *comment)
- *  \brief Set or add a string */
+/* par_sets: set or add a string */
 
 void par_sets(char *block, char *name, char *sval, char *comment)
 {
@@ -341,9 +309,7 @@ void par_sets(char *block, char *name, char *sval, char *comment)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_seti(char *block, char *name, char *fmt, int ival, 
- *                    char *comment)
- *  \brief Set or add an integer */
+/* par_seti: set or add an integer */
 
 void par_seti(char *block, char *name, char *fmt, int ival, char *comment)
 {
@@ -356,9 +322,7 @@ void par_seti(char *block, char *name, char *fmt, int ival, char *comment)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_setd(char *block, char *name, char *fmt, double dval,
- *		      char *comment)
- *  \brief Set or add a double */
+/* par_setd: set or add a double */
 
 void par_setd(char *block, char *name, char *fmt, double dval, char *comment)
 {
@@ -371,8 +335,7 @@ void par_setd(char *block, char *name, char *fmt, double dval, char *comment)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_dump(int mode, FILE *fp)
- *  \brief  Debugging aid: print out the current status of all Blocks/Pars */
+/* par_dump: debugging aid: print out the current status of all Blocks/Pars */
 
 void par_dump(int mode, FILE *fp)
 {
@@ -412,8 +375,7 @@ void par_dump(int mode, FILE *fp)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_close(void)
- *  \brief Close up shop, free memory  */
+/* par_close:  close up shop, free memory  */
 
 void par_close(void)
 {
@@ -426,8 +388,7 @@ void par_close(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_dist_mpi(const int mytid, MPI_Comm comm)
- *  \brief Distribute the doubly linked list of parsed information to
+/* par_dist_mpi: Distribute the doubly linked list of parsed information to
  *   the children.
  */
 
@@ -440,14 +401,13 @@ void par_dist_mpi(const int mytid, MPI_Comm comm)
   int count;
   char *block_name;
 
-  if(mytid == 0){    /* I'm the rank=0 process */
+  if(mytid == 0){    /* I'm the Parent */
     if (!now_open) ath_error("Parameter file is not open\n");
     if(debug)
       fprintf(stdout,"[par_dist_mpi]: Sending Parameter file \"%s\"\n",
 	      now_filename);
 
-/* Share the filename with the children */
-    count = 1 + (int)strlen(now_filename);
+/* Share the filename with the children */ count = 1 + (int)strlen(now_filename);
     if(MPI_SUCCESS != MPI_Bcast(&count, 1, MPI_INT, 0, comm))
       ath_error("[par_dist_mpi]: Error on calling MPI_Bcast\n");
 /* printf("[tid=%d]: filename length = %d\n",mytid,count); */
@@ -531,8 +491,7 @@ void par_dist_mpi(const int mytid, MPI_Comm comm)
 /*=========================== PRIVATE FUNCTIONS ==============================*/
 
 /*--------------------------------------------------------------------------- */
-/*! \fn static void *allocate(size_t size) 
- *  \brief Handy to call if you want to be certain to get the memory, 
+/* allocate: handy to call if you want to be certain to get the memory, 
  *   else it will die here
  */
 
@@ -545,8 +504,7 @@ static void *allocate(size_t size)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static char *my_strdup(char *in)
- *  \brief A simple wrapper for strdup which dies in case of failure.  */
+/*  my_strdup: a simple wrapper for strdup which dies in case of failure.  */
 
 static char *my_strdup(char *in)
 {
@@ -556,8 +514,7 @@ static char *my_strdup(char *in)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static char *skipwhite(char *cp)
- *  \brief Skip whitespace, returning pointer to next location of
+/* skipwhite : skip whitespace, returning pointer to next location of
  *    non-whitespace, or NULL
  */
 
@@ -569,8 +526,7 @@ static char *skipwhite(char *cp)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static void str_term(char *cp)
- *  \brief Terminate a string, removing any extra white space at the end
+/* str_term : Terminate a string, removing any extra white space at the end
  *   of the string. Input char pointer points to the terminating character,
  *   e.g. '\0'.
  */
@@ -587,8 +543,7 @@ static void str_term(char *cp)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static char *line_block_name(char *line) 
- *  \brief Extract a block name from a line containing <block>
+/* line_block_name:  extract a block name from a line containing <block>
  *   Note it returns pointer into a patched piece of the input 'line'
  */
 
@@ -608,11 +563,8 @@ static char *line_block_name(char *line)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static void add_par(Block *bp, char *name, char *value, char *comment)
- *  \brief Add a name = value # comment set to the Par list in the
- *   block *bp.  
- *
- *  If a parameter with the input name exists the value is
+/* add_par: Add a name = value # comment set to the Par list in the
+ *   block *bp.  If a parameter with the input name exists the value is
  *   replaced and if the input comment string is non-NULL it is also overwritten
  */
 
@@ -661,8 +613,7 @@ static void add_par(Block *bp, char *name, char *value, char *comment)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static void add_par_line(Block *bp, char *line)
- *  \brief Parse a line, assume it's "key = value # comment" 
+/* add_par_line:  parse a line, assume it's "key = value # comment" 
  *   and add it into a block
  */
 
@@ -714,8 +665,7 @@ static void add_par_line(Block *bp, char *line)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static Block *add_block(char *name)
- *  \brief Find or add a new named Block */
+/* add_block:  find or add a new named Block */
 
 static Block *add_block(char *name)
 {
@@ -739,8 +689,7 @@ static Block *add_block(char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static Block *find_block(char *name)
- *  \brief Check if a Block name already exists */
+/* find_block: check if a Block name already exists */
 
 static Block *find_block(char *name)
 {
@@ -755,8 +704,7 @@ static Block *find_block(char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static Par *find_par(Block *bp, char *name)
- *  \brief Check if a Block contains a Par with certain name */
+/* find_par: check if a Block contains a Par with certain name */
 
 static Par *find_par(Block *bp, char *name)
 {
@@ -771,8 +719,7 @@ static Par *find_par(Block *bp, char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static void free_all(void)
- *  \brief Free all stuff associated with Block's and Par's */
+/* free_all:  free all stuff associated with Block's and Par's */
 
 static void free_all(void)
 {
@@ -798,8 +745,7 @@ static void free_all(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn static char *par_getsl(char *block, char *name)
- *  \brief Helper function to return a local string. external clients should
+/* par_getsl: helper function to return a local string. external clients should
  *   call par_gets, which returns a newline allocate string
  */
 
@@ -820,8 +766,7 @@ static char *par_getsl(char *block, char *name)
 }
 
 /*----------------------------------------------------------------------------*/
-/*! \fn void par_debug(int level)
- *  \brief Set debug flag to level.  Call with argument=1 to enable 
+/* par_debug: set debug flag to level.  Call with argument=1 to enable 
  *   diagnositc output.    Alas, not really for the outside world to use */
 
 void par_debug(int level) {      /* un - advertised :-) */

@@ -1,11 +1,9 @@
-/*! \file copyright.h
- *  \brief Copyright and license information.
-
+/*
  ATHENA 
 
  AUTHORS:
      James M. Stone, Princeton Univeristy
-     Thomas A. Gardiner, Sandia National Laboratory
+     Thomas A. Gardiner, Princeton University/Cray Research
      Peter J. Teuben, University of Maryland
      John F. Hawley, University of Virginia
 
