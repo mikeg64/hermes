@@ -145,8 +145,8 @@ void problem(DomainS *pDomain)
         pGrid->U[k][j][i].M3 = 0.0;
         pGrid->B1i[k][j][i] = bx0;
         pGrid->B2i[k][j][i] = 0.0;
-        pGrid->U[k][j][i].B1c = bx0;
-        pGrid->U[k][j][i].B2c = 0.0;
+        pGrid->U[k][j][i].B1c = 0.0;
+        pGrid->U[k][j][i].B2c = bx0;
         pGrid->U[k][j][i].B3c = 0.0;
 
 
@@ -245,7 +245,7 @@ int i, is=pGrid->is, ie = pGrid->ie;
   n2=2;
 
 
-  s_period=30.0; //Driver period
+  s_period=180.0; //Driver period
   AA=350.0;       //Driver amplitude
   //AA=0.0;
   xcz=0.5e6;
