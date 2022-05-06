@@ -8,26 +8,29 @@ OBJS += \
 ./cuda_engine/new_dt_cuda.o \
 ./cuda_engine/set_bvals_cuda.o 
 
+CUDACCFLAGS = --ptxas-options=-v -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_70,code=compute_70  -maxrregcount=32
+
+
 
 # Each subdirectory must supply rules for building sources it contributes
 cuda_engine/integrate_2d_cuda.o: ../cuda_engine/integrate_2d_cuda.cu
 	@echo 'Building file: $<'
 	@echo 'Invoking: Resource Custom Build Step'
-	$(CUDA_NVCC) -c -arch sm_13 "../cuda_engine/integrate_2d_cuda.cu" -o "cuda_engine/integrate_2d_cuda.o"
+	$(CUDA_NVCC) -c $(CUDACCFLAGS) "../cuda_engine/integrate_2d_cuda.cu" -o "cuda_engine/integrate_2d_cuda.o"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 cuda_engine/new_dt_cuda.o: ../cuda_engine/new_dt_cuda.cu
 	@echo 'Building file: $<'
 	@echo 'Invoking: Resource Custom Build Step'
-	$(CUDA_NVCC) -c -arch sm_13 "../cuda_engine/new_dt_cuda.cu" -o "cuda_engine/new_dt_cuda.o"
+	$(CUDA_NVCC) -c $(CUDACCFLAGS) "../cuda_engine/new_dt_cuda.cu" -o "cuda_engine/new_dt_cuda.o"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 cuda_engine/set_bvals_cuda.o: ../cuda_engine/set_bvals_cuda.cu
 	@echo 'Building file: $<'
 	@echo 'Invoking: Resource Custom Build Step'
-	$(CUDA_NVCC) -c -arch sm_13 "../cuda_engine/set_bvals_cuda.cu" -o "cuda_engine/set_bvals_cuda.o"
+	$(CUDA_NVCC) -c $(CUDACCFLAGS) "../cuda_engine/set_bvals_cuda.cu" -o "cuda_engine/set_bvals_cuda.o"
 	@echo 'Finished building: $<'
 	@echo ' '
 
