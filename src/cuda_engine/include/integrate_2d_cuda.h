@@ -16,5 +16,6 @@
 extern void integrate_init_2d_cu(int nx1, int nx2);
 extern void integrate_destruct_2d_cu();
 extern void integrate_2d_cu(Grid_gpu *);
+extern void userwork_in_loop_2d_cu(Grid_gpu *);
 
 #endif /* INTEGRATE_2D_CUDA_H_ */

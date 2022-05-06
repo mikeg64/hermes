@@ -278,7 +278,7 @@ int main(int argc, char** argv) {
 #else
 
       gettimeofday(&t1_gpu, 0); // start
-      userwork_in_loop_cuda(&level0_grid_gpu_dev);
+      userwork_in_loop_2d_cu(&level0_grid_gpu_dev);
       gettimeofday(&t2_gpu, 0); // stop
 
 #ifdef GPU_HOST_COMPARE
