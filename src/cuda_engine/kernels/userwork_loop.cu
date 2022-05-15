@@ -8,7 +8,7 @@
 
 // Started as:
 // userwork_loop_dev_dev<<<nnBlocks, BLOCK_SIZE>>>(pG->U, is-1, ie+1, js-1, je+1, sizex, hdtodx1, hdtodx2);
-__global__ void userwork_loop_dev( Gas *U, int is, int ie, int js, int je, int sizex, Real dtodx2) {
+__global__ void userwork_loop_dev(Grid_gpu *pG_gpu, Gas *U, int is, int ie, int js, int je, Real tdep, Real xxmax, Real yymax, Real xxmin, Real yymin, Real AA, Real delta_x, Real delta_y, Real xcz, Real xcx, Real delta_x, Real delta_y) {
   
   
   Real x1,x2;
@@ -26,15 +26,15 @@ __global__ void userwork_loop_dev( Gas *U, int is, int ie, int js, int je, int s
   
   
   		xp=x1-xxmin;
-		yp=x3-yymin;
-		zp=x2;
+		yp=x2-yymin;
 
-		r2=(zp-xcz)*(zp-xcz);
+
+		r2=(yp-xcz)*(yp-xcz);
         r1=(xp-xcx)*(xp-xcx);
 		
-        exp_y=exp(-r1/(delta_x*delta_x));
-		exp_z=exp(-r2/(delta_z*delta_z));
-        exp_x=exp(-r1/(delta_y*delta_y));
+ 
+		exp_z=exp(-r2/(delta_y*delta_y));
+        exp_x=exp(-r1/(delta_x*delta_x));
 
         exp_xyz=exp_x*exp_z;
 

@@ -421,13 +421,6 @@ void userwork_in_loop_2d_cu(Grid_gpu *pG_gpu) {
 	qt=pG_gpu->time;
 
 
-
-
-int i = (blockIdx.x * blockDim.x) + threadIdx.x;
-  int j;
-  calculateIndexes2D(&i, &j, sizex);
-  
-  Real x1,x2;
   
    n1=2;
   n2=2;
@@ -442,16 +435,18 @@ int i = (blockIdx.x * blockDim.x) + threadIdx.x;
   delta_x=0.064e6;
   delta_y=0.064e6;
   
-  
-  
-  
-  
-  //cc_pos_dev(pG_gpu,  i, j, &x1, &x2);
-
+  cc_pos_dev(pG_gpu,ie,je,&x1,&x2);
+  xxmax=x1;
+  yymax=x2;
+  cc_pos_dev(pG_gpu,is,js,&x1,&x2);
+  xxmax=xxmax-x1;
+  yymax=yymax-x2;
+  xxmin=x1;
+  yymin=x2;
 
 	tdep=sin(qt*2.0*PI/s_period);
 	
-	userwork_loop_dev CUDA_KERNEL_DIM(nnBlocks, BLOCK_SIZE) (x1Flux_dev, pG_gpu->U, is, ie, js, je, sizex, dtodx1);
+	userwork_loop_dev CUDA_KERNEL_DIM(nnBlocks, BLOCK_SIZE) (pG_gpu, pG_gpu->U, is, ie, js, je, tdep,xxmax,yymax,xxmin,yymin,AA,delta_x,delta_y,xcz,xcx,delta_x,delta_y);
 
 	code = cudaThreadSynchronize();
 	showError("Synchronize: ", code);	
