@@ -34,7 +34,7 @@
 
 /*----------------------------------------------------------------------------*/
 /* problem:   */
-
+#undef FIELD_LOOP
 #ifdef FIELD_LOOP
 
 void problem(Grid *pGrid)

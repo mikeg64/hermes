@@ -23,11 +23,15 @@
 #define CONFIGURE_DATE "Mon Nov 23 00:56:33 CET 2009"
 
 /* Problem generator with which Athena is compiled */
-#define A_PROBLEM "field_loop"
+/*#define A_PROBLEM "field_loop"*/
+#undef FIELD_LOOP
+#define A_PROBLEM "orszag_tang"
+#define ORSZAG_TANG
 
 /* HYDRO or MHD */
 #define MHD
-
+/*#define GPU_HOST_COMPARE*/
+/*#define ONLY_HOST*/
 /* ADIABATIC or ISOTHERMAL */
 #define ADIABATIC
 

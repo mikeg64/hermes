@@ -260,40 +260,7 @@ int main(int argc, char** argv) {
 
 #endif /* GPU_HOST_COMPARE */
 
-
-
 #endif /* ONLY_HOST */
-
-
-
-
-
-
-#ifdef ONLY_HOST
-
-    /* User work (defined in problem()) */
-
-    Userwork_in_loop(&level0_Grid);
-
-#else
-
-      gettimeofday(&t1_gpu, 0); // start
-      userwork_in_loop_2d_cu(&level0_grid_gpu_dev);
-      gettimeofday(&t2_gpu, 0); // stop
-
-#ifdef GPU_HOST_COMPARE
-
-      printTimeSpeedup(t1, t2, t1_gpu, t2_gpu,"userwork in loop");
-
-#endif /* GPU_HOST_COMPARE */
-#endif /* ONLY_HOST */
-
-
-
-
-
-
-
 
 
 #ifdef ONLY_HOST
