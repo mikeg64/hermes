@@ -28,6 +28,9 @@
 #define A_PROBLEM "orszag_tang"
 #define ORSZAG_TANG
 
+/* #define A_PROBLEM "solp"
+#define SOLP */
+
 /* HYDRO or MHD */
 #define MHD
 /*#define GPU_HOST_COMPARE*/
