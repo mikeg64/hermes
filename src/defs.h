@@ -25,11 +25,11 @@
 /* Problem generator with which Athena is compiled */
 /*#define A_PROBLEM "field_loop"*/
 #undef FIELD_LOOP
-#define A_PROBLEM "orszag_tang"
-#define ORSZAG_TANG
+/*#define A_PROBLEM "orszag_tang"
+#define ORSZAG_TANG*/
 
-/* #define A_PROBLEM "solp"
-#define SOLP */
+#define A_PROBLEM "solp"
+#define SOLP
 
 /* HYDRO or MHD */
 #define MHD

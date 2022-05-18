@@ -24,6 +24,7 @@ O_SRCS += \
 ../new_dt.o \
 ../new_dt_cuda.o \
 ../orszag-tang.o \
+../solp.o \ 
 ../output.o \
 ../output_ppm.o \
 ../par.o \
@@ -55,6 +56,7 @@ C_SRCS += \
 ../main.c \
 ../new_dt.c \
 ../orszag-tang.c \
+../solp.c \
 ../output.c \
 ../output_ppm.c \
 ../output_tab.c \
@@ -86,6 +88,7 @@ OBJS += \
 ./main.o \
 ./new_dt.o \
 ./orszag-tang.o \
+./solp.o \
 ./output.o \
 ./output_ppm.o \
 ./output_tab.o \
@@ -117,6 +120,7 @@ C_DEPS += \
 ./main.d \
 ./new_dt.d \
 ./orszag-tang.d \
+./solp.d \
 ./output.d \
 ./output_ppm.d \
 ./output_tab.d \
