@@ -8,10 +8,13 @@
 
 // Started as:
 // userwork_loop_dev_dev<<<nnBlocks, BLOCK_SIZE>>>(pG->U, is-1, ie+1, js-1, je+1, sizex, hdtodx1, hdtodx2);
-__global__ void userwork_loop_dev(Grid_gpu *pG_gpu, Gas *U, int is, int ie, int js, int je, Real tdep, Real xxmax, Real yymax, Real xxmin, Real yymin, Real AA, Real delta_x, Real delta_y, Real xcz, Real xcx, Real delta_x, Real delta_y) {
+__global__ void userwork_loop_dev(Grid_gpu *pG_gpu, Gas *U, int is, int ie, int js, int je, Real tdep,  Real AA,  Real xcz, Real xcx, Real delta_x, Real delta_y) {
   
-  
+  Real exp_z,exp_x,exp_xyz,vvz,dt;
+  int sizex,sizey;
+Real xxmax, yymax, xxmin, yymin;
   Real x1,x2;
+  Real xp,yp,r1,r2;
   int i = (blockIdx.x * blockDim.x) + threadIdx.x;
   int j = i / sizex;
   i = i % sizex;
@@ -19,12 +22,24 @@ __global__ void userwork_loop_dev(Grid_gpu *pG_gpu, Gas *U, int is, int ie, int 
   /* Check bounds */
   if(i < is || i > ie || j < js || j > je) return;
 
+
+
+cc_pos_dev(pG_gpu,ie,je,&x1,&x2);
+  xxmax=x1;
+  yymax=x2;
+  cc_pos_dev(pG_gpu,is,js,&x1,&x2);
+  xxmax=xxmax-x1;
+  yymax=yymax-x2;
+  xxmin=x1;
+  yymin=x2;
+
+
   int ind = j*sizex+i;
    
   
   cc_pos_dev(pG_gpu,  i, j, &x1, &x2);
   
-  
+  dt=pG_gpu->dt;
   		xp=x1-xxmin;
 		yp=x2-yymin;
 

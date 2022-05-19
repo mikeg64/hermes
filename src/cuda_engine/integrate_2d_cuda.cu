@@ -10,6 +10,7 @@
 #include "../defs.h"
 #include "../athena.h"
 #include "../globals.h"
+#include "../prototypes.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <sys/time.h>
@@ -72,7 +73,7 @@ __device__ Real** pW_dev;
 #include "kernels/dhalf.cu"
 #include "kernels/slices1D_2.cu"
 #include "kernels/update_cc_fluxes.cu"
-
+#include "kernels/userwork_loop.cu"
 
 void showError(const char * cmd, cudaError_t code) {
 	if(cmd != NULL) {
@@ -435,170 +436,24 @@ void userwork_in_loop_2d_cu(Grid_gpu *pG_gpu) {
   delta_x=0.064e6;
   delta_y=0.064e6;
   
-  cc_pos_dev(pG_gpu,ie,je,&x1,&x2);
+  /*cc_pos(pG,ie,je,&x1,&x2);
   xxmax=x1;
   yymax=x2;
-  cc_pos_dev(pG_gpu,is,js,&x1,&x2);
+  cc_pos(pG,is,js,&x1,&x2);
   xxmax=xxmax-x1;
   yymax=yymax-x2;
   xxmin=x1;
-  yymin=x2;
+  yymin=x2;*/
 
 	tdep=sin(qt*2.0*PI/s_period);
 	
-	userwork_loop_dev CUDA_KERNEL_DIM(nnBlocks, BLOCK_SIZE) (pG_gpu, pG_gpu->U, is, ie, js, je, tdep,xxmax,yymax,xxmin,yymin,AA,delta_x,delta_y,xcz,xcx,delta_x,delta_y);
+	userwork_loop_dev CUDA_KERNEL_DIM(nnBlocks, BLOCK_SIZE) (pG_gpu, pG_gpu->U, is, ie, js, je, tdep,AA,xcz,xcx,delta_x,delta_y);
 
 	code = cudaThreadSynchronize();
 	showError("Synchronize: ", code);	
 
 
 
-/*   DomainS *pDomain = (DomainS*)&(pM->Domain[0][0]);
-  GridS *pGrid = pM->Domain[0][0].Grid;
-
-
-int i, is=pGrid->is, ie = pGrid->ie;
-  int j, js=pGrid->js, je = pGrid->je;
-  int k, ks=pGrid->ks, ke = pGrid->ke;
-  Real newtime;
-
-  Real qt,tdep,s_period,AA;
-  Real delta_x, delta_y, delta_z, xxmax, yymax, xxmin, yymin;
-  Real exp_x,exp_y,exp_z,exp_xyz;
-  Real r1,r2,xp, yp,zp;
-  Real vvz;
-  Real x1,x2,x3;
-
-  Real xcz,xcx;
-
-  int n1,n2;
-
-  n1=2;
-  n2=2;
-
-
-  s_period=180.0; //Driver period
-  AA=350.0;       //Driver amplitude
-  //AA=0.0;
-  xcz=0.5e6;
-  xcx=2.0e6;
-  delta_z=0.064e6;
-  delta_x=0.064e6;
-  delta_y=0.064e6;
-
-
-
-
-  if (isnan(pGrid->dt)) ath_error("Time step is NaN!");
-
-
-	qt=pGrid->time;
-
-	tdep=sin(qt*2.0*PI/s_period);
-        //tdep=1.0;
-
-
-	if (pM->Nx[2] == 1)
-	{
-		cc_pos(pGrid,ie,je,ke,&x1,&x2,&x3);
-		xxmax=x1;
-		yymax=x3;
-		cc_pos(pGrid,is,js,ks,&x1,&x2,&x3);
-		xxmax=xxmax-x1;
-		yymax=yymax-x3;
-		xxmin=x1;
-		yymin=x3;
-	}
-
-        /*printf("%d %d %d \n",is,js,ks);
-        printf("%d %d %d \n",ie,je,ke);
-        printf("%d %d %d \n", pGrid->Nx[0],pGrid->Nx[1], pGrid->Nx[2]);*/
-	if (pGrid->Nx[2] == 1) {
-	  for (k=ks; k<=ke; k++) {
-	    for (j=js; j<=je; j++) {
-	      for (i=is; i<=ie; i++) {
-		cc_pos(pGrid,i,j,k,&x1,&x2,&x3);
-
-		xp=x1-xxmin;
-		yp=x3-yymin;
-		zp=x2;
-
-		r2=(zp-xcz)*(zp-xcz);
-                r1=(xp-xcx)*(xp-xcx);
-		
-                exp_y=exp(-r1/(delta_x*delta_x));
-		exp_z=exp(-r2/(delta_z*delta_z));
-                exp_x=exp(-r1/(delta_y*delta_y));
-
-		//exp_xyz=sin(PI*xp*(n1+1)/xxmax)*exp_z;
-		//exp_xyz=exp_y*exp_z;
-                exp_xyz=exp_x*exp_z;
-
-		vvz=AA*exp_xyz*tdep;
-                //vvz=0;
-                //if(j==12)
-                //    printf("%d %d %d %f %f %f %f %f %f %f\n",i,j,k,xp,yp,zp,xcz,exp_x,exp_z,vvz);
-
-//if(i>60 && i<68)
-//if(i>is && i<ie)
-//{
-
-                //(j>8 && j<16 && qt<2)
-                //    printf("%d %d %d %g %g %g %g  \n",i,j,k,vvz,exp_x,exp_z,(pGrid->dt)*vvz*(pGrid->U[k][j][i].d));
-
-
-		pGrid->U[k][j][i].M2 += (pGrid->dt)*vvz*(pGrid->U[k][j][i].d);
-		pGrid->U[k][j][i].E += (pGrid->dt)*vvz*vvz*(pGrid->U[k][j][i].d)/2.0;
-//}
-	      }
-              //printf("\n");
-
-	    }
-	  }
-        }
-
-	//for 3D model
-	if (pM->Nx[2] > 1)
-	{
-		cc_pos(pGrid,ie,je,ke,&x1,&x2,&x3);
-		xxmax=x1;
-		yymax=x2;
-		cc_pos(pGrid,is,js,ks,&x1,&x2,&x3);
-		xxmax=xxmax-x1;
-		yymax=yymax-x2;
-		xxmin=x1;
-		yymin=x2;
-	}
-
-
-
-	if (pGrid->Nx[2] > 1) {
-	  for (k=ks; k<=ke; k++) {
-	    for (j=js; j<=je; j++) {
-	      for (i=is; i<=ie; i++) {
-		cc_pos(pGrid,i,j,k,&x1,&x2,&x3);
-
-		xp=x1-xxmin;
-		yp=x2-yymin;
-		zp=x3;
-
-		r2=(x3-xcz)*(x3-xcz);
-		
-		exp_z=exp(-r2/(delta_z*delta_z));
-		exp_xyz=sin(PI*xp*(n1+1)/xxmax)*sin(PI*yp*(n2+1)/yymax)*exp_z;
-
-		vvz=AA*exp_xyz*tdep;
-                //vvz=0;
-
-		pGrid->U[k][j][i].M3 += (pGrid->dt)*vvz*(pGrid->U[k][j][i].d);
-		pGrid->U[k][j][i].E += (pGrid->dt)*vvz*vvz*(pGrid->U[k][j][i].d)/2.0;
-	      }
-
-	    }
-	  }
-      }
-
-	//newtime = pGrid->time + pGrid->dt;   */
 
 
 

@@ -25,6 +25,7 @@
 #undef FIELD_LOOP
 #ifdef SOLP
 
+static Real grav_pot2(const Real x1, const Real x2);
 
 void problem(Grid *pGrid)
 {

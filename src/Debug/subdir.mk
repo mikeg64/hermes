@@ -24,13 +24,13 @@ O_SRCS += \
 ../new_dt.o \
 ../new_dt_cuda.o \
 ../orszag-tang.o \
-../solp.o \ 
 ../output.o \
 ../output_ppm.o \
 ../par.o \
 ../set_bvals.o \
 ../set_bvals_cuda.o \
 ../show_config.o \
+../solp.o \
 ../utils.o \
 ../utils_cu.o 
 
@@ -56,13 +56,13 @@ C_SRCS += \
 ../main.c \
 ../new_dt.c \
 ../orszag-tang.c \
-../solp.c \
 ../output.c \
 ../output_ppm.c \
 ../output_tab.c \
 ../par.c \
 ../set_bvals.c \
 ../show_config.c \
+../solp.c \
 ../utils.c \
 ../utils_cu.c 
 
@@ -88,13 +88,13 @@ OBJS += \
 ./main.o \
 ./new_dt.o \
 ./orszag-tang.o \
-./solp.o \
 ./output.o \
 ./output_ppm.o \
 ./output_tab.o \
 ./par.o \
 ./set_bvals.o \
 ./show_config.o \
+./solp.o \
 ./utils.o \
 ./utils_cu.o 
 
@@ -120,13 +120,13 @@ C_DEPS += \
 ./main.d \
 ./new_dt.d \
 ./orszag-tang.d \
-./solp.d \
 ./output.d \
 ./output_ppm.d \
 ./output_tab.d \
 ./par.d \
 ./set_bvals.d \
 ./show_config.d \
+./solp.d \
 ./utils.d \
 ./utils_cu.d 
 
