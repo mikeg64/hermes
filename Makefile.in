@@ -1,76 +1,120 @@
-#    @WARNING1@
-#    @WARNING2@
-#===============================================================================
-# FILE: Makefile.in
-#
-# PURPOSE: Template for Makefile; the top level makefile for Athena.  The first
-# target (help) documents the rest.  When 'configure' is run, a new Makefile
-# will be created (overwriting the last) from this template.
-#
-# TO BY-PASS CONFIGURE: copy this file into Makefile, and edit by hand to set
-#   the appropriate object files, compiler options, and library paths.
-#-------------------------------------------------------------------------------
-#
-DIRS = bin
+# Template for Athena++ Makefile
+# The 'configure.py' python script uses this template to create the actual Makefile
 
-help:
-	@echo "all:       create ($(DIRS)) subdirectory and compile"
-	@echo "dirs:      create ($(DIRS)) subdirectory"
-	@echo "compile:	  compile the code"
-	@echo "clean:     clean /src subdirectory"
-	@echo "test:      run a MHD benchmark"
+# Files for conditional compilation
 
-#-------------------------------------------------------------------------------
-#  target all:
-all:    dirs compile
+PROBLEM_FILE = @PROBLEM_FILE@
+COORDINATES_FILE = @COORDINATES_FILE@
+EOS_FILE = @EOS_FILE@
+GENERAL_EOS_FILE = @GENERAL_EOS_FILE@
+RSOLVER_FILE = @RSOLVER_FILE@
+RSOLVER_DIR = @RSOLVER_DIR@
+MPIFFT_FILE = @MPIFFT_FILE@
 
-#-------------------------------------------------------------------------------
-#  target dirs:
-dirs:
-	-@for i in $(DIRS) ; do \
-	(if [ -d $$i ]; \
-	then \
-	    echo DIR $$i exists; \
-	else \
-	    echo DIR $$i created; \
-	    mkdir $$i; \
-	fi); done
+# General compiler specifications
 
-#-------------------------------------------------------------------------------
-#  target compile: runs Make in /src and all subdirectories in /src
-compile:
-ifeq (@FFT_MODE@,FFT_ENABLED)
-	(cd src/fftsrc; $(MAKE) compile)
-endif
-ifeq (@SMAUG_MODE@,SMAUG_ENABLED)
-	(cd src/smaug/src; $(MAKE) compile)
-endif
-	(cd src/gravity; $(MAKE) compile)
-	(cd src/integrators; $(MAKE) compile)
-	(cd src/microphysics; $(MAKE) compile)
-	(cd src/particles; $(MAKE) compile)
-	(cd src/reconstruction; $(MAKE) compile)
-	(cd src/rsolvers; $(MAKE) compile)
-	(cd src; $(MAKE) compile)
+CXX := @COMPILER_COMMAND@
+CPPFLAGS := @PREPROCESSOR_FLAGS@
+CXXFLAGS := @COMPILER_FLAGS@
+LDFLAGS := @LINKER_FLAGS@
+LDLIBS := @LIBRARY_FLAGS@
+GCOV_CMD := @GCOV_COMMAND@
 
-#-------------------------------------------------------------------------------
-#  target clean:
-clean:
-	(cd src/smaug/src; $(MAKE) clean)
-	(cd src/fftsrc; $(MAKE) clean)
-	(cd src/gravity; $(MAKE) clean)
-	(cd src/integrators; $(MAKE) clean)
-	(cd src/microphysics; $(MAKE) clean)
-	(cd src/particles; $(MAKE) clean)
-	(cd src/reconstruction; $(MAKE) clean)
-	(cd src/rsolvers; $(MAKE) clean)
-	(cd src; $(MAKE) clean)
+# Preliminary definitions
 
-#-------------------------------------------------------------------------------
-# test: checks that default configuration runs successfully.  Reports error
-# compared to fiducial solution, and a speed benchmark.  Requires the
-# following steps: > configure
-#                  > make all
-#                  > make test
-test:
-	(cd tst/1D-mhd; ./run.test)
+EXE_DIR := bin/
+EXECUTABLE := $(EXE_DIR)athena
+SRC_FILES := $(wildcard src/*.cpp) \
+	     $(wildcard src/bvals/*.cpp) \
+	     $(wildcard src/bvals/cc/*.cpp) \
+	     $(wildcard src/bvals/cc/fft_grav/*.cpp) \
+	     $(wildcard src/bvals/cc/hydro/*.cpp) \
+	     $(wildcard src/bvals/cc/mg/*.cpp) \
+             $(wildcard src/bvals/cc/nr_radiation/*.cpp) \
+	     $(wildcard src/bvals/fc/*.cpp) \
+	     $(wildcard src/bvals/orbital/*.cpp) \
+	     $(wildcard src/bvals/utils/*.cpp) \
+	     $(wildcard src/coordinates/*.cpp) \
+	     src/eos/general/$(GENERAL_EOS_FILE) \
+	     src/eos/$(EOS_FILE) \
+	     src/eos/eos_high_order.cpp \
+	     src/eos/eos_scalars.cpp \
+	     $(wildcard src/fft/*.cpp) \
+	     $(wildcard src/field/*.cpp) \
+	     $(wildcard src/field/field_diffusion/*.cpp) \
+	     $(wildcard src/gravity/*.cpp) \
+	     $(wildcard src/hydro/*.cpp) \
+	     $(wildcard src/hydro/srcterms/*.cpp) \
+	     $(wildcard src/hydro/hydro_diffusion/*.cpp) \
+             $(wildcard src/nr_radiation/*.cpp) \
+             $(wildcard src/nr_radiation/integrators/*.cpp) \
+             $(wildcard src/nr_radiation/integrators/srcterms/*.cpp) \
+             $(wildcard src/nr_radiation/implicit/*.cpp) \
+             $(wildcard src/cr/*.cpp) \
+             $(wildcard src/cr/integrators/*.cpp) \
+	     src/hydro/rsolvers/$(RSOLVER_DIR)$(RSOLVER_FILE) \
+	     $(wildcard src/inputs/*.cpp) \
+	     $(wildcard src/mesh/*.cpp) \
+	     $(wildcard src/multigrid/*.cpp) \
+	     $(wildcard src/orbital_advection/*.cpp) \
+	     $(wildcard src/outputs/*.cpp) \
+	     src/pgen/default_pgen.cpp \
+	     src/pgen/$(PROBLEM_FILE) \
+	     $(wildcard src/reconstruct/*.cpp) \
+	     $(wildcard src/scalars/*.cpp) \
+	     $(wildcard src/task_list/*.cpp) \
+	     $(wildcard src/utils/*.cpp) \
+	     $(MPIFFT_FILE)
+OBJ_DIR := obj/
+OBJ_FILES := $(addprefix $(OBJ_DIR),$(notdir $(SRC_FILES:.cpp=.o)))
+GCOV_FILES := $(notdir $(addsuffix .gcov,$(SRC_FILES)))
+GCDA_FILES := $(wildcard $(OBJ_DIR)/*.gcda)
+SRC_PREFIX := src/
+SRC_DIRS := $(dir $(SRC_FILES))
+VPATH := $(SRC_DIRS)
+
+# Generally useful targets
+
+.PHONY : all dirs clean
+
+all : dirs $(EXECUTABLE)
+
+objs : dirs $(OBJ_FILES)
+
+dirs : $(EXE_DIR) $(OBJ_DIR)
+
+# Placing gcov target in the Makefile in order to easily collect all SRC_FILES w/ correct paths
+
+gcov : dirs $(GCOV_FILES)
+
+# For debugging variables in Makefile, e.g. by "make print-GCOV_FILES"
+
+print-%  : ; @echo $* = $($*)
+
+$(EXE_DIR):
+	mkdir -p $(EXE_DIR)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+# Link objects into executable
+
+$(EXECUTABLE) : $(OBJ_FILES)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $(OBJ_FILES) $(LDFLAGS) $(LDLIBS)
+
+# Create objects from source files
+
+$(OBJ_DIR)%.o : %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+# Process .gcno and .gcda files from obj/ into .cpp.gcov files (and .hpp.gcov, .h.gcov) in root directory
+# Rerun Gcov on all files if a single .gcda changes. Other options to consider: --preserve-paths -abcu
+./%.cpp.gcov : %.cpp $(OBJ_DIR)/%.gcno $(GCDA_FILES)
+	$(GCOV_CMD)  --relative-only --source-prefix=$(SRC_PREFIX) --object-directory=$(OBJ_DIR) $<
+
+# Cleanup
+
+clean :
+	rm -rf $(OBJ_DIR)*
+	rm -rf $(EXECUTABLE)
+	rm -rf *.gcov

@@ -1,1 +1,0 @@
-prob/shkset1d.c
